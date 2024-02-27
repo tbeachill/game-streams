@@ -1,0 +1,4 @@
+CommandURL = "https://discord.com/api/v10/applications/<application_id>/commands"
+StreamURL = "https://raw.githubusercontent.com/tbeachill/flat-files/main/streams.toml"
+APIURL = "https://api.github.com/repos/tbeachill/flat-files/commits/main"
+LastUpdate = "2024-02-25T18:53:00Z"
