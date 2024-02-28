@@ -9,8 +9,8 @@ jobs:
   stopbot:
     runs-on: self-hosted
     steps:
-      - name: Stop bot process
-        run: if pgrep gamestreambot; then pkill gamestreambot; fi
+      - name: Stop bot service
+        run: sudo systemctl stop gamestreambot
 
   build:
     needs: stopbot
@@ -52,5 +52,7 @@ jobs:
     needs: build
     runs-on: self-hosted
     steps:
-      - name: Start bot process
-        run: bin/gamestreambot &
+      - name: Start bot service
+        run: |
+          sudo systemctl daemon-reload
+          sudo systemctl start gamestreambot
