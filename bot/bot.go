@@ -14,8 +14,6 @@ import (
 	"gamestreambot/utils"
 )
 
-// TODO: add log when added to new server?
-// TODO: how to see how many servers its in?
 // TODO: add uptime command
 
 func Run(botToken, appID string) {
@@ -42,6 +40,7 @@ func Run(botToken, appID string) {
 	<-c
 }
 
+// TODO: change to sleep until time to run updater
 // check for updates to the streams every hour, on the hour
 func startUpdater() {
 UPDATE:
@@ -57,6 +56,7 @@ UPDATE:
 	}
 }
 
+// TODO: change to sleep until time to run scheduler
 // check if a new day has started, if so, schedule notifications for today's streams
 func startScheduler(session *discordgo.Session) {
 SCHEDULE:

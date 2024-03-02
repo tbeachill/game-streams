@@ -15,8 +15,10 @@ import (
 	"gamestreambot/utils"
 )
 
-// TODO: add options table to db - platforms, channels, etc
-// TODO: add a way of deleting by specifying a list of IDs
+// TODO: make some functions methods
+// TODO: options set up command
+// TODO: remove server from options table when bot leaves server
+// TODO: add a way of deleting streams by specifying a list of IDs
 
 type Stream struct {
 	ID          int
@@ -32,7 +34,19 @@ type Streams struct {
 	Streams []Stream
 }
 
-// create the db and the streams table
+type Options struct {
+	ServerID        int
+	AnnounceChannel string
+	AnnounceRole    string
+	Playstation     bool
+	Xbox            bool
+	Nintendo        bool
+	PC              bool
+	Awards          bool
+}
+
+// create the db with a streams table containing stream information and an options table
+// containing server specific options
 func CreateDB() error {
 	db, openErr := sql.Open("sqlite3", utils.DBFile)
 	if openErr != nil {
@@ -43,8 +57,14 @@ func CreateDB() error {
 	sqlStmt := `
 	create table if not exists streams (id integer not null primary key, name text, platform text, date text, time text, description text, url text);
 	`
-
 	_, tableErr := db.Exec(sqlStmt)
+	if tableErr != nil {
+		return tableErr
+	}
+	sqlStmt = `
+	create table if not exists options (server_id integer not null primary key, announce_channel text, announce_role text, playstation boolean, xbox boolean, nintendo boolean, pc boolean, awards boolean);
+	`
+	_, tableErr = db.Exec(sqlStmt)
 	if tableErr != nil {
 		return tableErr
 	}
