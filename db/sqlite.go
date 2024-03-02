@@ -154,7 +154,8 @@ func UpdateStreams() error {
 	if insertErr := insertStreams(noDupList, commitTime, c); insertErr != nil {
 		return insertErr
 	}
-	utils.Logger.WithPrefix("UPDAT").Infof("added %d new streams to database and updated %d streams\n", len(noDupList.Streams)-updateCount, updateCount)
+	addedCount := len(noDupList.Streams) - updateCount
+	utils.Logger.WithPrefix("UPDAT").Infof("added %d new stream%s to database and updated %d stream%s\n", addedCount, utils.Pluralise(addedCount), updateCount, utils.Pluralise(updateCount))
 
 	if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
 		return lastErr

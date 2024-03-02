@@ -67,7 +67,8 @@ func ScheduleNotifications(session *discordgo.Session) error {
 			postStreamLink(*currentStream, session)
 		}(&stream)
 	}
-	utils.Logger.WithPrefix("SCHED").Infof("scheduled %d streams for today", len(streamList.Streams))
+	streamLen := len(streamList.Streams)
+	utils.Logger.WithPrefix("SCHED").Infof("scheduled %d stream%s for today", streamLen, utils.Pluralise(streamLen))
 	return nil
 }
 

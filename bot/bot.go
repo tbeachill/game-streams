@@ -9,6 +9,7 @@ import (
 
 	"gamestreambot/commands"
 	"gamestreambot/db"
+	"gamestreambot/stats"
 	"gamestreambot/streams"
 	"gamestreambot/utils"
 )
@@ -33,6 +34,7 @@ func Run(botToken, appID string) {
 	commands.RegisterHandler(session, &discordgo.InteractionCreate{})
 	go startUpdater()
 	go startScheduler(session)
+	stats.MonitorGuilds(session)
 
 	utils.Logger.WithPrefix(" MAIN").Info("running. press ctrl + c to terminate")
 	c := make(chan os.Signal, 1)

@@ -41,6 +41,13 @@ func ParseTomlDate(d string) (string, error) {
 	return fmt.Sprintf("%s-%s-%s", splitStr[2], splitStr[1], splitStr[0]), nil
 }
 
+func Pluralise(n int) string {
+	if n == 1 {
+		return ""
+	}
+	return "s"
+}
+
 func SetConfig() {
 	if runtime.GOOS == "windows" {
 		ConfigFile = "config/config.toml"
