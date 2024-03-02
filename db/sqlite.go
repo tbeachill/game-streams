@@ -2,11 +2,9 @@ package db
 
 import (
 	"database/sql"
-	"os"
-	//"encoding/json"
 	"io"
-	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -15,7 +13,6 @@ import (
 	"github.com/tidwall/gjson"
 
 	"gamestreambot/utils"
-	//s "gamestreambot/streams"
 )
 
 // TODO: add options table to db - platforms, channels, etc
@@ -125,11 +122,11 @@ func UpdateStreams() error {
 			return updateErr
 		}
 		if !updated {
-			log.Println("no new streams found")
+			utils.Logger.WithPrefix("UPDAT").Info("no new streams found")
 			return nil
 		}
 	}
-	log.Println("found new version of toml")
+	utils.Logger.WithPrefix("UPDAT").Info("found new version of toml")
 
 	newStreamList, parseErr := parseToml(c, commitTime)
 	if parseErr != nil {
@@ -150,14 +147,14 @@ func UpdateStreams() error {
 		return dupErr
 	}
 	if len(noDupList.Streams) == 0 {
-		log.Println("no new streams found")
+		utils.Logger.WithPrefix("UPDAT").Info("no new streams found")
 		return nil
 	}
 
 	if insertErr := insertStreams(noDupList, commitTime, c); insertErr != nil {
 		return insertErr
 	}
-	log.Printf("added %d new streams to database and updated %d streams\n", len(noDupList.Streams)-updateCount, updateCount)
+	utils.Logger.WithPrefix("UPDAT").Infof("added %d new streams to database and updated %d streams\n", len(noDupList.Streams)-updateCount, updateCount)
 
 	if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
 		return lastErr

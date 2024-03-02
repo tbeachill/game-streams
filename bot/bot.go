@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"time"
@@ -11,31 +10,31 @@ import (
 	"gamestreambot/commands"
 	"gamestreambot/db"
 	"gamestreambot/streams"
+	"gamestreambot/utils"
 )
 
 // TODO: add log when added to new server?
 // TODO: how to see how many servers its in?
 // TODO: add uptime command
-// TODO: improve logging
 
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)
 	if sessionErr != nil {
-		log.Println("error creating Discord session: ", sessionErr)
+		utils.EWLogger.WithPrefix(" MAIN").Error("error creating Discord session", "err", sessionErr)
 		return
 	}
 	if openErr := session.Open(); openErr != nil {
-		log.Println("error connecting to Discord: ", openErr)
+		utils.EWLogger.WithPrefix(" MAIN").Error("error connecting to Discord", "err", openErr)
 		return
 	}
 	defer session.Close()
-
+	//commands.RemoveAllCommands(appID, session)
 	commands.RegisterCommands(appID, session)
 	commands.RegisterHandler(session, &discordgo.InteractionCreate{})
 	go startUpdater()
 	go startScheduler(session)
 
-	log.Println("running: press ctrl + c to terminate")
+	utils.Logger.WithPrefix(" MAIN").Info("running. press ctrl + c to terminate")
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
@@ -44,9 +43,9 @@ func Run(botToken, appID string) {
 // check for updates to the streams every hour, on the hour
 func startUpdater() {
 UPDATE:
-	log.Println("checking for stream updates...")
+	utils.Logger.WithPrefix("UPDAT").Info("checking for stream updates...")
 	if updateErr := db.UpdateStreams(); updateErr != nil {
-		log.Println("error updating streams: ", updateErr)
+		utils.EWLogger.WithPrefix("UPDAT").Error("error updating streams", "err", updateErr)
 	}
 	for {
 		time.Sleep(1 * time.Minute)
@@ -59,9 +58,9 @@ UPDATE:
 // check if a new day has started, if so, schedule notifications for today's streams
 func startScheduler(session *discordgo.Session) {
 SCHEDULE:
-	log.Println("scheduling notifications for today's streams...")
+	utils.Logger.WithPrefix("SCHED").Info("scheduling notifications for today's streams...")
 	if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
-		log.Println("error scheduling today's streams: ", scheduleErr)
+		utils.EWLogger.WithPrefix("SCHED").Error("error scheduling today's streams", "err", scheduleErr)
 	}
 	for {
 		time.Sleep(1 * time.Minute)

@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"log"
-
 	"github.com/bwmarrin/discordgo"
+
+	"gamestreambot/utils"
 )
 
 // register commands listed in commands.go
@@ -11,7 +11,7 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 	for _, c := range commands {
 		_, err := s.ApplicationCommandCreate(appID, "", c)
 		if err != nil {
-			log.Printf("error creating command %s: %e\n", c.Name, err)
+			utils.EWLogger.WithPrefix(" CMND").Error("error creating command", "cmd", c.Name, "err", err)
 		}
 	}
 }
@@ -20,7 +20,7 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 func RemoveAllCommands(appID string, s *discordgo.Session) {
 	commands, err := s.ApplicationCommands(appID, "")
 	if err != nil {
-		log.Printf("error removing commands: %e\n", err)
+		utils.EWLogger.WithPrefix(" CMND").Error("error removing commands", "err", err)
 	}
 	for _, command := range commands {
 		s.ApplicationCommandDelete(appID, "", command.ID)

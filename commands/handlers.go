@@ -1,11 +1,10 @@
 package commands
 
 import (
-	"log"
-
 	"github.com/bwmarrin/discordgo"
 
 	"gamestreambot/streams"
+	"gamestreambot/utils"
 )
 
 // map of command names to their respective functions
@@ -17,7 +16,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	content, getErr := streams.StreamList()
 	if getErr != nil {
-		log.Printf("error getting stream list: %e\n", getErr)
+		utils.EWLogger.WithPrefix(" CMND").Error("error getting stream list", "err", getErr)
 		content = "An error occurred."
 	}
 
@@ -28,6 +27,6 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		log.Printf("error responding to interaction %s: %e\n", i.ApplicationCommandData().Name, respondErr)
+		utils.EWLogger.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
 	}
 }
