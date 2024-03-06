@@ -3,6 +3,7 @@ package stats
 import (
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreambot/db"
 	"gamestreambot/utils"
 )
 
@@ -24,9 +25,11 @@ func MonitorGuilds(session *discordgo.Session) {
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildCreate) {
 		utils.Logger.WithPrefix("STATS").Info("joined server", "server", e.Guild.Name)
 		logGuildNumber(s)
+		db.SetDefaultOptions(e.Guild.ID)
 	})
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
 		utils.Logger.WithPrefix("STATS").Info("left server", "server", e.Guild.Name)
 		logGuildNumber(s)
+		db.RemoveOptions(e.Guild.ID)
 	})
 }

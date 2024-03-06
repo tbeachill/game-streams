@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -83,4 +84,11 @@ func SetLogger() {
 	mw := io.MultiWriter(os.Stdout, logFile)
 	Logger.SetOutput(mw)
 	EWLogger.SetOutput(mw)
+}
+
+// remove duplicates from a slice of strings
+func RemoveSliceDuplicates(s []string) []string {
+	slices.Sort[[]string](s)
+	slices.Compact[[]string](s)
+	return s
 }

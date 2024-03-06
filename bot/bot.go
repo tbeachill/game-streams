@@ -15,6 +15,7 @@ import (
 )
 
 // TODO: add uptime command
+// TODO: move config to db
 
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)

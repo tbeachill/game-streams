@@ -5,11 +5,10 @@ package streams
 
 import (
 	"fmt"
-	"os"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/joho/godotenv"
 
 	"gamestreambot/db"
 	"gamestreambot/utils"
@@ -72,10 +71,48 @@ func ScheduleNotifications(session *discordgo.Session) error {
 	return nil
 }
 
-// post a message to the server when a stream is about to start
+// post a message to every server that is following the platform when a stream is about to start
 func postStreamLink(stream db.Stream, session *discordgo.Session) {
-	// TODO: rewrite this function to work with all servers
-	godotenv.Load()
-	channelID := os.Getenv("CHANNEL_ID")
-	session.ChannelMessageSend(channelID, fmt.Sprintf("Stream starting in 5 minutes: %s", stream.URL))
+	allServerPlatforms := getAllPlatforms(stream)
+	allServerPlatforms = utils.RemoveSliceDuplicates(allServerPlatforms)
+
+	for _, server := range allServerPlatforms {
+		options, getErr := db.GetOptions(server)
+		if getErr != nil {
+			utils.EWLogger.WithPrefix("SCHED").Error("error getting server options")
+			continue
+		}
+		channelID, channelErr := session.State.Channel(options.AnnounceChannel)
+		if channelErr != nil {
+			utils.EWLogger.WithPrefix("SCHED").Error("error getting channel", "err", channelErr)
+			continue
+		}
+		if options.AnnounceRole != "" {
+			_, postErr := session.ChannelMessageSendComplex(channelID.ID, &discordgo.MessageSend{
+				Content: fmt.Sprintf("<@&%s> Stream starting in 5 minutes: %s", options.AnnounceRole, stream.URL),
+			})
+			if postErr != nil {
+				utils.EWLogger.WithPrefix("SCHED").Error("error posting message", "err", postErr)
+			}
+			continue
+		}
+		_, postErr := session.ChannelMessageSend(channelID.ID, fmt.Sprintf("Stream starting in 5 minutes: %s", stream.URL))
+		if postErr != nil {
+			utils.EWLogger.WithPrefix("SCHED").Error("error posting message", "err", postErr)
+		}
+	}
+}
+
+func getAllPlatforms(stream db.Stream) []string {
+	platforms := strings.Split(stream.Platform, ",")
+	var allServerPlatforms []string
+	for _, platform := range platforms {
+		server_list, platErr := db.GetPlatformServerIDs(platform)
+		if platErr != nil {
+			utils.EWLogger.WithPrefix("SCHED").Error("error getting platform server IDs")
+			return nil
+		}
+		allServerPlatforms = append(allServerPlatforms, server_list...)
+	}
+	return allServerPlatforms
 }
