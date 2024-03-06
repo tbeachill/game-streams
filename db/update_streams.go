@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -18,10 +17,7 @@ import (
 // runner function to update the streams in the db, will return early if there are any errors
 // or there are no updates
 func UpdateStreams() error {
-	var c utils.Config
-	if _, tomlErr := toml.DecodeFile(utils.ConfigFile, &c); tomlErr != nil {
-		return tomlErr
-	}
+	c := GetConfig()
 
 	commitTime, timeErr := getUpdateTime(c)
 	if timeErr != nil {
@@ -262,17 +258,9 @@ func insertStreams(streamList Streams, commitTime time.Time, c utils.Config) err
 
 // change last update time in config.toml
 func changeLastUpdate(c utils.Config, commitTime time.Time) error {
-	f, fileErr := os.Create(utils.ConfigFile)
-	if fileErr != nil {
-		return fileErr
-	}
-	encErr := toml.NewEncoder(f).Encode(utils.Config{CommandURL: c.CommandURL, StreamURL: c.StreamURL, APIURL: c.APIURL, LastUpdate: commitTime.Format("2006-01-02T15:04:05Z07:00")})
-	if encErr != nil {
-		return encErr
-	}
-	closeErr := f.Close()
-	if closeErr != nil {
-		return closeErr
+	setErr := SetConfig(utils.Config{StreamURL: c.StreamURL, APIURL: c.APIURL, LastUpdate: commitTime.Format("2006-01-02T15:04:05Z07:00")})
+	if setErr != nil {
+		return setErr
 	}
 	return nil
 }

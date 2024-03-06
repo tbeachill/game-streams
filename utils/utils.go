@@ -12,7 +12,6 @@ import (
 	"github.com/charmbracelet/log"
 )
 
-var ConfigFile string
 var DotEnvFile string
 var DBFile string
 var LogFile string
@@ -20,7 +19,7 @@ var Logger *log.Logger
 var EWLogger *log.Logger
 
 type Config struct {
-	CommandURL string
+	ID         int
 	StreamURL  string
 	APIURL     string
 	LastUpdate string
@@ -51,7 +50,6 @@ func Pluralise(n int) string {
 
 func SetConfig() {
 	if runtime.GOOS == "windows" {
-		ConfigFile = "config/config.toml"
 		DotEnvFile = "config/.env"
 		DBFile = "config/gamestream.db"
 		LogFile = "config/gamestream.log"
@@ -60,7 +58,6 @@ func SetConfig() {
 		if err != nil {
 			EWLogger.WithPrefix(" MAIN").Fatal("could not set config", "err", err)
 		}
-		ConfigFile = fmt.Sprintf("%s/config/gamestreambot/config.toml", home)
 		DotEnvFile = fmt.Sprintf("%s/config/gamestreambot/.env", home)
 		DBFile = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
 		LogFile = fmt.Sprintf("%s/config/gamestreambot/config.toml", home)

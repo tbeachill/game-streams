@@ -42,6 +42,13 @@ func CreateDB() error {
 		return tableErr
 	}
 	sqlStmt = `
+	create table if not exists config (id integer not null primary key, stream_url text, api_url text, last_updated text);
+	`
+	_, tableErr = db.Exec(sqlStmt)
+	if tableErr != nil {
+		return tableErr
+	}
+	sqlStmt = `
 	create table if not exists settings (server_id integer not null primary key, announce_channel text, announce_role text, playstation boolean, xbox boolean, nintendo boolean, pc boolean, awards boolean);
 	`
 	_, tableErr = db.Exec(sqlStmt)
