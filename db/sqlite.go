@@ -9,7 +9,6 @@ import (
 )
 
 // TODO: make some functions methods
-// TODO: add a way of deleting streams by specifying a list of IDs
 
 type Stream struct {
 	ID          int
@@ -19,6 +18,7 @@ type Stream struct {
 	Time        string
 	Description string
 	URL         string
+	Delete      bool
 }
 
 type Streams struct {

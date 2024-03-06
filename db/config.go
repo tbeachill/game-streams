@@ -4,7 +4,6 @@ import (
 	"database/sql"
 
 	"gamestreambot/utils"
-
 )
 
 func GetConfig() utils.Config {
@@ -24,7 +23,9 @@ func GetConfig() utils.Config {
 	scanErr := row.Scan(&config.ID, &config.StreamURL, &config.APIURL, &config.LastUpdate)
 	if scanErr == sql.ErrNoRows {
 		utils.Logger.Info("No config found, setting default")
-		SetDefaultConfig()
+		if defaultErr := SetDefaultConfig(); defaultErr != nil {
+			utils.Logger.Error(defaultErr)
+		}
 		return GetConfig()
 	} else if scanErr != nil {
 		utils.Logger.Error(openErr)
@@ -35,7 +36,7 @@ func GetConfig() utils.Config {
 
 func SetConfig(config utils.Config) error {
 	sqlStmt := `
-		update config set stream_url = ?, api_url = ?, last_update = ? where id = 1
+		update config set stream_url = ?, api_url = ?, last_updated = ? where id = 1
 	`
 	db, openErr := sql.Open("sqlite3", utils.DBFile)
 	if openErr != nil {
@@ -52,7 +53,7 @@ func SetConfig(config utils.Config) error {
 
 func SetDefaultConfig() error {
 	sqlStmt := `
-		insert into config (stream_url, api_url, last_update) values (?, ?, ?)
+		insert into config (stream_url, api_url, last_updated) values (?, ?, ?)
 	`
 	db, openErr := sql.Open("sqlite3", utils.DBFile)
 	if openErr != nil {

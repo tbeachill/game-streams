@@ -24,7 +24,7 @@ func UpdateStreams() error {
 		return timeErr
 	}
 
-	// if there is no date in the config file, skip the comparison
+	// if there is no date in the config, skip the comparison
 	if c.LastUpdate != "" {
 		updated, updateErr := compareLastUpdates(c, commitTime)
 		if updateErr != nil {
@@ -65,6 +65,12 @@ func UpdateStreams() error {
 	}
 	addedCount := len(noDupList.Streams) - updateCount
 	utils.Logger.WithPrefix("UPDAT").Infof("added %d new stream%s to database and updated %d stream%s\n", addedCount, utils.Pluralise(addedCount), updateCount, utils.Pluralise(updateCount))
+
+	delCount, delErr := deleteStreams(newStreamList.Streams)
+	if delErr != nil {
+		return delErr
+	}
+	utils.Logger.WithPrefix("UPDAT").Info("deleted %d old stream%s from database", delCount, utils.Pluralise(delCount))
 
 	if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
 		return lastErr
@@ -263,4 +269,28 @@ func changeLastUpdate(c utils.Config, commitTime time.Time) error {
 		return setErr
 	}
 	return nil
+}
+
+// delete streams from the db if the delete flag is set to true
+func deleteStreams(streams []Stream) (int, error) {
+	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	if openErr != nil {
+		return 0, openErr
+	}
+	defer db.Close()
+
+	sqlStmt := `
+	delete from streams where id = ?
+	`
+	delCount := 0
+	for _, s := range streams {
+		if s.Delete {
+			_, deleteErr := db.Exec(sqlStmt, s.ID)
+			if deleteErr != nil {
+				return 0, deleteErr
+			}
+			delCount++
+		}
+	}
+	return delCount, nil
 }

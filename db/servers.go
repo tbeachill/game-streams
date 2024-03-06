@@ -7,7 +7,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"gamestreambot/utils"
-
 )
 
 // get a list of all server IDs from the settings table
