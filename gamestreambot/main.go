@@ -13,9 +13,9 @@ import (
 // TODO: write function to DM me when there was a stream in a previous year
 
 func main() {
+	utils.SetConfig()
 	utils.SetLogger()
 	utils.Logger.WithPrefix(" MAIN").Info("starting GameStreamBot")
-	utils.SetConfig()
 
 	if envErr := godotenv.Load(utils.DotEnvFile); envErr != nil {
 		utils.EWLogger.WithPrefix(" MAIN").Error("error loading .env file", "err", envErr)

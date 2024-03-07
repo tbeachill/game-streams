@@ -56,7 +56,7 @@ func SetConfig() {
 	} else {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			EWLogger.WithPrefix(" MAIN").Fatal("could not set config", "err", err)
+			log.Fatal("could not set config", "err", err)
 		}
 		DotEnvFile = fmt.Sprintf("%s/config/gamestreambot/.env", home)
 		DBFile = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
