@@ -19,16 +19,28 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 
 // list all upcoming streams
 func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	content, getErr := streams.StreamList()
-	if getErr != nil {
-		utils.EWLogger.WithPrefix(" CMND").Error("error getting stream list", "err", getErr)
-		content = "An error occurred."
+	embed, listErr := streams.StreamList()
+	if listErr != nil {
+		if listErr.Error() == "no streams found" {
+			embed = &discordgo.MessageEmbed{
+				Title:       "Upcoming Streams",
+				Description: "No streams found",
+				Color:       0xc3d23e,
+			}
+		} else {
+			utils.EWLogger.WithPrefix(" CMND").Error("error creating embeds", "err", listErr)
+			embed = &discordgo.MessageEmbed{
+				Title:       "Upcoming Streams",
+				Description: "An error occurred",
+				Color:       0xc3d23e,
+			}
+		}
 	}
 
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: content,
+			Embeds: []*discordgo.MessageEmbed{embed},
 		},
 	})
 	if respondErr != nil {
@@ -46,7 +58,8 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				&discordgo.MessageEmbed{
 					Title: "Game Streams",
 					Description: "Game Streams is a bot that keeps track of game announcement streams and can announce when streams are beginning. " +
-						"\nUse the `/settings` command to configure the bot to your liking.",
+						"\n\nUse the `/settings` command to configure the bot to your liking.",
+					Color: 0xc3d23e,
 					Fields: []*discordgo.MessageEmbedField{
 						{
 							Name:   "Commands",
@@ -111,6 +124,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		&discordgo.MessageEmbed{
 			Title:       "Settings",
 			Description: status,
+			Color:       0xc3d23e,
 			Fields: []*discordgo.MessageEmbedField{
 				{},
 				{

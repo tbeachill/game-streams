@@ -1,6 +1,7 @@
 package streams
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -11,33 +12,26 @@ import (
 	"gamestreambot/utils"
 )
 
-// return a string of all streams for display on discord
-func StreamList() (string, error) {
-	utils.Logger.WithPrefix(" CMND").Info("getting upcoming streams")
+// return a list of all upcoming streams as a slice of embeds
+func StreamList() (*discordgo.MessageEmbed, error) {
+	var embed *discordgo.MessageEmbed
+	embed = &discordgo.MessageEmbed{
+		Title: "Upcoming Streams",
+		Color: 0xc3d23e,
+	}
 	streamList, dbErr := db.GetUpcomingStreams()
 	if dbErr != nil {
 		utils.EWLogger.WithPrefix(" CMND").Error("error getting streams from db")
-		return "", dbErr
+		return embed, dbErr
 	}
 	if len(streamList.Streams) == 0 {
-		return "### No upcoming streams.", nil
+		return embed, errors.New("no streams found")
 	}
-	message := "### Upcoming Streams:\n"
-
-	for i, stream := range streamList.Streams {
-		ts, tsErr := utils.CreateTimestamp(stream.Date, stream.Time)
-		if tsErr != nil {
-			utils.EWLogger.WithPrefix(" CMND").Error("error creating timestamp")
-			return "", tsErr
-		}
-		// add date header if it's the first stream or the date is different from the previous stream
-		if i == 0 || streamList.Streams[i-1].Date != stream.Date {
-			message += fmt.Sprintf("\n<t:%s:d>:\n", ts)
-		}
-		// add stream name and timestamp
-		message += fmt.Sprintf("<t:%s:t> %s\n", ts, stream.Name)
+	for _, stream := range streamList.Streams {
+		utils.Logger.WithPrefix(" CMND").Info("creating embed field", "name", stream.Name, "time", stream.Time)
+		embed.Fields = append(embed.Fields, streamEmbedField(stream))
 	}
-	return message, nil
+	return embed, nil
 }
 
 // create a goroutine to sleep until 5 minutes before the stream, then run the notification function
@@ -115,4 +109,18 @@ func getAllPlatforms(stream db.Stream) []string {
 		allServerPlatforms = append(allServerPlatforms, server_list...)
 	}
 	return allServerPlatforms
+}
+
+// return an embed field with the stream information
+func streamEmbedField(stream db.Stream) *discordgo.MessageEmbedField {
+	ds, ts, tsErr := utils.CreateTimestamp(stream.Date, stream.Time)
+	if tsErr != nil {
+		utils.EWLogger.WithPrefix(" CMND").Error("error creating timestamp")
+		return nil
+	}
+	field := &discordgo.MessageEmbedField{
+		Value:  fmt.Sprintf("%s%s %s", ds, ts, stream.Name),
+		Inline: false,
+	}
+	return field
 }

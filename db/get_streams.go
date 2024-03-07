@@ -32,6 +32,7 @@ func GetUpcomingStreams() (Streams, error) {
 		}
 		streamList.Streams = append(streamList.Streams, stream)
 	}
+	utils.Logger.WithPrefix(" CMND").Info("found", "streams", len(streamList.Streams))
 	return streamList, nil
 }
 

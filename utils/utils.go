@@ -26,11 +26,10 @@ type Config struct {
 }
 
 // create a unix timestamp from a date and time
-func CreateTimestamp(d string, t string) (string, error) {
+func CreateTimestamp(d string, t string) (string, string, error) {
 	layout := "2006-01-02 15:04"
 	dt, err := time.Parse(layout, fmt.Sprintf("%s %s", d, t))
-
-	return fmt.Sprint(dt.Unix()), err
+	return fmt.Sprintf("<t:%d:d>", dt.Unix()), fmt.Sprintf("<t:%d:t>", dt.Unix()), err
 }
 
 func ParseTomlDate(d string) (string, error) {
