@@ -60,7 +60,7 @@ func SetConfig() {
 		}
 		DotEnvFile = fmt.Sprintf("%s/config/gamestreambot/.env", home)
 		DBFile = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
-		LogFile = fmt.Sprintf("%s/config/gamestreambot/config.toml", home)
+		LogFile = fmt.Sprintf("%s/config/gamestreambot/gamestreambot.log", home)
 	}
 }
 
@@ -74,7 +74,7 @@ func SetLogger() {
 		ReportTimestamp: true,
 	})
 
-	logFile, err := os.OpenFile("config/gamestreambot.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile(LogFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		EWLogger.WithPrefix(" MAIN").Fatal("Error opening log file", "err", err)
 	}
