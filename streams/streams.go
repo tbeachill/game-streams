@@ -1,7 +1,5 @@
 package streams
 
-// TODO: limit output to number of days in the future
-
 import (
 	"fmt"
 	"strings"

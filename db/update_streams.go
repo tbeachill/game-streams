@@ -41,8 +41,9 @@ func UpdateStreams() error {
 	if parseErr != nil {
 		return parseErr
 	}
+	// if new version of toml is empty, update the last update time and return
 	if len(newStreamList.Streams) == 0 {
-		utils.Logger.WithPrefix("UPDAT").Info("no new streams found")
+		utils.Logger.WithPrefix("UPDAT").Info("toml is empty")
 		if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
 			return lastErr
 		}

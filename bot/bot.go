@@ -15,7 +15,6 @@ import (
 )
 
 // TODO: look at structs and turn some functions into methods
-// TODO: add uptime command
 // TODO: check error handling in all functions
 // TODO: check logging in all functions
 
@@ -58,6 +57,7 @@ func startUpdater() {
 
 // schedule notifications for today's streams every day at midnight UTC
 func startScheduler(session *discordgo.Session) {
+	startTime := time.Now().UTC()
 	for {
 		utils.Logger.WithPrefix("SCHED").Info("scheduling notifications for today's streams...")
 		if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
@@ -68,5 +68,6 @@ func startScheduler(session *discordgo.Session) {
 		minsRemaining := 60 - min
 		utils.Logger.WithPrefix("SCHED").Info("sleeping until next day", "hours", hoursRemaining, "minutes", minsRemaining)
 		time.Sleep(time.Duration(hoursRemaining*60+minsRemaining) * time.Minute)
+		utils.Logger.WithPrefix("SCHED").Info("we survived another day", "uptime", time.Now().UTC().Sub(startTime))
 	}
 }
