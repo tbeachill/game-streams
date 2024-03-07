@@ -8,8 +8,6 @@ import (
 	"gamestreambot/utils"
 )
 
-// TODO: make some functions methods
-
 type Stream struct {
 	ID          int
 	Name        string

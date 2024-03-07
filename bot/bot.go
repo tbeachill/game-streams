@@ -14,6 +14,8 @@ import (
 	"gamestreambot/utils"
 )
 
+// TODO: add help command
+// TODO: look at structs and turn some functions into methods
 // TODO: add uptime command
 // TODO: check error handling in all functions
 // TODO: check logging in all functions

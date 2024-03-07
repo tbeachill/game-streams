@@ -70,7 +70,7 @@ func UpdateStreams() error {
 	if delErr != nil {
 		return delErr
 	}
-	utils.Logger.WithPrefix("UPDAT").Info("deleted %d old stream%s from database", delCount, utils.Pluralise(delCount))
+	utils.Logger.WithPrefix("UPDAT").Infof("deleted %d old stream%s from database", delCount, utils.Pluralise(delCount))
 
 	if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
 		return lastErr

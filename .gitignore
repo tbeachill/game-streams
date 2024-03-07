@@ -1,4 +1,5 @@
 bin/
+media/
 .env
 gamestream.db
 *.log
