@@ -89,3 +89,11 @@ func RemoveSliceDuplicates(s []string) []string {
 	slices.Compact[[]string](s)
 	return s
 }
+
+// return a placeholder string if the input string is empty
+func PlaceholderText(s string) string {
+	if len(s) == 0 {
+		return "not set"
+	}
+	return s
+}

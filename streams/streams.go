@@ -1,7 +1,6 @@
 package streams
 
 // TODO: limit output to number of days in the future
-// TODO: write tests
 
 import (
 	"fmt"

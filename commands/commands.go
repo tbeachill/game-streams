@@ -10,6 +10,11 @@ var commands = []*discordgo.ApplicationCommand{
 		Description: "List all upcoming streams",
 	},
 	{
+		Name:                     "help",
+		Description:              "Get help with the bot",
+		DefaultMemberPermissions: &admin,
+	},
+	{
 		Name:                     "settings",
 		Description:              "Change bot settings",
 		DefaultMemberPermissions: &admin,

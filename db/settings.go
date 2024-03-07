@@ -91,21 +91,44 @@ func checkOptions(serverID string) error {
 	}
 	defer db.Close()
 
-	rows, getErr := db.Query("select server_id from settings where server_id = ?", serverID)
+	rows := db.QueryRow("select server_id from settings where server_id = ?", serverID)
+	getErr := rows.Scan(&serverID)
 	if getErr != nil {
-		return getErr
-	}
-	defer rows.Close()
-
-	count := 0
-	for rows.Next() {
-		count++
-	}
-	if count == 0 {
 		setErr := SetDefaultOptions(serverID)
 		if setErr != nil {
 			return setErr
 		}
 	}
 	return nil
+}
+
+// merge the options from a new options struct with the current options struct
+func MergeOptions(serverID string, new *Options) *Options {
+	current, getErr := GetOptions(serverID)
+	if getErr != nil {
+		utils.EWLogger.WithPrefix(" DB").Error("error getting options", "server", serverID, "err", getErr)
+		return &Options{}
+	}
+	if new.AnnounceChannel != "" {
+		current.AnnounceChannel = new.AnnounceChannel
+	}
+	if new.AnnounceRole != "" {
+		current.AnnounceRole = new.AnnounceRole
+	}
+	if new.Playstation {
+		current.Playstation = new.Playstation
+	}
+	if new.Xbox {
+		current.Xbox = new.Xbox
+	}
+	if new.Nintendo {
+		current.Nintendo = new.Nintendo
+	}
+	if new.PC {
+		current.PC = new.PC
+	}
+	if new.Awards {
+		current.Awards = new.Awards
+	}
+	return &current
 }
