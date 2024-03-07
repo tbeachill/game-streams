@@ -43,35 +43,30 @@ func Run(botToken, appID string) {
 	<-c
 }
 
-// TODO: change to sleep until time to run updater
 // check for updates to the streams every hour, on the hour
 func startUpdater() {
-UPDATE:
-	utils.Logger.WithPrefix("UPDAT").Info("checking for stream updates...")
-	if updateErr := db.UpdateStreams(); updateErr != nil {
-		utils.EWLogger.WithPrefix("UPDAT").Error("error updating streams", "err", updateErr)
-	}
 	for {
-		time.Sleep(1 * time.Minute)
-		if time.Now().Minute() == 0 {
-			goto UPDATE
+		utils.Logger.WithPrefix("UPDAT").Info("checking for stream updates...")
+		if updateErr := db.UpdateStreams(); updateErr != nil {
+			utils.EWLogger.WithPrefix("UPDAT").Error("error updating streams", "err", updateErr)
 		}
+		minsRemaining := 60 - time.Now().UTC().Minute()
+		utils.Logger.WithPrefix("UPDAT").Info("sleeping until next update", "minutes", minsRemaining)
+		time.Sleep(time.Duration(minsRemaining) * time.Minute)
 	}
 }
 
-// TODO: change to sleep until time to run scheduler
-// check if a new day has started, if so, schedule notifications for today's streams
+// schedule notifications for today's streams every day at midnight UTC
 func startScheduler(session *discordgo.Session) {
-SCHEDULE:
-	utils.Logger.WithPrefix("SCHED").Info("scheduling notifications for today's streams...")
-	if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
-		utils.EWLogger.WithPrefix("SCHED").Error("error scheduling today's streams", "err", scheduleErr)
-	}
 	for {
-		time.Sleep(1 * time.Minute)
-		hour, min, _ := time.Now().UTC().Clock()
-		if hour == 0 && min == 0 {
-			goto SCHEDULE
+		utils.Logger.WithPrefix("SCHED").Info("scheduling notifications for today's streams...")
+		if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
+			utils.EWLogger.WithPrefix("SCHED").Error("error scheduling today's streams", "err", scheduleErr)
 		}
+		hour, min, _ := time.Now().UTC().Clock()
+		hoursRemaining := 24 - hour
+		minsRemaining := 60 - min
+		utils.Logger.WithPrefix("SCHED").Info("sleeping until next day", "hours", hoursRemaining, "minutes", minsRemaining)
+		time.Sleep(time.Duration(hoursRemaining*60+minsRemaining) * time.Minute)
 	}
 }

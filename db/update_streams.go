@@ -41,6 +41,13 @@ func UpdateStreams() error {
 	if parseErr != nil {
 		return parseErr
 	}
+	if len(newStreamList.Streams) == 0 {
+		utils.Logger.WithPrefix("UPDAT").Info("no new streams found")
+		if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
+			return lastErr
+		}
+		return nil
+	}
 
 	if dateErr := formatDate(&newStreamList); dateErr != nil {
 		return dateErr
