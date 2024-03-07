@@ -22,7 +22,7 @@ func GetConfig() utils.Config {
 	row := db.QueryRow(sqlStmt)
 	scanErr := row.Scan(&config.ID, &config.StreamURL, &config.APIURL, &config.LastUpdate)
 	if scanErr == sql.ErrNoRows {
-		utils.Logger.Info("No config found, setting default")
+		utils.Logger.WithPrefix(" MAIN").Info("No config found, setting default")
 		if defaultErr := SetDefaultConfig(); defaultErr != nil {
 			utils.Logger.Error(defaultErr)
 		}
@@ -35,6 +35,7 @@ func GetConfig() utils.Config {
 }
 
 func SetConfig(config utils.Config) error {
+	utils.Logger.WithPrefix(" MAIN").Info("updating config")
 	sqlStmt := `
 		update config set stream_url = ?, api_url = ?, last_updated = ? where id = 1
 	`
@@ -52,6 +53,7 @@ func SetConfig(config utils.Config) error {
 }
 
 func SetDefaultConfig() error {
+	utils.Logger.WithPrefix(" MAIN").Info("setting default config")
 	sqlStmt := `
 		insert into config (stream_url, api_url, last_updated) values (?, ?, ?)
 	`

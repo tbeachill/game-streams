@@ -88,6 +88,7 @@ func UpdateStreams() error {
 
 // get last commit time from github
 func getUpdateTime(c utils.Config) (time.Time, error) {
+	utils.Logger.WithPrefix("UPDAT").Info("getting last update time")
 	response, httpErr := http.Get(c.APIURL)
 	if httpErr != nil {
 		return time.Time{}, httpErr
@@ -112,6 +113,7 @@ func getUpdateTime(c utils.Config) (time.Time, error) {
 
 // check if streams.toml has been updated
 func compareLastUpdates(c utils.Config, commitTime time.Time) (bool, error) {
+	utils.Logger.WithPrefix("UPDAT").Info("comparing update times")
 	dbTime, err := time.Parse(time.RFC3339, c.LastUpdate)
 	if err != nil {
 		return false, err
@@ -124,6 +126,7 @@ func compareLastUpdates(c utils.Config, commitTime time.Time) (bool, error) {
 
 // parse streams.toml and return as an s.Streams struct
 func parseToml(c utils.Config, commitTime time.Time) (Streams, error) {
+	utils.Logger.WithPrefix("UPDAT").Info("parsing toml")
 	response, httpErr := http.Get(c.StreamURL)
 	if httpErr != nil {
 		return Streams{}, httpErr
@@ -168,6 +171,7 @@ func updateRow(streamList *Streams) (int, error) {
 
 	var updateCount int
 	for i, stream := range streamList.Streams {
+		utils.Logger.WithPrefix("UPDAT").Info("updating stream", "id", stream.ID, "name", stream.Name)
 		if stream.ID != 0 {
 			_, updateErr := db.Exec(sqlStmt, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL, stream.ID)
 			if updateErr != nil {
@@ -262,6 +266,7 @@ func insertStreams(streamList Streams, commitTime time.Time, c utils.Config) err
 		if stream.Name == "" {
 			continue
 		}
+		utils.Logger.WithPrefix("UPDAT").Info("inserting stream", "name", stream.Name)
 		_, insertErr := db.Exec(sqlStmt, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL)
 		if insertErr != nil {
 			return insertErr
@@ -272,6 +277,7 @@ func insertStreams(streamList Streams, commitTime time.Time, c utils.Config) err
 
 // change last update time in config.toml
 func changeLastUpdate(c utils.Config, commitTime time.Time) error {
+	utils.Logger.WithPrefix("UPDAT").Info("amending last update time")
 	setErr := SetConfig(utils.Config{StreamURL: c.StreamURL, APIURL: c.APIURL, LastUpdate: commitTime.Format("2006-01-02T15:04:05Z07:00")})
 	if setErr != nil {
 		return setErr
@@ -293,6 +299,7 @@ func deleteStreams(streams []Stream) (int, error) {
 	delCount := 0
 	for _, s := range streams {
 		if s.Delete {
+			utils.Logger.WithPrefix("UPDAT").Info("deleting stream", "id", s.ID, "name", s.Name)
 			_, deleteErr := db.Exec(sqlStmt, s.ID)
 			if deleteErr != nil {
 				return 0, deleteErr

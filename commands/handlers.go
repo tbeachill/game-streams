@@ -75,10 +75,14 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := parseOptions(i.ApplicationCommandData().Options)
 	var status string
-	if *options == (db.Options{}) {
+	if *options == (db.Options{}) || options.Reset {
 		status = "Current settings:"
 	} else {
 		status = "Settings successfully updated\nCurrent settings:"
+	}
+	if options.Reset {
+		db.ResetOptions(i.GuildID)
+		options = &db.Options{}
 	}
 	options = db.MergeOptions(i.GuildID, options)
 	options.ServerID = i.GuildID
@@ -188,6 +192,8 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 			o.PC = option.Value.(bool)
 		case "awards":
 			o.Awards = option.Value.(bool)
+		case "reset":
+			o.Reset = option.Value.(bool)
 		}
 	}
 	return &o

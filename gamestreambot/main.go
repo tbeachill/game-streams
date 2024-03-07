@@ -15,7 +15,7 @@ import (
 func main() {
 	utils.SetConfig()
 	utils.SetLogger()
-	utils.Logger.WithPrefix(" MAIN").Info("starting GameStreamBot")
+	utils.Logger.WithPrefix(" MAIN").Info("starting bot")
 
 	if envErr := godotenv.Load(utils.DotEnvFile); envErr != nil {
 		utils.EWLogger.WithPrefix(" MAIN").Error("error loading .env file", "err", envErr)

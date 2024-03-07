@@ -13,9 +13,10 @@ import (
 
 // return a string of all streams for display on discord
 func StreamList() (string, error) {
+	utils.Logger.WithPrefix(" CMND").Info("getting upcoming streams")
 	streamList, dbErr := db.GetUpcomingStreams()
 	if dbErr != nil {
-		utils.EWLogger.WithPrefix(" MAIN").Error("error getting streams from db")
+		utils.EWLogger.WithPrefix(" CMND").Error("error getting streams from db")
 		return "", dbErr
 	}
 	if len(streamList.Streams) == 0 {
@@ -26,7 +27,7 @@ func StreamList() (string, error) {
 	for i, stream := range streamList.Streams {
 		ts, tsErr := utils.CreateTimestamp(stream.Date, stream.Time)
 		if tsErr != nil {
-			utils.EWLogger.WithPrefix(" MAIN").Error("error creating timestamp")
+			utils.EWLogger.WithPrefix(" CMND").Error("error creating timestamp")
 			return "", tsErr
 		}
 		// add date header if it's the first stream or the date is different from the previous stream
@@ -50,7 +51,7 @@ func ScheduleNotifications(session *discordgo.Session) error {
 		utils.Logger.WithPrefix("SCHED").Info("no streams today")
 		return nil
 	}
-	for _, stream := range streamList.Streams {
+	for i, stream := range streamList.Streams {
 		go func(currentStream *db.Stream) {
 			dateTime := fmt.Sprintf("%s %s", currentStream.Date, currentStream.Time)
 			streamTime, parseErr := time.Parse("2006-01-02 15:04", dateTime)
@@ -62,6 +63,7 @@ func ScheduleNotifications(session *discordgo.Session) error {
 			time.Sleep(timeToStream)
 			postStreamLink(*currentStream, session)
 		}(&stream)
+		utils.Logger.WithPrefix("SCHED").Info("scheduled stream", "goroutine", i+1, "name", stream.Name, "time", stream.Time)
 	}
 	streamLen := len(streamList.Streams)
 	utils.Logger.WithPrefix("SCHED").Infof("scheduled %d stream%s for today", streamLen, utils.Pluralise(streamLen))
@@ -72,30 +74,31 @@ func ScheduleNotifications(session *discordgo.Session) error {
 func postStreamLink(stream db.Stream, session *discordgo.Session) {
 	allServerPlatforms := getAllPlatforms(stream)
 	allServerPlatforms = utils.RemoveSliceDuplicates(allServerPlatforms)
+	utils.Logger.WithPrefix("SCHED").Info("posting stream link to subscribed servers", "stream", stream.Name)
 
 	for _, server := range allServerPlatforms {
 		options, getErr := db.GetOptions(server)
 		if getErr != nil {
-			utils.EWLogger.WithPrefix("SCHED").Error("error getting server options")
+			utils.EWLogger.WithPrefix("SCHED").Error("error getting server options", "server", server, "err", getErr)
 			continue
 		}
-		channelID, channelErr := session.State.Channel(options.AnnounceChannel)
+		channel, channelErr := session.State.Channel(options.AnnounceChannel)
 		if channelErr != nil {
-			utils.EWLogger.WithPrefix("SCHED").Error("error getting channel", "err", channelErr)
+			utils.EWLogger.WithPrefix("SCHED").Error("error getting channel", "server", server, "channel", options.AnnounceChannel, "err", channelErr)
 			continue
 		}
 		if options.AnnounceRole != "" {
-			_, postErr := session.ChannelMessageSendComplex(channelID.ID, &discordgo.MessageSend{
+			_, postErr := session.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
 				Content: fmt.Sprintf("<@&%s> Stream starting in 5 minutes: %s", options.AnnounceRole, stream.URL),
 			})
 			if postErr != nil {
-				utils.EWLogger.WithPrefix("SCHED").Error("error posting message", "err", postErr)
+				utils.EWLogger.WithPrefix("SCHED").Error("error posting message", "server", server, "channel", channel.ID, "role", options.AnnounceRole, "err", postErr)
 			}
 			continue
 		}
-		_, postErr := session.ChannelMessageSend(channelID.ID, fmt.Sprintf("Stream starting in 5 minutes: %s", stream.URL))
+		_, postErr := session.ChannelMessageSend(channel.ID, fmt.Sprintf("Stream starting in 5 minutes: %s", stream.URL))
 		if postErr != nil {
-			utils.EWLogger.WithPrefix("SCHED").Error("error posting message", "err", postErr)
+			utils.EWLogger.WithPrefix("SCHED").Error("error posting message", "server", server, "channel", channel.ID, "err", postErr)
 		}
 	}
 }

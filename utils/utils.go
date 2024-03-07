@@ -50,17 +50,19 @@ func Pluralise(n int) string {
 
 func SetConfig() {
 	if runtime.GOOS == "windows" {
+		log.WithPrefix(" MAIN").Info("running on windows")
 		DotEnvFile = "config/.env"
 		DBFile = "config/gamestream.db"
 		LogFile = "config/gamestream.log"
 	} else {
+		log.WithPrefix(" MAIN").Info("running on linux")
 		home, err := os.UserHomeDir()
 		if err != nil {
 			log.Fatal("could not set config", "err", err)
 		}
 		DotEnvFile = fmt.Sprintf("%s/config/gamestreambot/.env", home)
 		DBFile = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
-		LogFile = fmt.Sprintf("%s/config/gamestreambot/gamestreambot.log", home)
+		LogFile = fmt.Sprintf("%s/config/gamestreambot/gamestream.log", home)
 	}
 }
 

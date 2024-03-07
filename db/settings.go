@@ -17,6 +17,7 @@ type Options struct {
 	Nintendo        bool
 	PC              bool
 	Awards          bool
+	Reset           bool
 }
 
 // add a server to the settings table with default options
@@ -27,7 +28,23 @@ func SetDefaultOptions(serverID string) error {
 	}
 	defer db.Close()
 
+	utils.Logger.WithPrefix("STATS").Info("setting default options", "server", serverID)
 	_, execErr := db.Exec("insert into settings (server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc, awards) values (?, ?, ?, ?, ?, ?, ?, ?)", serverID, "", "", 0, 0, 0, 0, 0)
+	if execErr != nil {
+		return execErr
+	}
+	return nil
+}
+
+// reset the options for a server to default
+func ResetOptions(serverID string) error {
+	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+	utils.Logger.WithPrefix(" CMND").Info("resetting options", "server", serverID)
+	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, awards = ? where server_id = ?", "", "", 0, 0, 0, 0, 0, serverID)
 	if execErr != nil {
 		return execErr
 	}
@@ -42,6 +59,7 @@ func RemoveOptions(serverID string) error {
 	}
 	defer db.Close()
 
+	utils.Logger.WithPrefix("STATS").Info("removing from options table", "server", serverID)
 	_, execErr := db.Exec("delete from settings where server_id = ?", serverID)
 	if execErr != nil {
 		return execErr
@@ -106,7 +124,7 @@ func checkOptions(serverID string) error {
 func MergeOptions(serverID string, new *Options) *Options {
 	current, getErr := GetOptions(serverID)
 	if getErr != nil {
-		utils.EWLogger.WithPrefix(" DB").Error("error getting options", "server", serverID, "err", getErr)
+		utils.EWLogger.WithPrefix(" CMND").Error("error getting options", "server", serverID, "err", getErr)
 		return &Options{}
 	}
 	if new.AnnounceChannel != "" {

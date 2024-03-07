@@ -61,6 +61,12 @@ var commands = []*discordgo.ApplicationCommand{
 				Description: "Enable or disable awards streams",
 				Required:    false,
 			},
+			{
+				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "reset",
+				Description: "Reset all settings to default",
+				Required:    false,
+			},
 		},
 	},
 }
