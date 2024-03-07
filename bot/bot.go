@@ -29,7 +29,7 @@ func Run(botToken, appID string) {
 		return
 	}
 	defer session.Close()
-	commands.RemoveAllCommands(appID, session)
+	//commands.RemoveAllCommands(appID, session)
 	commands.RegisterCommands(appID, session)
 	commands.RegisterHandler(session, &discordgo.InteractionCreate{})
 	go startUpdater()

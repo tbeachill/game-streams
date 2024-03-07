@@ -7,7 +7,7 @@ var admin int64 = discordgo.PermissionAdministrator
 var commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "streams",
-		Description: "List all upcoming streams",
+		Description: "List upcoming streams",
 	},
 	{
 		Name:                     "help",

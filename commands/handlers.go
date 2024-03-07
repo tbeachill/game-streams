@@ -50,15 +50,15 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Fields: []*discordgo.MessageEmbedField{
 						{
 							Name:   "Commands",
-							Value:  "`/list-streams` - List all upcoming streams\n`/help` [admin] - Get help with the bot\n`/settings` [admin] - Change bot settings",
-							Inline: true,
+							Value:  "`/streams` - List all upcoming streams\n`/help` [admin] - Get help with the bot\n`/settings` [admin] - Change bot settings",
+							Inline: false,
 						},
 						{
 							Name: "Settings",
-							Value: "Options include setting the channel for announcing when a stream starts, setting the role to ping when a stream starts, and enabling or disabling streams for various platforms and games." +
-								"\nAll fields are optional, the default settings are to not announce any streams until a channel and one or more platforms are set." +
-								"\nUse the `/settings` command with no options to see the current settings.",
-							Inline: true,
+							Value: "Options:\n`channel` the channel for announcing when a stream starts\n`role` the role to ping when a stream starts\nplatforms: enable or disable announcements by platform" +
+								"\n\nAll fields are optional, the default settings are to not announce any streams until a channel and one or more platforms are set." +
+								"\n\nUse the `/settings` command with no options to see the current settings.",
+							Inline: false,
 						},
 					},
 				},
