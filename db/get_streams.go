@@ -17,7 +17,7 @@ func GetUpcomingStreams() (Streams, error) {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query("select name, platform, date, time, description, url from streams where date >= date('now') order by date, time limit 15")
+	rows, queryErr := db.Query("select name, platform, date, time, description, url from streams where date >= date('now') order by date, time limit 10")
 	if queryErr != nil {
 		return Streams{}, queryErr
 	}
