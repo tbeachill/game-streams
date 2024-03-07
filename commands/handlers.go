@@ -12,9 +12,9 @@ import (
 
 // map of command names to their respective functions
 var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-	"list-streams": listStreams,
-	"help":         help,
-	"settings":     settings,
+	"streams":  listStreams,
+	"help":     help,
+	"settings": settings,
 }
 
 // list all upcoming streams
