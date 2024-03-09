@@ -12,9 +12,19 @@ import (
 
 // map of command names to their respective functions
 var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+	"test":     test,
 	"streams":  listStreams,
 	"help":     help,
 	"settings": settings,
+}
+
+func test(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	strem, err := db.GetUpcomingStreams()
+	if err != nil {
+		utils.EWLogger.WithPrefix(" CMND").Error("error getting upcoming streams", "err", err)
+		return
+	}
+	streams.PostStreamLink(strem.Streams[0], s)
 }
 
 // list all upcoming streams
@@ -87,6 +97,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // then respond to the interaction with the updated settings, or an error message if an error occurred
 func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := parseOptions(i.ApplicationCommandData().Options)
+	utils.Logger.WithPrefix(" CMND").Info("options", "options", options)
 	var status string
 	if *options == (db.Options{}) || options.Reset {
 		status = "Current settings:"
@@ -102,20 +113,20 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	var channelName string
 	var roleName string
-	if options.AnnounceChannel != "" {
-		channel, cErr := s.Channel(options.AnnounceChannel)
+	if options.AnnounceChannel.Value != "" {
+		channel, cErr := s.Channel(options.AnnounceChannel.Value)
 		if cErr != nil {
 			utils.EWLogger.WithPrefix(" CMND").Error("error getting channel name", "channel", options.AnnounceChannel, "err", cErr)
-			channelName = options.AnnounceChannel
+			channelName = options.AnnounceChannel.Value
 		} else {
 			channelName = channel.Name
 		}
 	}
-	if options.AnnounceRole != "" {
-		role, rErr := s.State.Role(i.GuildID, options.AnnounceRole)
+	if options.AnnounceRole.Value != "" {
+		role, rErr := s.State.Role(i.GuildID, options.AnnounceRole.Value)
 		if rErr != nil {
 			utils.EWLogger.WithPrefix(" CMND").Error("error getting role name", "role", options.AnnounceRole, "err", rErr)
-			roleName = options.AnnounceRole
+			roleName = options.AnnounceRole.Value
 		} else {
 			roleName = role.Name
 		}
@@ -139,27 +150,27 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				},
 				{
 					Name:   "Playstation",
-					Value:  strconv.FormatBool(options.Playstation),
+					Value:  strconv.FormatBool(options.Playstation.Value),
 					Inline: false,
 				},
 				{
 					Name:   "Xbox",
-					Value:  strconv.FormatBool(options.Xbox),
+					Value:  strconv.FormatBool(options.Xbox.Value),
 					Inline: false,
 				},
 				{
 					Name:   "Nintendo",
-					Value:  strconv.FormatBool(options.Nintendo),
+					Value:  strconv.FormatBool(options.Nintendo.Value),
 					Inline: false,
 				},
 				{
 					Name:   "PC",
-					Value:  strconv.FormatBool(options.PC),
+					Value:  strconv.FormatBool(options.PC.Value),
 					Inline: false,
 				},
 				{
 					Name:   "Awards",
-					Value:  strconv.FormatBool(options.Awards),
+					Value:  strconv.FormatBool(options.Awards.Value),
 					Inline: false,
 				},
 			},
@@ -193,19 +204,27 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 	for _, option := range options {
 		switch option.Name {
 		case "channel":
-			o.AnnounceChannel = option.Value.(string)
+			o.AnnounceChannel.Value = option.Value.(string)
+			o.AnnounceChannel.Set = true
 		case "role":
-			o.AnnounceRole = option.Value.(string)
+			o.AnnounceRole.Value = option.Value.(string)
+			o.AnnounceRole.Set = true
 		case "playstation":
-			o.Playstation = option.Value.(bool)
+			o.Playstation.Value = option.Value.(bool)
+			o.Playstation.Set = true
 		case "xbox":
-			o.Xbox = option.Value.(bool)
+			o.Xbox.Value = option.Value.(bool)
+			o.Xbox.Set = true
+			utils.Logger.Info("xbox", "value", option.Value)
 		case "nintendo":
-			o.Nintendo = option.Value.(bool)
+			o.Nintendo.Value = option.Value.(bool)
+			o.Nintendo.Set = true
 		case "pc":
-			o.PC = option.Value.(bool)
+			o.PC.Value = option.Value.(bool)
+			o.PC.Set = true
 		case "awards":
-			o.Awards = option.Value.(bool)
+			o.Awards.Value = option.Value.(bool)
+			o.Awards.Set = true
 		case "reset":
 			o.Reset = option.Value.(bool)
 		}

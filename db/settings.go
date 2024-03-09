@@ -10,14 +10,22 @@ import (
 
 type Options struct {
 	ServerID        string
-	AnnounceChannel string
-	AnnounceRole    string
-	Playstation     bool
-	Xbox            bool
-	Nintendo        bool
-	PC              bool
-	Awards          bool
+	AnnounceChannel StringSet
+	AnnounceRole    StringSet
+	Playstation     BoolSet
+	Xbox            BoolSet
+	Nintendo        BoolSet
+	PC              BoolSet
+	Awards          BoolSet
 	Reset           bool
+}
+type StringSet struct {
+	Value string
+	Set   bool
+}
+type BoolSet struct {
+	Value bool
+	Set   bool
 }
 
 // add a server to the settings table with default options
@@ -75,8 +83,9 @@ func SetOptions(options *Options) error {
 	}
 	defer db.Close()
 	checkOptions(options.ServerID)
+	utils.Logger.Info("setting options", "server", options.ServerID, "options", options)
 
-	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, awards = ? where server_id = ?", options.AnnounceChannel, options.AnnounceRole, options.Playstation, options.Xbox, options.Nintendo, options.PC, options.Awards, options.ServerID)
+	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, awards = ? where server_id = ?", options.AnnounceChannel.Value, options.AnnounceRole.Value, options.Playstation.Value, options.Xbox.Value, options.Nintendo.Value, options.PC.Value, options.Awards.Value, options.ServerID)
 	if execErr != nil {
 		return execErr
 	}
@@ -94,7 +103,7 @@ func GetOptions(serverID string) (Options, error) {
 
 	var options Options
 	row := db.QueryRow("select * from settings where server_id = ?", serverID)
-	scanErr := row.Scan(&options.ServerID, &options.AnnounceChannel, &options.AnnounceRole, &options.Playstation, &options.Xbox, &options.Nintendo, &options.PC, &options.Awards)
+	scanErr := row.Scan(&options.ServerID, &options.AnnounceChannel.Value, &options.AnnounceRole.Value, &options.Playstation.Value, &options.Xbox.Value, &options.Nintendo.Value, &options.PC.Value, &options.Awards.Value)
 	if scanErr != nil {
 		return Options{}, scanErr
 	}
@@ -127,25 +136,25 @@ func MergeOptions(serverID string, new *Options) *Options {
 		utils.EWLogger.WithPrefix(" CMND").Error("error getting options", "server", serverID, "err", getErr)
 		return &Options{}
 	}
-	if new.AnnounceChannel != "" {
+	if new.AnnounceChannel.Set {
 		current.AnnounceChannel = new.AnnounceChannel
 	}
-	if new.AnnounceRole != "" {
+	if new.AnnounceRole.Set {
 		current.AnnounceRole = new.AnnounceRole
 	}
-	if new.Playstation {
+	if new.Playstation.Set {
 		current.Playstation = new.Playstation
 	}
-	if new.Xbox {
+	if new.Xbox.Set {
 		current.Xbox = new.Xbox
 	}
-	if new.Nintendo {
+	if new.Nintendo.Set {
 		current.Nintendo = new.Nintendo
 	}
-	if new.PC {
+	if new.PC.Set {
 		current.PC = new.PC
 	}
-	if new.Awards {
+	if new.Awards.Value {
 		current.Awards = new.Awards
 	}
 	return &current

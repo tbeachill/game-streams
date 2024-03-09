@@ -14,8 +14,7 @@ import (
 
 // return a list of all upcoming streams as a slice of embeds
 func StreamList() (*discordgo.MessageEmbed, error) {
-	var embed *discordgo.MessageEmbed
-	embed = &discordgo.MessageEmbed{
+	embed := &discordgo.MessageEmbed{
 		Title: "Upcoming Streams",
 		Color: 0xc3d23e,
 	}
@@ -55,7 +54,7 @@ func ScheduleNotifications(session *discordgo.Session) error {
 			}
 			timeToStream := streamTime.Sub(time.Now().UTC()) - (time.Minute * 5)
 			time.Sleep(timeToStream)
-			postStreamLink(*currentStream, session)
+			PostStreamLink(*currentStream, session)
 		}(&stream)
 		utils.Logger.WithPrefix("SCHED").Info("scheduled stream", "goroutine", i+1, "name", stream.Name, "time", stream.Time)
 	}
@@ -65,47 +64,61 @@ func ScheduleNotifications(session *discordgo.Session) error {
 }
 
 // post a message to every server that is following the platform when a stream is about to start
-func postStreamLink(stream db.Stream, session *discordgo.Session) {
+func PostStreamLink(stream db.Stream, session *discordgo.Session) {
+	utils.Logger.WithPrefix("SCHED").Info("posting stream link to subscribed servers", "stream", stream.Name, "platforms", stream.Platform)
 	allServerPlatforms := getAllPlatforms(stream)
-	allServerPlatforms = utils.RemoveSliceDuplicates(allServerPlatforms)
-	utils.Logger.WithPrefix("SCHED").Info("posting stream link to subscribed servers", "stream", stream.Name)
+	uniqueServers := utils.RemoveSliceDuplicates(allServerPlatforms)
 
-	for _, server := range allServerPlatforms {
+	for server := range uniqueServers {
 		options, getErr := db.GetOptions(server)
 		if getErr != nil {
 			utils.EWLogger.WithPrefix("SCHED").Error("error getting server options", "server", server, "err", getErr)
 			continue
 		}
-		channel, channelErr := session.State.Channel(options.AnnounceChannel)
-		if channelErr != nil {
-			utils.EWLogger.WithPrefix("SCHED").Error("error getting channel", "server", server, "channel", options.AnnounceChannel, "err", channelErr)
-			continue
-		}
-		if options.AnnounceRole != "" {
-			_, postErr := session.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
-				Content: fmt.Sprintf("<@&%s> Stream starting in 5 minutes: %s", options.AnnounceRole, stream.URL),
-			})
-			if postErr != nil {
-				utils.EWLogger.WithPrefix("SCHED").Error("error posting message", "server", server, "channel", channel.ID, "role", options.AnnounceRole, "err", postErr)
-			}
-			continue
-		}
-		_, postErr := session.ChannelMessageSend(channel.ID, fmt.Sprintf("Stream starting in 5 minutes: %s", stream.URL))
+		_, postErr := session.ChannelMessageSendEmbed(options.AnnounceChannel.Value, createStreamEmbed(stream, options.AnnounceRole.Value))
 		if postErr != nil {
-			utils.EWLogger.WithPrefix("SCHED").Error("error posting message", "server", server, "channel", channel.ID, "err", postErr)
+			utils.EWLogger.WithPrefix("SCHED").Error("error posting message", "server", server, "channel", options.AnnounceChannel, "role", options.AnnounceRole, "err", postErr)
 		}
 	}
+}
+
+// create an embed for a stream
+func createStreamEmbed(stream db.Stream, role string) *discordgo.MessageEmbed {
+	if role != "" {
+		role = fmt.Sprintf("<@&%s> ", role)
+	}
+	embed :=
+		&discordgo.MessageEmbed{
+			Title:       stream.Name,
+			URL:         stream.URL,
+			Type:        "video",
+			Description: fmt.Sprintf("%sstream starting in 5 minutes\n\n%s", role, stream.Description),
+			Thumbnail: &discordgo.MessageEmbedThumbnail{
+				URL: utils.GetVideoThumbnail(stream.URL),
+			},
+			Color: 0xc3d23e,
+			Fields: []*discordgo.MessageEmbedField{
+				{
+					Name:   "Platforms",
+					Value:  stream.Platform,
+					Inline: false,
+				},
+			},
+		}
+	return embed
 }
 
 func getAllPlatforms(stream db.Stream) []string {
 	platforms := strings.Split(stream.Platform, ",")
 	var allServerPlatforms []string
 	for _, platform := range platforms {
+		platform = strings.Trim(platform, " ")
 		server_list, platErr := db.GetPlatformServerIDs(platform)
 		if platErr != nil {
 			utils.EWLogger.WithPrefix("SCHED").Error("error getting platform server IDs")
 			return nil
 		}
+		utils.Logger.WithPrefix("SCHED").Info("found servers for platform", "platform", platform)
 		allServerPlatforms = append(allServerPlatforms, server_list...)
 	}
 	return allServerPlatforms

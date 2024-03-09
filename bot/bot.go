@@ -14,6 +14,8 @@ import (
 	"gamestreambot/utils"
 )
 
+// TODO: make stream starting notification an embed
+// TODO: document functions properly - arguments, return values
 // TODO: look at structs and turn some functions into methods
 // TODO: check error handling in all functions
 // TODO: check logging in all functions

@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -44,7 +45,9 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 	defer db.Close()
 
 	platform = strings.ToLower(platform)
-	rows, queryErr := db.Query("select server_id from settings where ? = ?", platform, "1")
+	utils.Logger.WithPrefix(" DB").Info("getting server IDs for", "platform", platform)
+	query := fmt.Sprintf("select server_id from settings where %s = %s", platform, "1")
+	rows, queryErr := db.Query(query)
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -57,7 +60,11 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 		if scanErr != nil {
 			return nil, scanErr
 		}
-		serverIDs = append(serverIDs, serverID)
+		serverIDs = append(serverIDs, fmt.Sprint(serverID))
+	}
+	err := rows.Err()
+	if err != nil {
+		utils.Logger.Error(err)
 	}
 	return serverIDs, nil
 }
