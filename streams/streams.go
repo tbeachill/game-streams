@@ -84,6 +84,11 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 
 // create an embed for a stream
 func createStreamEmbed(stream db.Stream, role string) *discordgo.MessageEmbed {
+	ts, tsErr := utils.CreateTimestampRelative(stream.Date, stream.Time)
+	if tsErr != nil {
+		utils.EWLogger.WithPrefix("SCHED").Error("error creating timestamp")
+		return nil
+	}
 	if role != "" {
 		role = fmt.Sprintf("<@&%s> ", role)
 	}
@@ -92,7 +97,7 @@ func createStreamEmbed(stream db.Stream, role string) *discordgo.MessageEmbed {
 			Title:       stream.Name,
 			URL:         stream.URL,
 			Type:        "video",
-			Description: fmt.Sprintf("%sstream starting in 5 minutes\n\n%s", role, stream.Description),
+			Description: fmt.Sprintf("%sstream starting %s\n\n%s", role, ts, stream.Description),
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: utils.GetVideoThumbnail(stream.URL),
 			},

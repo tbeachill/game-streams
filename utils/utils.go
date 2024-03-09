@@ -31,6 +31,13 @@ func CreateTimestamp(d string, t string) (string, string, error) {
 	return fmt.Sprintf("<t:%d:d>", dt.Unix()), fmt.Sprintf("<t:%d:t>", dt.Unix()), err
 }
 
+// create a unix timestamp from a date and time and return the relative discord time string
+func CreateTimestampRelative(d string, t string) (string, error) {
+	layout := "2006-01-02 15:04"
+	dt, err := time.Parse(layout, fmt.Sprintf("%s %s", d, t))
+	return fmt.Sprintf("<t:%d:R>", dt.Unix()), err
+}
+
 func ParseTomlDate(d string) (string, error) {
 	splitStr := strings.Split(d, "/")
 	if len(splitStr) != 3 {
