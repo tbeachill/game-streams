@@ -6,10 +6,6 @@ var admin int64 = discordgo.PermissionAdministrator
 
 var commands = []*discordgo.ApplicationCommand{
 	{
-		Name:        "test",
-		Description: "test function pls ignore",
-	},
-	{
 		Name:        "streams",
 		Description: "List upcoming streams",
 	},

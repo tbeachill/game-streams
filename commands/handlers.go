@@ -12,19 +12,9 @@ import (
 
 // map of command names to their respective functions
 var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-	"test":     test,
 	"streams":  listStreams,
 	"help":     help,
 	"settings": settings,
-}
-
-func test(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	strem, err := db.GetUpcomingStreams()
-	if err != nil {
-		utils.EWLogger.WithPrefix(" CMND").Error("error getting upcoming streams", "err", err)
-		return
-	}
-	streams.PostStreamLink(strem.Streams[0], s)
 }
 
 // list all upcoming streams
