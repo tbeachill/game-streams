@@ -4,12 +4,9 @@ import (
 	"database/sql"
 	"io"
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/BurntSushi/toml"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tidwall/gjson"
 
 	"gamestreambot/utils"
 )
@@ -17,37 +14,29 @@ import (
 // runner function to update the streams in the db, will return early if there are any errors
 // or there are no updates
 func UpdateStreams() error {
-	c := GetConfig()
-
-	commitTime, timeErr := getUpdateTime(c)
-	if timeErr != nil {
-		return timeErr
+	var c Config
+	c.Get()
+	updated, checkErr := c.Check()
+	if checkErr != nil {
+		return checkErr
+	}
+	if !updated {
+		utils.Log.Info.WithPrefix("UPDAT").Info("no new streams found")
+		return nil
 	}
 
-	// if there is no date in the config, skip the comparison
-	if c.LastUpdate != "" {
-		updated, updateErr := compareLastUpdates(c, commitTime)
-		if updateErr != nil {
-			return updateErr
-		}
-		if !updated {
-			utils.Log.Info.WithPrefix("UPDAT").Info("no new streams found")
-			return nil
-		}
-	}
 	utils.Log.Info.WithPrefix("UPDAT").Info("found new version of toml")
 
-	newStreamList, parseErr := parseToml(c, commitTime)
+	newStreamList, parseErr := parseToml(c)
 	if parseErr != nil {
 		return parseErr
 	}
 	// if new version of toml is empty, update the last update time and return
 	if len(newStreamList.Streams) == 0 {
 		utils.Log.Info.WithPrefix("UPDAT").Info("toml is empty")
-		if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
-			return lastErr
+		if setErr := c.Set(); setErr != nil {
+			return setErr
 		}
-		return nil
 	}
 
 	if dateErr := formatDate(&newStreamList); dateErr != nil {
@@ -68,7 +57,7 @@ func UpdateStreams() error {
 		return nil
 	}
 
-	if insertErr := insertStreams(noDupList, commitTime, c); insertErr != nil {
+	if insertErr := insertStreams(noDupList, c); insertErr != nil {
 		return insertErr
 	}
 	addedCount := len(noDupList.Streams) - updateCount
@@ -80,52 +69,14 @@ func UpdateStreams() error {
 	}
 	utils.Log.Info.WithPrefix("UPDAT").Infof("deleted %d old stream%s from database", delCount, utils.Pluralise(delCount))
 
-	if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
-		return lastErr
+	if setErr := c.Set(); setErr != nil {
+		return setErr
 	}
 	return nil
 }
 
-// get last commit time from github
-func getUpdateTime(c utils.Config) (time.Time, error) {
-	utils.Log.Info.WithPrefix("UPDAT").Info("getting last update time")
-	response, httpErr := http.Get(c.APIURL)
-	if httpErr != nil {
-		return time.Time{}, httpErr
-	}
-	defer response.Body.Close()
-
-	body, readErr := io.ReadAll(response.Body)
-	if readErr != nil {
-		return time.Time{}, readErr
-	}
-	filename := gjson.Get(string(body), "files.#.filename")
-	if !strings.Contains(filename.String(), "streams.toml") {
-		return time.Time{}, nil
-	}
-	dt := gjson.Get(string(body), "commit.author.date")
-	commitTime, cTimeErr := time.Parse(time.RFC3339, dt.String())
-	if cTimeErr != nil {
-		return time.Time{}, cTimeErr
-	}
-	return commitTime, nil
-}
-
-// check if streams.toml has been updated
-func compareLastUpdates(c utils.Config, commitTime time.Time) (bool, error) {
-	utils.Log.Info.WithPrefix("UPDAT").Info("comparing update times")
-	dbTime, err := time.Parse(time.RFC3339, c.LastUpdate)
-	if err != nil {
-		return false, err
-	}
-	if commitTime.After(dbTime) || c.LastUpdate == "" {
-		return true, nil
-	}
-	return false, nil
-}
-
 // parse streams.toml and return as an s.Streams struct
-func parseToml(c utils.Config, commitTime time.Time) (Streams, error) {
+func parseToml(c Config) (Streams, error) {
 	utils.Log.Info.WithPrefix("UPDAT").Info("parsing toml")
 	response, httpErr := http.Get(c.StreamURL)
 	if httpErr != nil {
@@ -251,7 +202,7 @@ func countRows() (int, error) {
 }
 
 // update db with new streams
-func insertStreams(streamList Streams, commitTime time.Time, c utils.Config) error {
+func insertStreams(streamList Streams, c Config) error {
 	db, sqlErr := sql.Open("sqlite3", utils.Files.DB)
 	if sqlErr != nil {
 		return sqlErr
@@ -271,16 +222,6 @@ func insertStreams(streamList Streams, commitTime time.Time, c utils.Config) err
 		if insertErr != nil {
 			return insertErr
 		}
-	}
-	return nil
-}
-
-// change last update time in config.toml
-func changeLastUpdate(c utils.Config, commitTime time.Time) error {
-	utils.Log.Info.WithPrefix("UPDAT").Info("amending last update time")
-	setErr := SetConfig(utils.Config{StreamURL: c.StreamURL, APIURL: c.APIURL, LastUpdate: commitTime.Format("2006-01-02T15:04:05Z07:00")})
-	if setErr != nil {
-		return setErr
 	}
 	return nil
 }

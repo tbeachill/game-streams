@@ -14,13 +14,6 @@ import (
 var Files FilePaths
 var Log Logger
 
-type Config struct {
-	ID         int
-	StreamURL  string
-	APIURL     string
-	LastUpdate string
-}
-
 type FilePaths struct {
 	DotEnv string
 	DB     string
@@ -30,6 +23,22 @@ type FilePaths struct {
 type Logger struct {
 	ErrorWarn *log.Logger
 	Info      *log.Logger
+}
+
+func (s *FilePaths) SetPaths() {
+	if runtime.GOOS == "windows" {
+		s.DotEnv = "config/.env"
+		s.DB = "config/gamestream.db"
+		s.Log = "config/gamestream.log"
+	} else {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			Log.ErrorWarn.WithPrefix(" MAIN").Fatal("could not set filepaths", "err", err)
+		}
+		s.DotEnv = fmt.Sprintf("%s/config/gamestreambot/.env", home)
+		s.DB = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
+		s.Log = fmt.Sprintf("%s/config/gamestreambot/gamestream.log", home)
+	}
 }
 
 func (l *Logger) Init() {
@@ -48,22 +57,6 @@ func (l *Logger) Init() {
 	mw := io.MultiWriter(os.Stdout, logFile)
 	l.Info.SetOutput(mw)
 	l.ErrorWarn.SetOutput(mw)
-}
-
-func (s *FilePaths) SetPaths() {
-	if runtime.GOOS == "windows" {
-		s.DotEnv = "config/.env"
-		s.DB = "config/gamestream.db"
-		s.Log = "config/gamestream.log"
-	} else {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			Log.ErrorWarn.WithPrefix(" MAIN").Fatal("could not set filepaths", "err", err)
-		}
-		s.DotEnv = fmt.Sprintf("%s/config/gamestreambot/.env", home)
-		s.DB = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
-		s.Log = fmt.Sprintf("%s/config/gamestreambot/gamestream.log", home)
-	}
 }
 
 // create a unix timestamp from a date and time
