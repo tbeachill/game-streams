@@ -30,13 +30,13 @@ type BoolSet struct {
 
 // add a server to the settings table with default options
 func SetDefaultOptions(serverID string) error {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
 
-	utils.Logger.WithPrefix("STATS").Info("setting default options", "server", serverID)
+	utils.Log.Info.WithPrefix("STATS").Info("setting default options", "server", serverID)
 	_, execErr := db.Exec("insert into settings (server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc, awards) values (?, ?, ?, ?, ?, ?, ?, ?)", serverID, "", "", 0, 0, 0, 0, 0)
 	if execErr != nil {
 		return execErr
@@ -46,12 +46,12 @@ func SetDefaultOptions(serverID string) error {
 
 // reset the options for a server to default
 func ResetOptions(serverID string) error {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
-	utils.Logger.WithPrefix(" CMND").Info("resetting options", "server", serverID)
+	utils.Log.Info.WithPrefix(" CMND").Info("resetting options", "server", serverID)
 	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, awards = ? where server_id = ?", "", "", 0, 0, 0, 0, 0, serverID)
 	if execErr != nil {
 		return execErr
@@ -61,13 +61,13 @@ func ResetOptions(serverID string) error {
 
 // remove a server from the settings table
 func RemoveOptions(serverID string) error {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
 
-	utils.Logger.WithPrefix("STATS").Info("removing from options table", "server", serverID)
+	utils.Log.Info.WithPrefix("STATS").Info("removing from options table", "server", serverID)
 	_, execErr := db.Exec("delete from settings where server_id = ?", serverID)
 	if execErr != nil {
 		return execErr
@@ -77,13 +77,13 @@ func RemoveOptions(serverID string) error {
 
 // set the options for a server from an options struct
 func SetOptions(options *Options) error {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
 	checkOptions(options.ServerID)
-	utils.Logger.Info("setting options", "server", options.ServerID, "options", options)
+	utils.Log.Info.Info("setting options", "server", options.ServerID, "options", options)
 
 	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, awards = ? where server_id = ?", options.AnnounceChannel.Value, options.AnnounceRole.Value, options.Playstation.Value, options.Xbox.Value, options.Nintendo.Value, options.PC.Value, options.Awards.Value, options.ServerID)
 	if execErr != nil {
@@ -94,7 +94,7 @@ func SetOptions(options *Options) error {
 
 // get the options for a server and return as an options struct
 func GetOptions(serverID string) (Options, error) {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return Options{}, openErr
 	}
@@ -112,7 +112,7 @@ func GetOptions(serverID string) (Options, error) {
 
 // check if a server is in the settings table, if not add it with default options
 func checkOptions(serverID string) error {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
@@ -133,7 +133,7 @@ func checkOptions(serverID string) error {
 func MergeOptions(serverID string, new *Options) *Options {
 	current, getErr := GetOptions(serverID)
 	if getErr != nil {
-		utils.EWLogger.WithPrefix(" CMND").Error("error getting options", "server", serverID, "err", getErr)
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting options", "server", serverID, "err", getErr)
 		return &Options{}
 	}
 	if new.AnnounceChannel.Set {

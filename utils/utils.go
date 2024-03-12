@@ -11,17 +11,59 @@ import (
 	"github.com/charmbracelet/log"
 )
 
-var DotEnvFile string
-var DBFile string
-var LogFile string
-var Logger *log.Logger
-var EWLogger *log.Logger
+var Files FilePaths
+var Log Logger
 
 type Config struct {
 	ID         int
 	StreamURL  string
 	APIURL     string
 	LastUpdate string
+}
+
+type FilePaths struct {
+	DotEnv string
+	DB     string
+	Log    string
+}
+
+type Logger struct {
+	ErrorWarn *log.Logger
+	Info      *log.Logger
+}
+
+func (l *Logger) Init() {
+	l.Info = log.NewWithOptions(os.Stderr, log.Options{
+		ReportTimestamp: true,
+	})
+	l.ErrorWarn = log.NewWithOptions(os.Stderr, log.Options{
+		ReportCaller:    true,
+		ReportTimestamp: true,
+	})
+
+	logFile, err := os.OpenFile(Files.Log, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		l.ErrorWarn.WithPrefix(" MAIN").Fatal("Error opening log file", "err", err)
+	}
+	mw := io.MultiWriter(os.Stdout, logFile)
+	l.Info.SetOutput(mw)
+	l.ErrorWarn.SetOutput(mw)
+}
+
+func (s *FilePaths) SetPaths() {
+	if runtime.GOOS == "windows" {
+		s.DotEnv = "config/.env"
+		s.DB = "config/gamestream.db"
+		s.Log = "config/gamestream.log"
+	} else {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			Log.ErrorWarn.WithPrefix(" MAIN").Fatal("could not set filepaths", "err", err)
+		}
+		s.DotEnv = fmt.Sprintf("%s/config/gamestreambot/.env", home)
+		s.DB = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
+		s.Log = fmt.Sprintf("%s/config/gamestreambot/gamestream.log", home)
+	}
 }
 
 // create a unix timestamp from a date and time
@@ -51,43 +93,6 @@ func Pluralise(n int) string {
 		return ""
 	}
 	return "s"
-}
-
-func SetConfig() {
-	if runtime.GOOS == "windows" {
-		log.WithPrefix(" MAIN").Info("running on windows")
-		DotEnvFile = "config/.env"
-		DBFile = "config/gamestream.db"
-		LogFile = "config/gamestream.log"
-	} else {
-		log.WithPrefix(" MAIN").Info("running on linux")
-		home, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatal("could not set config", "err", err)
-		}
-		DotEnvFile = fmt.Sprintf("%s/config/gamestreambot/.env", home)
-		DBFile = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
-		LogFile = fmt.Sprintf("%s/config/gamestreambot/gamestream.log", home)
-	}
-}
-
-// create and set up the logger
-func SetLogger() {
-	Logger = log.NewWithOptions(os.Stderr, log.Options{
-		ReportTimestamp: true,
-	})
-	EWLogger = log.NewWithOptions(os.Stderr, log.Options{
-		ReportCaller:    true,
-		ReportTimestamp: true,
-	})
-
-	logFile, err := os.OpenFile(LogFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		EWLogger.WithPrefix(" MAIN").Fatal("Error opening log file", "err", err)
-	}
-	mw := io.MultiWriter(os.Stdout, logFile)
-	Logger.SetOutput(mw)
-	EWLogger.SetOutput(mw)
 }
 
 // remove duplicates from a slice of strings

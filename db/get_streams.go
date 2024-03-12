@@ -10,8 +10,8 @@ import (
 
 // get all future streams from the db and return as an s.Streams struct
 func GetUpcomingStreams() (Streams, error) {
-	utils.Logger.WithPrefix(" CMND").Info("getting upcoming streams")
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	utils.Log.Info.WithPrefix(" CMND").Info("getting upcoming streams")
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return Streams{}, openErr
 	}
@@ -32,12 +32,12 @@ func GetUpcomingStreams() (Streams, error) {
 		}
 		streamList.Streams = append(streamList.Streams, stream)
 	}
-	utils.Logger.WithPrefix(" CMND").Info("found", "streams", len(streamList.Streams))
+	utils.Log.Info.WithPrefix(" CMND").Info("found", "streams", len(streamList.Streams))
 	return streamList, nil
 }
 
 func GetTodaysStreams() (Streams, error) {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return Streams{}, openErr
 	}
@@ -56,7 +56,7 @@ func GetTodaysStreams() (Streams, error) {
 		if scanErr != nil {
 			return Streams{}, scanErr
 		}
-		utils.Logger.WithPrefix("SCHED").Info("found a stream", "name", stream.Name, "time", stream.Time)
+		utils.Log.Info.WithPrefix("SCHED").Info("found a stream", "name", stream.Name, "time", stream.Time)
 		streamList.Streams = append(streamList.Streams, stream)
 	}
 	return streamList, nil

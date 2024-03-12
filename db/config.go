@@ -7,9 +7,9 @@ import (
 )
 
 func GetConfig() utils.Config {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
-		utils.Logger.Error(openErr)
+		utils.Log.Info.Error(openErr)
 		return utils.Config{}
 	}
 
@@ -22,24 +22,24 @@ func GetConfig() utils.Config {
 	row := db.QueryRow(sqlStmt)
 	scanErr := row.Scan(&config.ID, &config.StreamURL, &config.APIURL, &config.LastUpdate)
 	if scanErr == sql.ErrNoRows {
-		utils.Logger.WithPrefix(" MAIN").Info("No config found, setting default")
+		utils.Log.Info.WithPrefix(" MAIN").Info("No config found, setting default")
 		if defaultErr := SetDefaultConfig(); defaultErr != nil {
-			utils.Logger.Error(defaultErr)
+			utils.Log.Info.Error(defaultErr)
 		}
 		return GetConfig()
 	} else if scanErr != nil {
-		utils.Logger.Error(openErr)
+		utils.Log.Info.Error(openErr)
 		return utils.Config{}
 	}
 	return config
 }
 
 func SetConfig(config utils.Config) error {
-	utils.Logger.WithPrefix(" MAIN").Info("updating config")
+	utils.Log.Info.WithPrefix(" MAIN").Info("updating config")
 	sqlStmt := `
 		update config set stream_url = ?, api_url = ?, last_updated = ? where id = 1
 	`
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
@@ -53,11 +53,11 @@ func SetConfig(config utils.Config) error {
 }
 
 func SetDefaultConfig() error {
-	utils.Logger.WithPrefix(" MAIN").Info("setting default config")
+	utils.Log.Info.WithPrefix(" MAIN").Info("setting default config")
 	sqlStmt := `
 		insert into config (stream_url, api_url, last_updated) values (?, ?, ?)
 	`
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}

@@ -12,7 +12,7 @@ import (
 
 // get a list of all server IDs from the settings table
 func GetServerIDs() ([]string, error) {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return nil, openErr
 	}
@@ -38,14 +38,14 @@ func GetServerIDs() ([]string, error) {
 
 // get a list of all server IDs from the settings table where the platform is true
 func GetPlatformServerIDs(platform string) ([]string, error) {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return nil, openErr
 	}
 	defer db.Close()
 
 	platform = strings.ToLower(platform)
-	utils.Logger.WithPrefix(" DB").Info("getting server IDs for", "platform", platform)
+	utils.Log.Info.WithPrefix(" DB").Info("getting server IDs for", "platform", platform)
 	query := fmt.Sprintf("select server_id from settings where %s = %s", platform, "1")
 	rows, queryErr := db.Query(query)
 	if queryErr != nil {
@@ -64,7 +64,7 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 	}
 	err := rows.Err()
 	if err != nil {
-		utils.Logger.Error(err)
+		utils.Log.Info.Error(err)
 	}
 	return serverIDs, nil
 }

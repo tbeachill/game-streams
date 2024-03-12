@@ -28,7 +28,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Color:       0xc3d23e,
 			}
 		} else {
-			utils.EWLogger.WithPrefix(" CMND").Error("error creating embeds", "err", listErr)
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds", "err", listErr)
 			embed = &discordgo.MessageEmbed{
 				Title:       "Upcoming Streams",
 				Description: "An error occurred",
@@ -44,7 +44,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.EWLogger.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
 	}
 }
 
@@ -79,7 +79,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.EWLogger.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
 	}
 }
 
@@ -87,7 +87,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // then respond to the interaction with the updated settings, or an error message if an error occurred
 func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := parseOptions(i.ApplicationCommandData().Options)
-	utils.Logger.WithPrefix(" CMND").Info("options", "options", options)
+	utils.Log.Info.WithPrefix(" CMND").Info("options", "options", options)
 	var status string
 	if *options == (db.Options{}) || options.Reset {
 		status = "Current settings:"
@@ -106,7 +106,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if options.AnnounceChannel.Value != "" {
 		channel, cErr := s.Channel(options.AnnounceChannel.Value)
 		if cErr != nil {
-			utils.EWLogger.WithPrefix(" CMND").Error("error getting channel name", "channel", options.AnnounceChannel, "err", cErr)
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting channel name", "channel", options.AnnounceChannel, "err", cErr)
 			channelName = options.AnnounceChannel.Value
 		} else {
 			channelName = channel.Name
@@ -115,7 +115,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if options.AnnounceRole.Value != "" {
 		role, rErr := s.State.Role(i.GuildID, options.AnnounceRole.Value)
 		if rErr != nil {
-			utils.EWLogger.WithPrefix(" CMND").Error("error getting role name", "role", options.AnnounceRole, "err", rErr)
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting role name", "role", options.AnnounceRole, "err", rErr)
 			roleName = options.AnnounceRole.Value
 		} else {
 			roleName = role.Name
@@ -168,7 +168,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	settingsErr := db.SetOptions(options)
 	if settingsErr != nil {
-		utils.EWLogger.WithPrefix(" CMND").Error("error setting options", "server", i.GuildID, "err", settingsErr)
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error setting options", "server", i.GuildID, "err", settingsErr)
 		content = []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
 				Title:       "Settings",
@@ -184,7 +184,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.EWLogger.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
 	}
 }
 
@@ -205,7 +205,7 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 		case "xbox":
 			o.Xbox.Value = option.Value.(bool)
 			o.Xbox.Set = true
-			utils.Logger.Info("xbox", "value", option.Value)
+			utils.Log.Info.Info("xbox", "value", option.Value)
 		case "nintendo":
 			o.Nintendo.Value = option.Value.(bool)
 			o.Nintendo.Set = true

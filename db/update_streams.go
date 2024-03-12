@@ -31,11 +31,11 @@ func UpdateStreams() error {
 			return updateErr
 		}
 		if !updated {
-			utils.Logger.WithPrefix("UPDAT").Info("no new streams found")
+			utils.Log.Info.WithPrefix("UPDAT").Info("no new streams found")
 			return nil
 		}
 	}
-	utils.Logger.WithPrefix("UPDAT").Info("found new version of toml")
+	utils.Log.Info.WithPrefix("UPDAT").Info("found new version of toml")
 
 	newStreamList, parseErr := parseToml(c, commitTime)
 	if parseErr != nil {
@@ -43,7 +43,7 @@ func UpdateStreams() error {
 	}
 	// if new version of toml is empty, update the last update time and return
 	if len(newStreamList.Streams) == 0 {
-		utils.Logger.WithPrefix("UPDAT").Info("toml is empty")
+		utils.Log.Info.WithPrefix("UPDAT").Info("toml is empty")
 		if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
 			return lastErr
 		}
@@ -64,7 +64,7 @@ func UpdateStreams() error {
 		return dupErr
 	}
 	if len(noDupList.Streams) == 0 {
-		utils.Logger.WithPrefix("UPDAT").Info("no new streams found")
+		utils.Log.Info.WithPrefix("UPDAT").Info("no new streams found")
 		return nil
 	}
 
@@ -72,13 +72,13 @@ func UpdateStreams() error {
 		return insertErr
 	}
 	addedCount := len(noDupList.Streams) - updateCount
-	utils.Logger.WithPrefix("UPDAT").Infof("added %d new stream%s to database and updated %d stream%s\n", addedCount, utils.Pluralise(addedCount), updateCount, utils.Pluralise(updateCount))
+	utils.Log.Info.WithPrefix("UPDAT").Infof("added %d new stream%s to database and updated %d stream%s\n", addedCount, utils.Pluralise(addedCount), updateCount, utils.Pluralise(updateCount))
 
 	delCount, delErr := deleteStreams(newStreamList.Streams)
 	if delErr != nil {
 		return delErr
 	}
-	utils.Logger.WithPrefix("UPDAT").Infof("deleted %d old stream%s from database", delCount, utils.Pluralise(delCount))
+	utils.Log.Info.WithPrefix("UPDAT").Infof("deleted %d old stream%s from database", delCount, utils.Pluralise(delCount))
 
 	if lastErr := changeLastUpdate(c, commitTime); lastErr != nil {
 		return lastErr
@@ -88,7 +88,7 @@ func UpdateStreams() error {
 
 // get last commit time from github
 func getUpdateTime(c utils.Config) (time.Time, error) {
-	utils.Logger.WithPrefix("UPDAT").Info("getting last update time")
+	utils.Log.Info.WithPrefix("UPDAT").Info("getting last update time")
 	response, httpErr := http.Get(c.APIURL)
 	if httpErr != nil {
 		return time.Time{}, httpErr
@@ -113,7 +113,7 @@ func getUpdateTime(c utils.Config) (time.Time, error) {
 
 // check if streams.toml has been updated
 func compareLastUpdates(c utils.Config, commitTime time.Time) (bool, error) {
-	utils.Logger.WithPrefix("UPDAT").Info("comparing update times")
+	utils.Log.Info.WithPrefix("UPDAT").Info("comparing update times")
 	dbTime, err := time.Parse(time.RFC3339, c.LastUpdate)
 	if err != nil {
 		return false, err
@@ -126,7 +126,7 @@ func compareLastUpdates(c utils.Config, commitTime time.Time) (bool, error) {
 
 // parse streams.toml and return as an s.Streams struct
 func parseToml(c utils.Config, commitTime time.Time) (Streams, error) {
-	utils.Logger.WithPrefix("UPDAT").Info("parsing toml")
+	utils.Log.Info.WithPrefix("UPDAT").Info("parsing toml")
 	response, httpErr := http.Get(c.StreamURL)
 	if httpErr != nil {
 		return Streams{}, httpErr
@@ -159,7 +159,7 @@ func formatDate(streamList *Streams) error {
 
 // update an existing stream in the db
 func updateRow(streamList *Streams) (int, error) {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return 0, openErr
 	}
@@ -171,7 +171,7 @@ func updateRow(streamList *Streams) (int, error) {
 
 	var updateCount int
 	for i, stream := range streamList.Streams {
-		utils.Logger.WithPrefix("UPDAT").Info("updating stream", "id", stream.ID, "name", stream.Name)
+		utils.Log.Info.WithPrefix("UPDAT").Info("updating stream", "id", stream.ID, "name", stream.Name)
 		if stream.ID != 0 {
 			_, updateErr := db.Exec(sqlStmt, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL, stream.ID)
 			if updateErr != nil {
@@ -195,7 +195,7 @@ func checkForDuplicates(streamList Streams) (Streams, error) {
 		return streamList, nil
 	}
 
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return Streams{}, openErr
 	}
@@ -231,7 +231,7 @@ OUTER:
 
 // count the number of rows in the streams table
 func countRows() (int, error) {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return 0, openErr
 	}
@@ -252,7 +252,7 @@ func countRows() (int, error) {
 
 // update db with new streams
 func insertStreams(streamList Streams, commitTime time.Time, c utils.Config) error {
-	db, sqlErr := sql.Open("sqlite3", utils.DBFile)
+	db, sqlErr := sql.Open("sqlite3", utils.Files.DB)
 	if sqlErr != nil {
 		return sqlErr
 	}
@@ -266,7 +266,7 @@ func insertStreams(streamList Streams, commitTime time.Time, c utils.Config) err
 		if stream.Name == "" {
 			continue
 		}
-		utils.Logger.WithPrefix("UPDAT").Info("inserting stream", "name", stream.Name)
+		utils.Log.Info.WithPrefix("UPDAT").Info("inserting stream", "name", stream.Name)
 		_, insertErr := db.Exec(sqlStmt, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL)
 		if insertErr != nil {
 			return insertErr
@@ -277,7 +277,7 @@ func insertStreams(streamList Streams, commitTime time.Time, c utils.Config) err
 
 // change last update time in config.toml
 func changeLastUpdate(c utils.Config, commitTime time.Time) error {
-	utils.Logger.WithPrefix("UPDAT").Info("amending last update time")
+	utils.Log.Info.WithPrefix("UPDAT").Info("amending last update time")
 	setErr := SetConfig(utils.Config{StreamURL: c.StreamURL, APIURL: c.APIURL, LastUpdate: commitTime.Format("2006-01-02T15:04:05Z07:00")})
 	if setErr != nil {
 		return setErr
@@ -287,7 +287,7 @@ func changeLastUpdate(c utils.Config, commitTime time.Time) error {
 
 // delete streams from the db if the delete flag is set to true
 func deleteStreams(streams []Stream) (int, error) {
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return 0, openErr
 	}
@@ -299,7 +299,7 @@ func deleteStreams(streams []Stream) (int, error) {
 	delCount := 0
 	for _, s := range streams {
 		if s.Delete {
-			utils.Logger.WithPrefix("UPDAT").Info("deleting stream", "id", s.ID, "name", s.Name)
+			utils.Log.Info.WithPrefix("UPDAT").Info("deleting stream", "id", s.ID, "name", s.Name)
 			_, deleteErr := db.Exec(sqlStmt, s.ID)
 			if deleteErr != nil {
 				return 0, deleteErr

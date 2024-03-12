@@ -11,9 +11,9 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 	for _, c := range commands {
 		_, err := s.ApplicationCommandCreate(appID, "", c)
 		if err != nil {
-			utils.EWLogger.WithPrefix(" MAIN").Error("error creating command", "cmd", c.Name, "err", err)
+			utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating command", "cmd", c.Name, "err", err)
 		}
-		utils.Logger.WithPrefix(" MAIN").Info("registered command", "cmd", c.Name)
+		utils.Log.Info.WithPrefix(" MAIN").Info("registered command", "cmd", c.Name)
 	}
 }
 
@@ -21,11 +21,11 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 func RemoveAllCommands(appID string, s *discordgo.Session) {
 	commands, err := s.ApplicationCommands(appID, "")
 	if err != nil {
-		utils.EWLogger.WithPrefix(" MAIN").Error("error removing commands", "err", err)
+		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error removing commands", "err", err)
 	}
 	for _, command := range commands {
 		s.ApplicationCommandDelete(appID, "", command.ID)
-		utils.Logger.WithPrefix(" MAIN").Info("removed command", "cmd", command.Name)
+		utils.Log.Info.WithPrefix(" MAIN").Info("removed command", "cmd", command.Name)
 	}
 }
 

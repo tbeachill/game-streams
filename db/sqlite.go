@@ -26,8 +26,8 @@ type Streams struct {
 // create the db with a streams table containing stream information and an options table
 // containing server specific options
 func CreateDB() error {
-	utils.Logger.WithPrefix(" MAIN").Info("loading/creating database")
-	db, openErr := sql.Open("sqlite3", utils.DBFile)
+	utils.Log.Info.WithPrefix(" MAIN").Info("loading/creating database")
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
