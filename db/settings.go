@@ -155,7 +155,7 @@ func MergeOptions(serverID string, new *Options) *Options {
 	if new.PC.Set {
 		current.PC = new.PC
 	}
-	if new.PC.Set {
+	if new.VR.Set {
 		current.VR = new.VR
 	}
 	if new.Awards.Value {

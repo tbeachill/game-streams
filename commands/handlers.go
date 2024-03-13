@@ -210,7 +210,6 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 		case "xbox":
 			o.Xbox.Value = option.Value.(bool)
 			o.Xbox.Set = true
-			utils.Log.Info.Info("xbox", "value", option.Value)
 		case "nintendo":
 			o.Nintendo.Value = option.Value.(bool)
 			o.Nintendo.Set = true
