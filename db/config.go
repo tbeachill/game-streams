@@ -88,7 +88,8 @@ func (c *Config) Set() error {
 	return nil
 }
 
-// get the last updated time from the db
+// get the last updated time from the db and compare to the last commit time from the api
+// return true if the commit time is newer than the last updated time
 func (c *Config) Check() (bool, error) {
 	utils.Log.Info.WithPrefix("UPDAT").Info("getting last update time")
 	response, httpErr := http.Get(c.APIURL)

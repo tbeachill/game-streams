@@ -15,7 +15,7 @@ import (
 )
 
 // TODO: document functions properly - arguments, return values
-// TODO: look at structs and turn some functions into methods
+// TODO: look at structs and turn some functions into methods - streams, stream, options, boolset
 // TODO: check error handling in all functions - sql should have end of function error checks
 // TODO: check logging in all functions
 // TODO: message me if there is an error
@@ -32,7 +32,7 @@ func Run(botToken, appID string) {
 		return
 	}
 	defer session.Close()
-	//commands.RemoveAllCommands(appID, session)
+	commands.RemoveAllCommands(appID, session)
 	commands.RegisterCommands(appID, session)
 	commands.RegisterHandler(session, &discordgo.InteractionCreate{})
 	go startUpdater()

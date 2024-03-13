@@ -57,6 +57,12 @@ var commands = []*discordgo.ApplicationCommand{
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "vr",
+				Description: "Enable or disable VR streams",
+				Required:    false,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionBoolean,
 				Name:        "awards",
 				Description: "Enable or disable awards streams",
 				Required:    false,

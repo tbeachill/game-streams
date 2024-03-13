@@ -159,6 +159,11 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Inline: false,
 				},
 				{
+					Name:   "VR",
+					Value:  strconv.FormatBool(options.VR.Value),
+					Inline: false,
+				},
+				{
 					Name:   "Awards",
 					Value:  strconv.FormatBool(options.Awards.Value),
 					Inline: false,
@@ -212,6 +217,9 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 		case "pc":
 			o.PC.Value = option.Value.(bool)
 			o.PC.Set = true
+		case "vr":
+			o.VR.Value = option.Value.(bool)
+			o.VR.Set = true
 		case "awards":
 			o.Awards.Value = option.Value.(bool)
 			o.Awards.Set = true
