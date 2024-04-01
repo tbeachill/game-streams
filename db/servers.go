@@ -36,6 +36,25 @@ func GetServerIDs() ([]string, error) {
 	return serverIDs, nil
 }
 
+// check if a server ID is in the settings table
+func CheckServerID(serverID string) (bool, error) {
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	if openErr != nil {
+		return false, openErr
+	}
+	defer db.Close()
+
+	row := db.QueryRow("select server_id from settings where server_id = ?", serverID)
+	var checkID string
+	scanErr := row.Scan(&checkID)
+	if scanErr == sql.ErrNoRows {
+		return false, nil
+	} else if scanErr != nil {
+		return false, scanErr
+	}
+	return true, nil
+}
+
 // get a list of all server IDs from the settings table where the platform is true
 func GetPlatformServerIDs(platform string) ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)

@@ -15,11 +15,12 @@ import (
 )
 
 // TODO: document functions properly - arguments, return values
-// TODO: look at structs and turn some functions into methods - streams, stream, options, boolset
+// TODO: look at structs and turn some functions into methods - streams, stream, options
 // TODO: check error handling in all functions - sql should have end of function error checks
 // TODO: check logging in all functions
 // TODO: message me if there is an error
 // TODO: message me weekly stats
+// TODO: add changelog command
 
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)

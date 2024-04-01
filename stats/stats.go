@@ -26,7 +26,19 @@ func MonitorGuilds(session *discordgo.Session) {
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildCreate) {
 		utils.Log.Info.WithPrefix("STATS").Info("joined server", "server", e.Guild.Name)
 		logGuildNumber(s)
-		db.SetDefaultOptions(e.Guild.ID)
+
+		present, checkErr := db.CheckServerID(e.Guild.ID)
+		if checkErr != nil {
+			utils.Log.ErrorWarn.WithPrefix("STATS").Error("error checking server ID", "err", checkErr)
+			return
+		}
+		if !present {
+			utils.Log.Info.WithPrefix("STATS").Info("adding server to database", "server", e.Guild.Name)
+			if addErr := db.SetDefaultOptions(e.Guild.ID); addErr != nil {
+				utils.Log.ErrorWarn.WithPrefix("STATS").Error("error adding server to database", "err", addErr)
+				return
+			}
+		}
 	})
 	utils.Log.Info.WithPrefix("STATS").Info("adding server leave handler")
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
