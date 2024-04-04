@@ -15,7 +15,7 @@ import (
 )
 
 // TODO: document functions properly - arguments, return values
-// TODO: look at structs and turn some functions into methods - streams, stream, options
+// TODO: look at structs and turn some functions into methods - streams, stream
 // TODO: check error handling in all functions - sql should have end of function error checks
 // TODO: check logging in all functions
 // TODO: message me if there is an error

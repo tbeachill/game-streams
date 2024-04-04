@@ -95,28 +95,29 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		status = "Settings successfully updated\nCurrent settings:"
 	}
 	if options.Reset {
-		db.ResetOptions(i.GuildID)
-		options = &db.Options{}
+		*options = db.NewOptions(i.GuildID)
+		options.Set()
 	}
-	options = db.MergeOptions(i.GuildID, options)
-	options.ServerID = i.GuildID
+	var currentOptions db.Options
+	currentOptions.Get(i.GuildID)
+	currentOptions.Merge(*options)
 
 	var channelName string
 	var roleName string
-	if options.AnnounceChannel.Value != "" {
-		channel, cErr := s.Channel(options.AnnounceChannel.Value)
+	if currentOptions.AnnounceChannel.Value != "" {
+		channel, cErr := s.Channel(currentOptions.AnnounceChannel.Value)
 		if cErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting channel name", "channel", options.AnnounceChannel, "err", cErr)
-			channelName = options.AnnounceChannel.Value
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting channel name", "channel", currentOptions.AnnounceChannel, "err", cErr)
+			channelName = currentOptions.AnnounceChannel.Value
 		} else {
 			channelName = channel.Name
 		}
 	}
-	if options.AnnounceRole.Value != "" {
-		role, rErr := s.State.Role(i.GuildID, options.AnnounceRole.Value)
+	if currentOptions.AnnounceRole.Value != "" {
+		role, rErr := s.State.Role(i.GuildID, currentOptions.AnnounceRole.Value)
 		if rErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting role name", "role", options.AnnounceRole, "err", rErr)
-			roleName = options.AnnounceRole.Value
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting role name", "role", currentOptions.AnnounceRole, "err", rErr)
+			roleName = currentOptions.AnnounceRole.Value
 		} else {
 			roleName = role.Name
 		}
@@ -140,38 +141,38 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				},
 				{
 					Name:   "Playstation",
-					Value:  strconv.FormatBool(options.Playstation.Value),
+					Value:  strconv.FormatBool(currentOptions.Playstation.Value),
 					Inline: false,
 				},
 				{
 					Name:   "Xbox",
-					Value:  strconv.FormatBool(options.Xbox.Value),
+					Value:  strconv.FormatBool(currentOptions.Xbox.Value),
 					Inline: false,
 				},
 				{
 					Name:   "Nintendo",
-					Value:  strconv.FormatBool(options.Nintendo.Value),
+					Value:  strconv.FormatBool(currentOptions.Nintendo.Value),
 					Inline: false,
 				},
 				{
 					Name:   "PC",
-					Value:  strconv.FormatBool(options.PC.Value),
+					Value:  strconv.FormatBool(currentOptions.PC.Value),
 					Inline: false,
 				},
 				{
 					Name:   "VR",
-					Value:  strconv.FormatBool(options.VR.Value),
+					Value:  strconv.FormatBool(currentOptions.VR.Value),
 					Inline: false,
 				},
 				{
 					Name:   "Awards",
-					Value:  strconv.FormatBool(options.Awards.Value),
+					Value:  strconv.FormatBool(currentOptions.Awards.Value),
 					Inline: false,
 				},
 			},
 		},
 	}
-	settingsErr := db.SetOptions(options)
+	settingsErr := currentOptions.Set()
 	if settingsErr != nil {
 		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error setting options", "server", i.GuildID, "err", settingsErr)
 		content = []*discordgo.MessageEmbed{

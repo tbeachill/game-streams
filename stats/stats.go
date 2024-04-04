@@ -34,10 +34,8 @@ func MonitorGuilds(session *discordgo.Session) {
 		}
 		if !present {
 			utils.Log.Info.WithPrefix("STATS").Info("adding server to database", "server", e.Guild.Name)
-			if addErr := db.SetDefaultOptions(e.Guild.ID); addErr != nil {
-				utils.Log.ErrorWarn.WithPrefix("STATS").Error("error adding server to database", "err", addErr)
-				return
-			}
+			o := db.NewOptions(e.Guild.ID)
+			o.Set()
 		}
 	})
 	utils.Log.Info.WithPrefix("STATS").Info("adding server leave handler")

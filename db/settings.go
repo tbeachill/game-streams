@@ -29,33 +29,95 @@ type BoolSet struct {
 	Set   bool
 }
 
-// add a server to the settings table with default options
-func SetDefaultOptions(serverID string) error {
+func NewOptions(serverID string) Options {
+	return Options{
+		ServerID:        serverID,
+		AnnounceChannel: StringSet{"", false},
+		AnnounceRole:    StringSet{"", false},
+		Playstation:     BoolSet{false, false},
+		Xbox:            BoolSet{false, false},
+		Nintendo:        BoolSet{false, false},
+		PC:              BoolSet{false, false},
+		VR:              BoolSet{false, false},
+		Awards:          BoolSet{false, false},
+		Reset:           false,
+	}
+}
+
+// set the options for a server
+func (o *Options) Set() error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
+	checkOptions(o.ServerID)
+	utils.Log.Info.Info("setting options", "server", o.ServerID, "options", o)
 
-	utils.Log.Info.WithPrefix("STATS").Info("setting default options", "server", serverID)
-	_, execErr := db.Exec("insert into settings (server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc, vr, awards) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", serverID, "", "", 0, 0, 0, 0, 0, 0)
+	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, vr = ?, awards = ? where server_id = ?", o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.VR.Value, o.Awards.Value, o.ServerID)
 	if execErr != nil {
 		return execErr
 	}
 	return nil
 }
 
-// reset the options for a server to default
-func ResetOptions(serverID string) error {
+// get the options for a server and set the options struct
+func (o *Options) Get(serverID string) {
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	if openErr != nil {
+		return
+	}
+	defer db.Close()
+	checkOptions(serverID)
+
+	row := db.QueryRow("select * from settings where server_id = ?", serverID)
+	scanErr := row.Scan(&o.ServerID, &o.AnnounceChannel.Value, &o.AnnounceRole.Value, &o.Playstation.Value, &o.Xbox.Value, &o.Nintendo.Value, &o.PC.Value, &o.VR.Value, &o.Awards.Value)
+	if scanErr != nil {
+		return
+	}
+}
+
+// merge the options from a new options struct with the current options struct
+func (o *Options) Merge(p Options) {
+	if p.AnnounceChannel.Set {
+		o.AnnounceChannel = p.AnnounceChannel
+	}
+	if p.AnnounceRole.Set {
+		o.AnnounceRole = p.AnnounceRole
+	}
+	if p.Playstation.Set {
+		o.Playstation = p.Playstation
+	}
+	if p.Xbox.Set {
+		o.Xbox = p.Xbox
+	}
+	if p.Nintendo.Set {
+		o.Nintendo = p.Nintendo
+	}
+	if p.PC.Set {
+		o.PC = p.PC
+	}
+	if p.VR.Set {
+		o.VR = p.VR
+	}
+	if p.Awards.Set {
+		o.Awards = p.Awards
+	}
+}
+
+// check if a server is in the settings table, if not add it with default options
+func checkOptions(serverID string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
-	utils.Log.Info.WithPrefix(" CMND").Info("resetting options", "server", serverID)
-	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, vr = ?, awards = ? where server_id = ?", "", "", 0, 0, 0, 0, 0, 0, serverID)
-	if execErr != nil {
-		return execErr
+
+	rows := db.QueryRow("select server_id from settings where server_id = ?", serverID)
+	getErr := rows.Scan(&serverID)
+	if getErr != nil {
+		o := NewOptions(serverID)
+		o.Set()
 	}
 	return nil
 }
@@ -74,92 +136,4 @@ func RemoveOptions(serverID string) error {
 		return execErr
 	}
 	return nil
-}
-
-// set the options for a server from an options struct
-func SetOptions(options *Options) error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
-	if openErr != nil {
-		return openErr
-	}
-	defer db.Close()
-	checkOptions(options.ServerID)
-	utils.Log.Info.Info("setting options", "server", options.ServerID, "options", options)
-
-	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, vr = ?, awards = ? where server_id = ?", options.AnnounceChannel.Value, options.AnnounceRole.Value, options.Playstation.Value, options.Xbox.Value, options.Nintendo.Value, options.PC.Value, options.VR.Value, options.Awards.Value, options.ServerID)
-	if execErr != nil {
-		return execErr
-	}
-	return nil
-}
-
-// get the options for a server and return as an options struct
-func GetOptions(serverID string) (Options, error) {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
-	if openErr != nil {
-		return Options{}, openErr
-	}
-	defer db.Close()
-	checkOptions(serverID)
-
-	var options Options
-	row := db.QueryRow("select * from settings where server_id = ?", serverID)
-	scanErr := row.Scan(&options.ServerID, &options.AnnounceChannel.Value, &options.AnnounceRole.Value, &options.Playstation.Value, &options.Xbox.Value, &options.Nintendo.Value, &options.PC.Value, &options.VR.Value, &options.Awards.Value)
-	if scanErr != nil {
-		return Options{}, scanErr
-	}
-	return options, nil
-}
-
-// check if a server is in the settings table, if not add it with default options
-func checkOptions(serverID string) error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
-	if openErr != nil {
-		return openErr
-	}
-	defer db.Close()
-
-	rows := db.QueryRow("select server_id from settings where server_id = ?", serverID)
-	getErr := rows.Scan(&serverID)
-	if getErr != nil {
-		setErr := SetDefaultOptions(serverID)
-		if setErr != nil {
-			return setErr
-		}
-	}
-	return nil
-}
-
-// merge the options from a new options struct with the current options struct
-func MergeOptions(serverID string, new *Options) *Options {
-	current, getErr := GetOptions(serverID)
-	if getErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting options", "server", serverID, "err", getErr)
-		return &Options{}
-	}
-	if new.AnnounceChannel.Set {
-		current.AnnounceChannel = new.AnnounceChannel
-	}
-	if new.AnnounceRole.Set {
-		current.AnnounceRole = new.AnnounceRole
-	}
-	if new.Playstation.Set {
-		current.Playstation = new.Playstation
-	}
-	if new.Xbox.Set {
-		current.Xbox = new.Xbox
-	}
-	if new.Nintendo.Set {
-		current.Nintendo = new.Nintendo
-	}
-	if new.PC.Set {
-		current.PC = new.PC
-	}
-	if new.VR.Set {
-		current.VR = new.VR
-	}
-	if new.Awards.Value {
-		current.Awards = new.Awards
-	}
-	return &current
 }

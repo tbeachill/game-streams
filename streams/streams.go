@@ -70,11 +70,8 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 	uniqueServers := utils.RemoveSliceDuplicates(allServerPlatforms)
 
 	for server := range uniqueServers {
-		options, getErr := db.GetOptions(server)
-		if getErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error getting server options", "server", server, "err", getErr)
-			continue
-		}
+		var options db.Options
+		options.Get(server)
 		_, postErr := session.ChannelMessageSendEmbed(options.AnnounceChannel.Value, createStreamEmbed(stream, options.AnnounceRole.Value))
 		if postErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error posting message", "server", server, "channel", options.AnnounceChannel, "role", options.AnnounceRole, "err", postErr)
