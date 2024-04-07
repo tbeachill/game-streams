@@ -8,21 +8,6 @@ import (
 	"gamestreambot/utils"
 )
 
-type Stream struct {
-	ID          int
-	Name        string
-	Platform    string
-	Date        string
-	Time        string
-	Description string
-	URL         string
-	Delete      bool
-}
-
-type Streams struct {
-	Streams []Stream
-}
-
 // create the db with a streams table containing stream information and an options table
 // containing server specific options
 func CreateDB() error {

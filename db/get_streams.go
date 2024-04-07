@@ -8,56 +8,51 @@ import (
 	"gamestreambot/utils"
 )
 
-// get all future streams from the db and return as an s.Streams struct
-func GetUpcomingStreams() (Streams, error) {
-	utils.Log.Info.WithPrefix(" CMND").Info("getting upcoming streams")
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
-	if openErr != nil {
-		return Streams{}, openErr
-	}
-	defer db.Close()
-
-	rows, queryErr := db.Query("select name, platform, date, time, description, url from streams where date >= date('now') order by date, time limit 10")
-	if queryErr != nil {
-		return Streams{}, queryErr
-	}
-	defer rows.Close()
-
-	var streamList Streams
-	for rows.Next() {
-		var stream Stream
-		scanErr := rows.Scan(&stream.Name, &stream.Platform, &stream.Date, &stream.Time, &stream.Description, &stream.URL)
-		if scanErr != nil {
-			return Streams{}, scanErr
-		}
-		streamList.Streams = append(streamList.Streams, stream)
-	}
-	utils.Log.Info.WithPrefix(" CMND").Info("found", "streams", len(streamList.Streams))
-	return streamList, nil
+type Stream struct {
+	ID          int
+	Name        string
+	Platform    string
+	Date        string
+	Time        string
+	Description string
+	URL         string
+	Delete      bool
 }
 
-func GetTodaysStreams() (Streams, error) {
+type Streams struct {
+	Streams []Stream
+}
+
+// Query the db for streams
+func (s *Streams) Query(q string) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
-		return Streams{}, openErr
+		return
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query("select name, platform, date, time, description, url from streams where date = date('now') and time >= time('now') order by time")
+	rows, queryErr := db.Query(q)
 	if queryErr != nil {
-		return Streams{}, queryErr
+		return
 	}
 	defer rows.Close()
 
-	var streamList Streams
 	for rows.Next() {
 		var stream Stream
 		scanErr := rows.Scan(&stream.Name, &stream.Platform, &stream.Date, &stream.Time, &stream.Description, &stream.URL)
 		if scanErr != nil {
-			return Streams{}, scanErr
+			return
 		}
-		utils.Log.Info.WithPrefix("SCHED").Info("found a stream", "name", stream.Name, "time", stream.Time)
-		streamList.Streams = append(streamList.Streams, stream)
+		s.Streams = append(s.Streams, stream)
 	}
-	return streamList, nil
+}
+
+// GetAll gets all upcoming streams
+func (s *Streams) GetUpcoming() {
+	s.Query("select name, platform, date, time, description, url from streams where date >= date('now') order by date, time limit 10")
+}
+
+// GetToday gets all streams for today
+func (s *Streams) GetToday() {
+	s.Query("select name, platform, date, time, description, url from streams where date = date('now') and time >= time('now') order by time")
 }

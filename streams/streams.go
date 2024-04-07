@@ -18,11 +18,9 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 		Title: "Upcoming Streams",
 		Color: 0xc3d23e,
 	}
-	streamList, dbErr := db.GetUpcomingStreams()
-	if dbErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting streams from db")
-		return embed, dbErr
-	}
+	var streamList db.Streams
+	streamList.GetUpcoming()
+
 	if len(streamList.Streams) == 0 {
 		return embed, errors.New("no streams found")
 	}
@@ -35,11 +33,9 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 
 // create a goroutine to sleep until 5 minutes before the stream, then run the notification function
 func ScheduleNotifications(session *discordgo.Session) error {
-	streamList, dbErr := db.GetTodaysStreams()
-	if dbErr != nil {
-		utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error getting streams from db")
-		return dbErr
-	}
+	var streamList db.Streams
+	streamList.GetToday()
+
 	if len(streamList.Streams) == 0 {
 		utils.Log.Info.WithPrefix("SCHED").Info("no streams today")
 		return nil

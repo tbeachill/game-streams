@@ -15,7 +15,6 @@ import (
 )
 
 // TODO: document functions properly - arguments, return values
-// TODO: look at structs and turn some functions into methods - streams, stream
 // TODO: check error handling in all functions - sql should have end of function error checks
 // TODO: check logging in all functions
 // TODO: message me if there is an error
@@ -48,9 +47,10 @@ func Run(botToken, appID string) {
 
 // check for updates to the streams every hour, on the hour
 func startUpdater() {
+	var s db.Streams
 	for {
 		utils.Log.Info.WithPrefix("UPDAT").Info("checking for stream updates...")
-		if updateErr := db.UpdateStreams(); updateErr != nil {
+		if updateErr := s.Update(); updateErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error updating streams", "err", updateErr)
 		}
 		minsRemaining := 60 - time.Now().UTC().Minute()
