@@ -73,8 +73,12 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 						{
 							Name: "Settings",
 							Value: "Options:\n`channel` the channel for announcing when a stream starts\n`role` the role to ping when a stream starts\nplatforms: enable or disable announcements by platform" +
-								"\n\nAll fields are optional, the default settings are to not announce any streams until a channel and one or more platforms are set." +
-								"\n\nUse the `/settings` command with no options to see the current settings.",
+								"\n\n- All fields are optional, the default settings are to not announce any streams until a channel and one or more platforms are set.\n" +
+								"- If no channel or no platforms are selected, I will not announce streams.\n" +
+								"- If no role is selected, I will still announce streams but will not ping anyone.\n" +
+								"- The platform settings only control which streams are announced, not which streams are listed by the `/streams` command.\n\n" +
+								"Use the `/settings` command with no options to view the current settings.\n\n" +
+								"Use the `/settings` command with the `reset` option as `True` to reset all settings to default.",
 							Inline: false,
 						},
 					},

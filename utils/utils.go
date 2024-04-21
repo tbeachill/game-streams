@@ -10,6 +10,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/charmbracelet/log"
+
+	"gamestreambot/reports"
 )
 
 var Files FilePaths
@@ -124,4 +126,25 @@ func GetVideoThumbnail(stream string) string {
 
 func RegisterSession(s *discordgo.Session) {
 	Session = s
+}
+
+func IntroDM(userID string) {
+	message := "🕹 Hello! Thank you for adding me to your server! 🕹\n\n" +
+		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings`\n\n" +
+		"For more information, type `/help`."
+
+	Log.Info.WithPrefix(" MAIN").Info("sending intro DM", "user", userID)
+
+	st, err := Session.UserChannelCreate(userID)
+	if err != nil {
+		Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating intro DM channel", "err", err)
+		reports.DM(Session, fmt.Sprintf("error creating intro DM channel:\n\terr=%s", err))
+		return
+	}
+	_, err = Session.ChannelMessageSend(st.ID, message)
+	if err != nil {
+		Log.ErrorWarn.WithPrefix(" MAIN").Error("error sending intro DM", "err", err)
+		reports.DM(Session, fmt.Sprintf("error sending intro DM:\n\terr=%s", err))
+		return
+	}
 }

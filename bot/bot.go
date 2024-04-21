@@ -17,9 +17,6 @@ import (
 )
 
 // TODO: document functions properly - arguments, return values
-// TODO: check error handling in all functions - sql should have end of function error checks
-// TODO: message me weekly stats
-// TODO: add changelog command
 // TODO: Prompt setup on server join
 
 func Run(botToken, appID string) {

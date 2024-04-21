@@ -31,6 +31,7 @@ func MonitorGuilds(session *discordgo.Session) {
 		utils.Log.Info.WithPrefix("STATS").Info("joined server", "server", e.Guild.Name)
 		reports.DM(s, fmt.Sprintf("joined server:\n\tserver=%s", e.Guild.Name))
 		logGuildNumber(s)
+		utils.IntroDM(e.OwnerID)
 
 		present, checkErr := db.CheckServerID(e.Guild.ID)
 		if checkErr != nil {
@@ -46,6 +47,7 @@ func MonitorGuilds(session *discordgo.Session) {
 				reports.DM(s, fmt.Sprintf("error setting server options:\n\tserver=%s\n\terr=%s", e.Guild.Name, setErr))
 			}
 		}
+
 	})
 	utils.Log.Info.WithPrefix("STATS").Info("adding server leave handler")
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
