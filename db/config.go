@@ -21,11 +21,10 @@ type Config struct {
 }
 
 // get the values of the config struct from the db or set default values if none are found
-func (c *Config) Get() {
+func (c *Config) Get() error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
-		utils.Log.Info.Error(openErr)
-		return
+		return openErr
 	}
 
 	sqlStmt := `
@@ -38,13 +37,12 @@ func (c *Config) Get() {
 	if scanErr == sql.ErrNoRows {
 		utils.Log.Info.WithPrefix(" MAIN").Info("No config found, setting default")
 		if defaultErr := c.SetDefault(); defaultErr != nil {
-			utils.Log.Info.Error(defaultErr)
-			return
+			return defaultErr
 		}
 	} else if scanErr != nil {
-		utils.Log.Info.Error(openErr)
-		return
+		return scanErr
 	}
+	return nil
 }
 
 // set the default values for the config struct and write to the db

@@ -24,16 +24,16 @@ type Streams struct {
 }
 
 // Query the db for streams
-func (s *Streams) Query(q string) {
+func (s *Streams) Query(q string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
-		return
+		return openErr
 	}
 	defer db.Close()
 
 	rows, queryErr := db.Query(q)
 	if queryErr != nil {
-		return
+		return queryErr
 	}
 	defer rows.Close()
 
@@ -41,18 +41,25 @@ func (s *Streams) Query(q string) {
 		var stream Stream
 		scanErr := rows.Scan(&stream.Name, &stream.Platform, &stream.Date, &stream.Time, &stream.Description, &stream.URL)
 		if scanErr != nil {
-			return
+			return scanErr
 		}
 		s.Streams = append(s.Streams, stream)
 	}
+	return nil
 }
 
 // GetAll gets all upcoming streams
-func (s *Streams) GetUpcoming() {
-	s.Query("select name, platform, date, time, description, url from streams where date >= date('now') order by date, time limit 10")
+func (s *Streams) GetUpcoming() error {
+	if err := s.Query("select name, platform, date, time, description, url from streams where date >= date('now') order by date, time limit 10"); err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetToday gets all streams for today
-func (s *Streams) GetToday() {
-	s.Query("select name, platform, date, time, description, url from streams where date = date('now') and time >= time('now') order by time")
+func (s *Streams) GetToday() error {
+	if err := s.Query("select name, platform, date, time, description, url from streams where date = date('now') and time >= time('now') order by time"); err != nil {
+		return err
+	}
+	return nil
 }

@@ -62,10 +62,10 @@ func (o *Options) Set() error {
 }
 
 // get the options for a server and set the options struct
-func (o *Options) Get(serverID string) {
+func (o *Options) Get(serverID string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
-		return
+		return openErr
 	}
 	defer db.Close()
 	checkOptions(serverID)
@@ -73,8 +73,9 @@ func (o *Options) Get(serverID string) {
 	row := db.QueryRow("select * from settings where server_id = ?", serverID)
 	scanErr := row.Scan(&o.ServerID, &o.AnnounceChannel.Value, &o.AnnounceRole.Value, &o.Playstation.Value, &o.Xbox.Value, &o.Nintendo.Value, &o.PC.Value, &o.VR.Value, &o.Awards.Value)
 	if scanErr != nil {
-		return
+		return scanErr
 	}
+	return nil
 }
 
 // merge the options from a new options struct with the current options struct
@@ -117,7 +118,9 @@ func checkOptions(serverID string) error {
 	getErr := rows.Scan(&serverID)
 	if getErr != nil {
 		o := NewOptions(serverID)
-		o.Set()
+		if setErr := o.Set(); setErr != nil {
+			return setErr
+		}
 	}
 	return nil
 }

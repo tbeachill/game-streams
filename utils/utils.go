@@ -8,11 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/charmbracelet/log"
 )
 
 var Files FilePaths
 var Log Logger
+var Session *discordgo.Session
 
 type FilePaths struct {
 	DotEnv string
@@ -118,4 +120,8 @@ func GetVideoThumbnail(stream string) string {
 		return fmt.Sprintf("https://graph.facebook.com/%s/picture?type=large", name)
 	}
 	return ""
+}
+
+func RegisterSession(s *discordgo.Session) {
+	Session = s
 }
