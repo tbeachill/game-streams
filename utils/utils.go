@@ -66,7 +66,17 @@ func (l *Logger) Init() {
 // create a unix timestamp from a date and time
 func CreateTimestamp(d string, t string) (string, string, error) {
 	layout := "2006-01-02 15:04"
+	if t == "" {
+		dt, err := time.Parse(layout, fmt.Sprintf("%s %s", d, "09:00"))
+		if err != nil {
+			return "", "", err
+		}
+		return fmt.Sprintf("<t:%d:d>", dt.Unix()), "TBC", nil
+	}
 	dt, err := time.Parse(layout, fmt.Sprintf("%s %s", d, t))
+	if err != nil {
+		return "", "", err
+	}
 	return fmt.Sprintf("<t:%d:d>", dt.Unix()), fmt.Sprintf("<t:%d:t>", dt.Unix()), err
 }
 

@@ -17,8 +17,7 @@ import (
 )
 
 // TODO: document functions properly - arguments, return values
-// TODO: Prompt setup on server join
-// TODO: TBA for date - put under a TBA header if no date/time. If only date, put under date header as TBA
+// TODO: Add function to alert me when a stream with no time is coming up
 // TODO: Add description command to return the description of a stream and the platforms
 
 func Run(botToken, appID string) {
