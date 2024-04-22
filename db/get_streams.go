@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -26,16 +25,24 @@ type Streams struct {
 }
 
 // Query the db for streams
-func (s *Streams) Query(q string) error {
+func (s *Streams) Query(q string, params ...string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query(q)
-	if queryErr != nil {
-		return queryErr
+	var rows *sql.Rows
+	if len(params) > 0 {
+		rows, openErr = db.Query(q, params[0])
+		if openErr != nil {
+			return openErr
+		}
+	} else {
+		rows, openErr = db.Query(q)
+		if openErr != nil {
+			return openErr
+		}
 	}
 	defer rows.Close()
 
@@ -77,7 +84,7 @@ func (s *Streams) CheckTomorrow() error {
 // GetInfo gets information on a specific stream by name
 func (s *Streams) GetInfo(name string) error {
 	name = strings.Trim(name, " ")
-	if err := s.Query(fmt.Sprintf("select name, platform, date, time, description, url from streams where name = '%s' collate nocase and date >= date('now')", name)); err != nil {
+	if err := s.Query("select name, platform, date, time, description, url from streams where name = ? collate nocase and date >= date('now')", name); err != nil {
 		return err
 	}
 	return nil
