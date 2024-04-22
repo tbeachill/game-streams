@@ -31,7 +31,6 @@ func MonitorGuilds(session *discordgo.Session) {
 		utils.Log.Info.WithPrefix("STATS").Info("joined server", "server", e.Guild.Name)
 		reports.DM(s, fmt.Sprintf("joined server:\n\tserver=%s", e.Guild.Name))
 		logGuildNumber(s)
-		utils.IntroDM(e.OwnerID)
 
 		present, checkErr := db.CheckServerID(e.Guild.ID)
 		if checkErr != nil {
@@ -41,6 +40,7 @@ func MonitorGuilds(session *discordgo.Session) {
 		}
 		if !present {
 			utils.Log.Info.WithPrefix("STATS").Info("adding server to database", "server", e.Guild.Name)
+			utils.IntroDM(e.OwnerID)
 			o := db.NewOptions(e.Guild.ID)
 			if setErr := o.Set(); setErr != nil {
 				utils.Log.ErrorWarn.WithPrefix("STATS").Error("error setting server options", "server", e.Guild.Name, "err", setErr)
