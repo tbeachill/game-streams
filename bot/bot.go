@@ -17,8 +17,6 @@ import (
 )
 
 // TODO: document functions properly - arguments, return values
-// TODO: Add function to alert me when a stream with no time is coming up
-// TODO: Add description command to return the description of a stream and the platforms
 
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)
@@ -67,6 +65,17 @@ func startScheduler(session *discordgo.Session) {
 	startTime := time.Now().UTC()
 	for {
 		utils.Log.Info.WithPrefix("SCHED").Info("scheduling notifications for today's streams...")
+		// check for streams tomorrow that have no time
+		var s db.Streams
+		if tomorrowErr := s.CheckTomorrow(); tomorrowErr != nil {
+			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error checking tomorrow's streams", "err", tomorrowErr)
+			reports.DM(utils.Session, fmt.Sprintf("error checking tomorrow's streams:\n\terr=%s", tomorrowErr))
+		}
+		if len(s.Streams) > 0 {
+			utils.Log.Info.WithPrefix("SCHED").Info("streams tomorrow with no time", "streams", s.Streams)
+			reports.DM(utils.Session, fmt.Sprintf("streams tomorrow with no time:\n\tstreams=%v", s.Streams))
+		}
+		// schedule notifications for today's streams
 		if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error scheduling today's streams", "err", scheduleErr)
 			reports.DM(utils.Session, fmt.Sprintf("error scheduling todays streams:\n\terr=%s", scheduleErr))

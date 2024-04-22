@@ -66,6 +66,14 @@ func (s *Streams) GetToday() error {
 	return nil
 }
 
+// CheckTomorrow checks for streams tomorrow that have no time set
+func (s *Streams) CheckTomorrow() error {
+	if err := s.Query("select name, platform, date, time, description, url from streams where date = date('now', '+1 day') and time = ''"); err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetInfo gets information on a specific stream by name
 func (s *Streams) GetInfo(name string) error {
 	strings.Trim(name, " ")
