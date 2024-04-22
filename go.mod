@@ -9,6 +9,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/tidwall/gjson v1.17.1
+	golang.org/x/text v0.14.0
 )
 
 require (

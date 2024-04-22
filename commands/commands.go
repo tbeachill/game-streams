@@ -10,6 +10,18 @@ var commands = []*discordgo.ApplicationCommand{
 		Description: "List upcoming streams",
 	},
 	{
+		Name:        "streaminfo",
+		Description: "Get more information about a stream",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "name",
+				Description: "The name of the stream",
+				Required:    true,
+			},
+		},
+	},
+	{
 		Name:                     "help",
 		Description:              "Get help with the bot",
 		DefaultMemberPermissions: &admin,

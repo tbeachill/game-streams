@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"gamestreambot/db"
 	"gamestreambot/reports"
@@ -34,6 +36,56 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 			return nil, embedErr
 		}
 		embed.Fields = append(embed.Fields, embedField)
+	}
+	return embed, nil
+}
+
+// get the information for a stream
+func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
+	streamName = cases.Title(language.English).String(streamName)
+	utils.Log.Info.WithPrefix(" CMND").Info("getting stream info", "name", streamName)
+	var streams db.Streams
+	if err := streams.GetInfo(streamName); err != nil {
+		return nil, err
+	}
+	if len(streams.Streams) == 0 {
+		return nil, errors.New("no streams found")
+	}
+	stream := streams.Streams[0]
+	date, time, dtErr := utils.CreateTimestamp(stream.Date, stream.Time)
+	if dtErr != nil {
+		return nil, dtErr
+	}
+	embed := &discordgo.MessageEmbed{
+		Title: stream.Name,
+		Color: 0xc3d23e,
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Name:   "Platforms",
+				Value:  stream.Platform,
+				Inline: false,
+			},
+			{
+				Name:   "Date",
+				Value:  date,
+				Inline: true,
+			},
+			{
+				Name:   "Time",
+				Value:  time,
+				Inline: true,
+			},
+			{
+				Name:   "URL",
+				Value:  stream.URL,
+				Inline: false,
+			},
+			{
+				Name:   "Description",
+				Value:  stream.Description,
+				Inline: false,
+			},
+		},
 	}
 	return embed, nil
 }

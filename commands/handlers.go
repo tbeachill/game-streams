@@ -14,9 +14,10 @@ import (
 
 // map of command names to their respective functions
 var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-	"streams":  listStreams,
-	"help":     help,
-	"settings": settings,
+	"streams":    listStreams,
+	"streaminfo": streamInfo,
+	"help":       help,
+	"settings":   settings,
 }
 
 // list all upcoming streams
@@ -40,6 +41,39 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 
+	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{embed},
+		},
+	})
+	if respondErr != nil {
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
+		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s", i.ApplicationCommandData().Name, respondErr))
+	}
+}
+
+// get the description of a stream
+func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	streamName := i.ApplicationCommandData().Options[0].Value.(string)
+	embed, infoErr := streams.StreamInfo(streamName)
+	if infoErr != nil {
+		if infoErr.Error() == "no streams found" {
+			embed = &discordgo.MessageEmbed{
+				Title:       "Stream Info",
+				Description: "No streams found",
+				Color:       0xc3d23e,
+			}
+		} else {
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds", "err", infoErr)
+			reports.DM(s, fmt.Sprintf("error creating embeds:\n\terr=%s", infoErr))
+			embed = &discordgo.MessageEmbed{
+				Title:       "Stream Info",
+				Description: "An error occurred",
+				Color:       0xc3d23e,
+			}
+		}
+	}
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
