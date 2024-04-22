@@ -17,6 +17,7 @@ import (
 )
 
 // TODO: document functions properly - arguments, return values
+// TODO: add streaminfo command to help
 
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)

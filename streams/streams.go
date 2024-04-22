@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 
 	"gamestreambot/db"
 	"gamestreambot/reports"
@@ -42,7 +40,6 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 
 // get the information for a stream
 func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
-	streamName = cases.Title(language.English).String(streamName)
 	utils.Log.Info.WithPrefix(" CMND").Info("getting stream info", "name", streamName)
 	var streams db.Streams
 	if err := streams.GetInfo(streamName); err != nil {

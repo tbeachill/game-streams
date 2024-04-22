@@ -76,8 +76,8 @@ func (s *Streams) CheckTomorrow() error {
 
 // GetInfo gets information on a specific stream by name
 func (s *Streams) GetInfo(name string) error {
-	strings.Trim(name, " ")
-	if err := s.Query(fmt.Sprintf("select name, platform, date, time, description, url from streams where name = '%s' and date >= date('now')", name)); err != nil {
+	name = strings.Trim(name, " ")
+	if err := s.Query(fmt.Sprintf("select name, platform, date, time, description, url from streams where name = '%s' collate nocase and date >= date('now')", name)); err != nil {
 		return err
 	}
 	return nil
