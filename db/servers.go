@@ -10,7 +10,7 @@ import (
 	"gamestreambot/utils"
 )
 
-// get a list of all server IDs from the settings table
+// get a list of all server IDs that the bot is present in from the settings table
 func GetServerIDs() ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -55,7 +55,7 @@ func CheckServerID(serverID string) (bool, error) {
 	return true, nil
 }
 
-// get a list of all server IDs from the settings table where the platform is true
+// get a list of all server IDs from the settings table where the given platform is true
 func GetPlatformServerIDs(platform string) ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {

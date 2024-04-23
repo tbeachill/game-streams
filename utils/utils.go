@@ -119,7 +119,7 @@ func PlaceholderText(s string) string {
 	return s
 }
 
-// get the thumbnail for a video stream
+// return the url of the stream thumbnail depending on the website
 func GetVideoThumbnail(stream string) string {
 	if strings.Contains(stream, "twitch") {
 		name := strings.Split(stream, "/")[3]
@@ -134,10 +134,12 @@ func GetVideoThumbnail(stream string) string {
 	return ""
 }
 
+// set the discord session so it is globally available
 func RegisterSession(s *discordgo.Session) {
 	Session = s
 }
 
+// send an intro DM to a server admin when the bot is added to a server
 func IntroDM(userID string) {
 	message := "🕹 Hello! Thank you for adding me to your server! 🕹\n\n" +
 		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings`\n\n" +

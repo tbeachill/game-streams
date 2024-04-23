@@ -20,7 +20,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	"settings":   settings,
 }
 
-// list all upcoming streams
+// list all upcoming streams by getting an embed from the StreamList method and responding to the interaction with it
 func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed, listErr := streams.StreamList()
 	if listErr != nil {
@@ -53,7 +53,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
-// get information about a specific stream from the stream name
+// get information about a specific stream from the stream name by running a sql query and responding to the interaction with the embed
 func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	streamName := i.ApplicationCommandData().Options[0].Value.(string)
 	embed, infoErr := streams.StreamInfo(streamName)
@@ -86,7 +86,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
-// get help with the bot
+// return the help message for the bot explaining what it does and how to use it
 func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

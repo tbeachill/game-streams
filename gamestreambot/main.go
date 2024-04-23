@@ -10,8 +10,6 @@ import (
 	"gamestreambot/utils"
 )
 
-// TODO: write function to DM me when there was a stream in a previous year
-
 func main() {
 	utils.Files.SetPaths()
 	utils.Log.Init()

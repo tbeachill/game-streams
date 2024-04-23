@@ -69,7 +69,7 @@ func (s *Streams) Update() error {
 	return nil
 }
 
-// parse streams.toml and return as an s.Streams struct
+// parse streams.toml and return as a Streams struct
 func parseToml(c Config) Streams {
 	utils.Log.Info.WithPrefix("UPDAT").Info("parsing toml")
 	response, httpErr := http.Get(c.StreamURL)
@@ -129,7 +129,7 @@ func (s *Streams) UpdateRow() error {
 	return nil
 }
 
-// check for duplicates in the db, if a stream in the list is found in the db, goto the next row
+// check for duplicates in the db, if a stream in the list is found in the db, go to the next row
 // if none match, add the stream to a new list
 func (s *Streams) CheckForDuplicates() error {
 	rowNumber, countErr := countRows()

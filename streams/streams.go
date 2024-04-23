@@ -179,6 +179,8 @@ func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, 
 	return embed, nil
 }
 
+// split the list of platforms then search the database for servers following each platforms
+// return a slice of server IDs
 func getAllPlatforms(stream db.Stream) ([]string, error) {
 	platforms := strings.Split(stream.Platform, ",")
 	var allServerPlatforms []string

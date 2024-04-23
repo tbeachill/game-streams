@@ -24,7 +24,7 @@ type Streams struct {
 	Streams []Stream
 }
 
-// Query the db for streams
+// query the database for streams by using the given query string, q, and optional parameters
 func (s *Streams) Query(q string, params ...string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -57,7 +57,7 @@ func (s *Streams) Query(q string, params ...string) error {
 	return nil
 }
 
-// GetAll gets all upcoming streams
+// GetUpcoming gets all upcoming streams
 func (s *Streams) GetUpcoming() error {
 	if err := s.Query("select name, platform, date, time, description, url from streams where date >= date('now') order by date, time limit 10"); err != nil {
 		return err

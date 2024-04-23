@@ -27,6 +27,7 @@ func logGuildNumber(session *discordgo.Session) {
 func MonitorGuilds(session *discordgo.Session) {
 	logGuildNumber(session)
 	utils.Log.Info.WithPrefix("STATS").Info("adding server join handler")
+	// join handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildCreate) {
 		utils.Log.Info.WithPrefix("STATS").Info("joined server", "server", e.Guild.Name)
 		reports.DM(s, fmt.Sprintf("joined server:\n\tserver=%s", e.Guild.Name))
@@ -47,9 +48,9 @@ func MonitorGuilds(session *discordgo.Session) {
 				reports.DM(s, fmt.Sprintf("error setting server options:\n\tserver=%s\n\terr=%s", e.Guild.Name, setErr))
 			}
 		}
-
 	})
 	utils.Log.Info.WithPrefix("STATS").Info("adding server leave handler")
+	// leave handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
 		utils.Log.Info.WithPrefix("STATS").Info("left server", "server", e.Guild.Name)
 		reports.DM(s, fmt.Sprintf("left server:\n\tserver=%s", e.Guild.Name))

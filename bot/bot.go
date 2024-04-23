@@ -16,7 +16,7 @@ import (
 	"gamestreambot/utils"
 )
 
-// TODO: document functions properly - arguments, return values
+// TODO: write function to DM me when there was a stream in a previous year
 
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)
@@ -45,7 +45,7 @@ func Run(botToken, appID string) {
 	<-c
 }
 
-// check for updates to the streams every hour, on the hour
+// check for updates to the streams every hour, on the hour by running the update method of the Streams struct
 func startUpdater() {
 	var s db.Streams
 	for {
@@ -60,12 +60,12 @@ func startUpdater() {
 	}
 }
 
-// schedule notifications for today's streams every day at midnight UTC
+// schedule notifications for today's streams every day at midnight UTC by running the ScheduleNotifications method of the Streams struct
 func startScheduler(session *discordgo.Session) {
 	startTime := time.Now().UTC()
 	for {
 		utils.Log.Info.WithPrefix("SCHED").Info("scheduling notifications for today's streams...")
-		// check for streams tomorrow that have no time
+		// check for streams tomorrow that have no time so I can be alerted to add a time
 		var s db.Streams
 		if tomorrowErr := s.CheckTomorrow(); tomorrowErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error checking tomorrow's streams", "err", tomorrowErr)
