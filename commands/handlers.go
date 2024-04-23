@@ -53,7 +53,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
-// get the description of a stream
+// get information about a specific stream from the stream name
 func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	streamName := i.ApplicationCommandData().Options[0].Value.(string)
 	embed, infoErr := streams.StreamInfo(streamName)
@@ -101,7 +101,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Fields: []*discordgo.MessageEmbedField{
 						{
 							Name:   "Commands",
-							Value:  "`/streams` - List all upcoming streams\n`/help` [admin] - Get help with the bot\n`/settings` [admin] - Change bot settings",
+							Value:  "`/streams` - List all upcoming streams\n`/streaminfo` - Get information on a specific stream by title\n`/help` [admin] - Get help with the bot\n`/settings` [admin] - Change bot settings",
 							Inline: false,
 						},
 						{
