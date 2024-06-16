@@ -56,6 +56,9 @@ func (s *Streams) Update() error {
 	}
 	if len(s.Streams) == 0 {
 		utils.Log.Info.WithPrefix("UPDAT").Info("no new streams found")
+		if setErr := c.Set(); setErr != nil {
+			return setErr
+		}
 		return nil
 	}
 

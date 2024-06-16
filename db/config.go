@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -48,8 +49,12 @@ func (c *Config) Get() error {
 // set the default values for the config struct and write to the db
 func (c *Config) SetDefault() error {
 	utils.Log.Info.WithPrefix(" MAIN").Info("setting default config")
+	c.StreamURL = os.Getenv("STREAM_URL")
+	c.APIURL = os.Getenv("API_URL")
+	c.LastUpdate = ""
+
 	sqlStmt := `
-		insert into config (stream_url, api_url, last_updated) values (?, ?, ?)
+		insert into config (id, stream_url, api_url, last_updated) values (1, ?, ?, ?)
 	`
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -57,12 +62,11 @@ func (c *Config) SetDefault() error {
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(sqlStmt, "https://raw.githubusercontent.com/tbeachill/flat-files/main/streams.toml",
-		"https://api.github.com/repos/tbeachill/flat-files/commits/main",
-		"")
+	_, execErr := db.Exec(sqlStmt, c.StreamURL, c.APIURL, "")
 	if execErr != nil {
 		return execErr
 	}
+
 	return nil
 }
 

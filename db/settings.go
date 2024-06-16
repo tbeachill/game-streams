@@ -16,8 +16,6 @@ type Options struct {
 	Xbox            BoolSet
 	Nintendo        BoolSet
 	PC              BoolSet
-	VR              BoolSet
-	Awards          BoolSet
 	Reset           bool
 }
 type StringSet struct {
@@ -38,8 +36,6 @@ func NewOptions(serverID string) Options {
 		Xbox:            BoolSet{false, false},
 		Nintendo:        BoolSet{false, false},
 		PC:              BoolSet{false, false},
-		VR:              BoolSet{false, false},
-		Awards:          BoolSet{false, false},
 		Reset:           false,
 	}
 }
@@ -54,7 +50,7 @@ func (o *Options) Set() error {
 	checkOptions(o.ServerID)
 	utils.Log.Info.Info("setting options", "server", o.ServerID, "options", o)
 
-	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, vr = ?, awards = ? where server_id = ?", o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.VR.Value, o.Awards.Value, o.ServerID)
+	_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ? where server_id = ?", o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.ServerID)
 	if execErr != nil {
 		return execErr
 	}
@@ -71,7 +67,7 @@ func (o *Options) Get(serverID string) error {
 	checkOptions(serverID)
 
 	row := db.QueryRow("select * from settings where server_id = ?", serverID)
-	scanErr := row.Scan(&o.ServerID, &o.AnnounceChannel.Value, &o.AnnounceRole.Value, &o.Playstation.Value, &o.Xbox.Value, &o.Nintendo.Value, &o.PC.Value, &o.VR.Value, &o.Awards.Value)
+	scanErr := row.Scan(&o.ServerID, &o.AnnounceChannel.Value, &o.AnnounceRole.Value, &o.Playstation.Value, &o.Xbox.Value, &o.Nintendo.Value, &o.PC.Value)
 	if scanErr != nil {
 		return scanErr
 	}
@@ -97,12 +93,6 @@ func (o *Options) Merge(p Options) {
 	}
 	if p.PC.Set {
 		o.PC = p.PC
-	}
-	if p.VR.Set {
-		o.VR = p.VR
-	}
-	if p.Awards.Set {
-		o.Awards = p.Awards
 	}
 }
 
