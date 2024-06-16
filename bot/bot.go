@@ -17,6 +17,7 @@ import (
 )
 
 // TODO: write function to DM me when there was a stream in a previous year
+// TODO: clean up - break up some functions into smaller functions
 
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)

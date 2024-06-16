@@ -116,8 +116,8 @@ func (s *Streams) UpdateRow() error {
 
 	var updateCount int
 	for i, stream := range s.Streams {
-		utils.Log.Info.WithPrefix("UPDAT").Info("updating stream", "id", stream.ID, "name", stream.Name)
 		if stream.ID != 0 {
+			utils.Log.Info.WithPrefix("UPDAT").Info("updating stream", "id", stream.ID, "name", stream.Name)
 			_, updateErr := db.Exec(sqlStmt, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL, stream.ID)
 			if updateErr != nil {
 				return updateErr
