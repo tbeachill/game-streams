@@ -114,10 +114,7 @@ func checkOptions(serverID string) bool {
 
 	rows := db.QueryRow("select server_id from settings where server_id = ?", serverID)
 	getErr := rows.Scan(&serverID)
-	if getErr != nil {
-		return false
-	}
-	return true
+	return getErr == nil
 }
 
 // remove a server from the settings table
