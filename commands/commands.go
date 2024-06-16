@@ -3,6 +3,7 @@ package commands
 import "github.com/bwmarrin/discordgo"
 
 var admin int64 = discordgo.PermissionAdministrator
+var boolFalse bool = false
 
 var commands = []*discordgo.ApplicationCommand{
 	{
@@ -30,6 +31,7 @@ var commands = []*discordgo.ApplicationCommand{
 		Name:                     "settings",
 		Description:              "Change bot settings",
 		DefaultMemberPermissions: &admin,
+		DMPermission:             &boolFalse,
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionChannel,

@@ -101,7 +101,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Fields: []*discordgo.MessageEmbedField{
 						{
 							Name:   "Commands",
-							Value:  "`/streams` - List all upcoming streams\n`/streaminfo` - Get information on a specific stream by title\n`/help` [admin] - Get help with the bot\n`/settings` [admin] - Change bot settings",
+							Value:  "`/streams` - List all upcoming streams\n`/streaminfo` - Get information on a specific stream by title\n`/help` [admin] - Get help with the bot\n`/settings` [admin] - Change bot settings **(server only - can't use in DMs)**",
 							Inline: false,
 						},
 						{
