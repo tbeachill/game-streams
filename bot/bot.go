@@ -16,9 +16,6 @@ import (
 	"gamestreambot/utils"
 )
 
-// TODO: write function to DM me when there was a stream in a previous year
-// TODO: clean up - break up some functions into smaller functions
-
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)
 	if sessionErr != nil {
@@ -87,6 +84,6 @@ func startScheduler(session *discordgo.Session) {
 		utils.Log.Info.WithPrefix("SCHED").Info("sleeping until next day", "hours", hoursRemaining, "minutes", minsRemaining)
 		time.Sleep(time.Duration(hoursRemaining*60+minsRemaining) * time.Minute)
 		utils.Log.Info.WithPrefix("SCHED").Info("we survived another day", "uptime", time.Now().UTC().Sub(startTime))
-		reports.DM(utils.Session, fmt.Sprintf("we survived another day\n\tuptime=%s\n\tservers=%d", time.Now().UTC().Sub(startTime), stats.GetGuildNumber(session)))
+		reports.DM(utils.Session, fmt.Sprintf("we survived another day\n\tuptime=%s\n\tservers=%d", time.Now().UTC().Sub(startTime).Round(time.Second), stats.GetGuildNumber(session)))
 	}
 }
