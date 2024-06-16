@@ -40,7 +40,6 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			}
 		}
 	}
-
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -61,7 +60,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if infoErr.Error() == "no streams found" {
 			embed = &discordgo.MessageEmbed{
 				Title:       "Stream Info",
-				Description: "No streams found",
+				Description: "No streams found with that name",
 				Color:       0xc3d23e,
 			}
 		} else {
@@ -96,7 +95,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				&discordgo.MessageEmbed{
 					Title: "Game Streams",
 					Description: "Game Streams is a bot that keeps track of game announcement streams and can announce when streams are beginning. " +
-						"\n\nUse the `/settings` command to configure the bot to your liking.",
+						"\n\nUse the `/settings` command in your server to configure the bot to your liking.",
 					Color: 0xc3d23e,
 					Fields: []*discordgo.MessageEmbedField{
 						{
@@ -142,7 +141,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if optErr := options.Set(); optErr != nil {
 			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error resetting options", "server", i.GuildID, "err", optErr)
 			reports.DM(s, fmt.Sprintf("error resetting options:\n\tserver=%s\n\terr=%s", i.GuildID, optErr))
-			status = "An error occurred. Settings may have not been reset."
+			status = "An error occurred. Settings may not have been reset."
 		}
 	}
 	var currentOptions = db.NewOptions(i.GuildID)

@@ -8,11 +8,11 @@ var boolFalse bool = false
 var commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "streams",
-		Description: "List upcoming streams",
+		Description: "List upcoming streams for all platforms",
 	},
 	{
 		Name:        "streaminfo",
-		Description: "Get more information about a stream",
+		Description: "Get more information about a specific stream by name",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
@@ -48,25 +48,25 @@ var commands = []*discordgo.ApplicationCommand{
 			{
 				Type:        discordgo.ApplicationCommandOptionBoolean,
 				Name:        "playstation",
-				Description: "Enable or disable Playstation streams",
+				Description: "Enable or disable Playstation stream announcements",
 				Required:    false,
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionBoolean,
 				Name:        "xbox",
-				Description: "Enable or disable Xbox streams",
+				Description: "Enable or disable Xbox stream announcements",
 				Required:    false,
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionBoolean,
 				Name:        "nintendo",
-				Description: "Enable or disable Nintendo streams",
+				Description: "Enable or disable Nintendo stream announcements",
 				Required:    false,
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionBoolean,
 				Name:        "pc",
-				Description: "Enable or disable PC streams",
+				Description: "Enable or disable PC stream announcements",
 				Required:    false,
 			},
 			{
