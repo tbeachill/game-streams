@@ -142,7 +142,7 @@ func RegisterSession(s *discordgo.Session) {
 // send an intro DM to a server admin when the bot is added to a server
 func IntroDM(userID string) {
 	message := "🕹 Hello! Thank you for adding me to your server! 🕹\n\n" +
-		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings`\n\n" +
+		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings` in the server you added me to.\n\n" +
 		"For more information, type `/help`."
 
 	Log.Info.WithPrefix(" MAIN").Info("sending intro DM", "user", userID)
