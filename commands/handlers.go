@@ -145,7 +145,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			status = "An error occurred. Settings may have not been reset."
 		}
 	}
-	var currentOptions db.Options
+	var currentOptions = db.NewOptions(i.GuildID)
 
 	if getOptErr := currentOptions.Get(i.GuildID); getOptErr != nil {
 		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting options", "server", i.GuildID, "err", getOptErr)
