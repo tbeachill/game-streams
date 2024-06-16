@@ -116,7 +116,6 @@ func (s *Streams) UpdateRow() error {
 	sqlStmt := `
 	update streams set name = ?, platform = ?, date = ?, time = ?, description = ?, url = ? where id = ?
 	`
-
 	var updateCount int
 	for i, stream := range s.Streams {
 		if stream.ID != 0 {
@@ -152,7 +151,6 @@ func (s *Streams) CheckForDuplicates() error {
 	sqlStmt := `
 	select name, platform, date, time from streams
 	`
-
 	rows, queryErr := db.Query(sqlStmt)
 	if queryErr != nil {
 		return queryErr
@@ -189,7 +187,6 @@ func countRows() (int, error) {
 	sqlStmt := `
 	select count(*) from streams
 	`
-
 	var count int
 	row := db.QueryRow(sqlStmt)
 	scanErr := row.Scan(&count)
@@ -212,7 +209,6 @@ func (s *Streams) InsertStreams() {
 	sqlStmt := `
 	insert into streams (name, platform, date, time, description, url) values (?, ?, ?, ?, ?, ?)
 	`
-
 	for _, stream := range s.Streams {
 		if stream.Name == "" {
 			continue
