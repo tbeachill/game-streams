@@ -117,7 +117,7 @@ func ScheduleNotifications(session *discordgo.Session) error {
 	return nil
 }
 
-// post a message to every server that is following the platform when a stream is about to start
+// post a message to every server that is following the platform  and has a channel set when a stream is about to start
 func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 	utils.Log.Info.WithPrefix("SCHED").Info("posting stream link to subscribed servers", "stream", stream.Name, "platforms", stream.Platform)
 	allServerPlatforms, platErr := getAllPlatforms(stream)
@@ -133,6 +133,9 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		if getOptErr := options.Get(server); getOptErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error getting options", "server", server, "err", getOptErr)
 			reports.DM(session, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s", server, getOptErr))
+			continue
+		}
+		if options.AnnounceChannel.Value == "" {
 			continue
 		}
 		embed, embedErr := createStreamEmbed(stream, options.AnnounceRole.Value)
