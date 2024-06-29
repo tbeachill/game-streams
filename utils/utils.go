@@ -124,7 +124,7 @@ func GetVideoThumbnail(stream string) string {
 	if strings.Contains(stream, "twitch") {
 		name := strings.Split(stream, "/")[3]
 		return fmt.Sprintf("https://static-cdn.jtvnw.net/previews-ttv/live_user_%s-1280x720.jpg", name)
-	} else if strings.Contains(stream, "youtube") {
+	} else if strings.Contains(stream, "youtube") && strings.Contains(stream, "=") {
 		ID := strings.Split(stream, "=")[1]
 		return fmt.Sprintf("https://img.youtube.com/vi/%s/mqdefault.jpg", ID)
 	} else if strings.Contains(stream, "facebook") {
