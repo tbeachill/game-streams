@@ -59,7 +59,7 @@ func (s *Streams) Query(q string, params ...string) error {
 
 // GetUpcoming gets all upcoming streams
 func (s *Streams) GetUpcoming() error {
-	if err := s.Query("select name, platform, date, time, description, url from streams where date >= date('now') order by date, time limit 10"); err != nil {
+	if err := s.Query("select name, platform, date, time, description, url from streams where date > date('now') UNION select name, platform, date, time, description, url from streams where date = date('now') and time >= time('now') order by date, time limit 10"); err != nil {
 		return err
 	}
 	return nil
@@ -83,8 +83,9 @@ func (s *Streams) CheckTomorrow() error {
 
 // GetInfo gets information on a specific stream by name
 func (s *Streams) GetInfo(name string) error {
-	name = strings.Trim(name, " ")
-	if err := s.Query("select name, platform, date, time, description, url from streams where name = ? collate nocase and date >= date('now')", name); err != nil {
+	name = "%" + strings.Trim(name, " ") + "%"
+
+	if err := s.Query("select name, platform, date, time, description, url from (select * from streams where date = date('now') and time >= time('now') UNION select * from streams where date > date('now')) where name like ? collate nocase limit 1", name); err != nil {
 		return err
 	}
 	return nil
