@@ -63,22 +63,22 @@ func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 				Inline: false,
 			},
 			{
-				Name:   "Date",
+				Name:   "\u200b\nDate",
 				Value:  date,
 				Inline: true,
 			},
 			{
-				Name:   "Time",
+				Name:   "\u200b\nTime",
 				Value:  time,
 				Inline: true,
 			},
 			{
-				Name:   "URL",
+				Name:   "\u200b\nURL",
 				Value:  stream.URL,
 				Inline: false,
 			},
 			{
-				Name:   "Description",
+				Name:   "\u200b\nDescription",
 				Value:  stream.Description,
 				Inline: false,
 			},
@@ -206,8 +206,8 @@ func streamEmbedField(stream db.Stream) (*discordgo.MessageEmbedField, error) {
 		return nil, tsErr
 	}
 	field := &discordgo.MessageEmbedField{
-		Name:   fmt.Sprintf("%s %s", ds, ts),
-		Value:  fmt.Sprintf("%s\n\u200b", stream.Name),
+		Name:   fmt.Sprintf("\u200b\n%s\t%s", ds, ts),
+		Value:  fmt.Sprintf("%s", stream.Name),
 		Inline: false,
 	}
 	return field, nil
