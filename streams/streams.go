@@ -207,7 +207,7 @@ func streamEmbedField(stream db.Stream) (*discordgo.MessageEmbedField, error) {
 	}
 	field := &discordgo.MessageEmbedField{
 		Name:   fmt.Sprintf("\u200b\n%s\t%s", ds, ts),
-		Value:  fmt.Sprintf("%s", stream.Name),
+		Value:  stream.Name,
 		Inline: false,
 	}
 	return field, nil
