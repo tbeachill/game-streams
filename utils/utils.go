@@ -136,30 +136,45 @@ func GetVideoThumbnail(stream string) string {
 }
 
 // return the url of a youtube live stream thumbnail
-func GetYoutubeLiveThumbnail(stream string) string {
-	var ID string
-	if strings.Contains(stream, "=") {
+func GetYoutubeLiveThumbnail(streamUrl string) string {
+	var ID string = ""
+
+	if strings.Contains(streamUrl, "=") {
 		// thumbnail from direct link
-		ID = strings.Split(stream, "=")[1]
+		ID = strings.Split(streamUrl, "=")[1]
 	} else {
-		doc, err := GetHtmlBody(stream)
-		if err != nil {
-			Log.ErrorWarn.WithPrefix(" MAIN").Error("error getting youtube thumbnail", "err", err)
-			reports.DM(Session, fmt.Sprintf("error getting youtube thumbnail:\n\terr=%s", err))
-			return ""
+		// thumbnail from channel link
+		directUrl, success := GetYoutubeDirectUrl(streamUrl)
+		if success {
+			ID = strings.Split(directUrl, "=")[1]
 		}
-		// will get ID if there is a current or upcoming stream
-		doc.Find("link").Each(func(i int, s *goquery.Selection) {
-			url, _ := s.Attr("href")
-			if strings.Contains(url, "?v=") {
-				ID = strings.Split(url, "?v=")[1]
-			}
-		})
 	}
 	if ID != "" {
 		return fmt.Sprintf("https://img.youtube.com/vi/%s/mqdefault.jpg", ID)
 	}
 	return ""
+}
+
+// return the direct url of a youtube stream from its live url and a bool indicating success
+func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
+	var directUrl string = ""
+	var success bool = false
+
+	doc, err := GetHtmlBody(streamUrl)
+	if err != nil {
+		Log.ErrorWarn.WithPrefix(" MAIN").Error("error getting youtube html", "err", err)
+		reports.DM(Session, fmt.Sprintf("error getting youtube html:\n\terr=%s", err))
+		return "", false
+	}
+	// will get url if
+	doc.Find("link").Each(func(i int, s *goquery.Selection) {
+		url, _ := s.Attr("href")
+		if strings.Contains(url, "?v=") {
+			directUrl = url
+			success = true
+		}
+	})
+	return directUrl, success
 }
 
 // return the html body of a webpage as a goquery doc from a url
