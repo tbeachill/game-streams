@@ -13,6 +13,7 @@ import (
 	"gamestreambot/utils"
 )
 
+// the time before a stream starts to send a notification
 var STREAM_T_MINUS = time.Minute * 10
 
 // return a list of all upcoming streams as a slice of embeds
@@ -161,7 +162,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 
 // edit the announcement embed to show that the stream has started
 func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed, session *discordgo.Session) {
-	embed.Description = embed.Description[0:14] + "ed" + embed.Description[15:]
+	embed.Description = embed.Description[0:14] + "ed" + embed.Description[17:]
 	medit := discordgo.NewMessageEdit(msg.ChannelID, msg.ID).SetEmbed(embed)
 	time.Sleep(STREAM_T_MINUS)
 	session.ChannelMessageEditComplex(medit)
