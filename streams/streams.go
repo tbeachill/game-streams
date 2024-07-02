@@ -134,6 +134,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		return
 	}
 	uniqueServers := utils.RemoveSliceDuplicates(allServerPlatforms)
+	MakeStreamUrlDirect(&stream)
 
 	for server := range uniqueServers {
 		var options db.Options
@@ -157,6 +158,17 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 			reports.DM(session, fmt.Sprintf("error posting message:\n\tserver=%s\n\tchannel=%s\n\trole=%s\n\terr=%s", server, options.AnnounceChannel.Value, options.AnnounceRole.Value, postErr))
 		}
 		go EditAnnouncementEmbed(msg, embed, session)
+	}
+}
+
+// get the direct url of a youtube stream and update the stream URL in the struct
+// this is done so the embed links to the stream vod after the stream has ended
+func MakeStreamUrlDirect(stream *db.Stream) {
+	if strings.Contains(stream.URL, "youtube") {
+		directUrl, success := utils.GetYoutubeDirectUrl(stream.URL)
+		if success {
+			stream.URL = directUrl
+		}
 	}
 }
 
