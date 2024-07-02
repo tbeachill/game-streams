@@ -27,11 +27,15 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 	if len(streamList.Streams) == 0 {
 		return embed, errors.New("no streams found")
 	}
-	for _, stream := range streamList.Streams {
+	for i, stream := range streamList.Streams {
 		utils.Log.Info.WithPrefix(" CMND").Info("creating embed field", "name", stream.Name, "time", stream.Time)
 		embedField, embedErr := streamEmbedField(stream)
 		if embedErr != nil {
 			return nil, embedErr
+		}
+		//  remove the newline from the first stream embed
+		if i == 0 {
+			embedField.Name = strings.Split(embedField.Name, "\n")[1]
 		}
 		embed.Fields = append(embed.Fields, embedField)
 	}
@@ -87,7 +91,7 @@ func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 	return embed, nil
 }
 
-// create a goroutine to sleep until 5 minutes before the stream, then run the notification function
+// create a goroutine to sleep until 10 minutes before the stream, then run the notification function
 func ScheduleNotifications(session *discordgo.Session) error {
 	var streamList db.Streams
 	if todayErr := streamList.GetToday(); todayErr != nil {
@@ -106,7 +110,7 @@ func ScheduleNotifications(session *discordgo.Session) error {
 				reports.DM(session, fmt.Sprintf("error parsing time:\n\terr=%s", parseErr))
 				return
 			}
-			timeToStream := streamTime.Sub(time.Now().UTC()) - (time.Minute * 5)
+			timeToStream := streamTime.Sub(time.Now().UTC()) - (time.Minute * 10)
 			time.Sleep(timeToStream)
 			PostStreamLink(*currentStream, session)
 		}(&stream)
@@ -166,7 +170,7 @@ func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, 
 			Title:       stream.Name,
 			URL:         stream.URL,
 			Type:        "video",
-			Description: fmt.Sprintf("%sstream starting %s\n\n%s", role, ts, stream.Description),
+			Description: fmt.Sprintf("%sStream starting %s\n\n%s", role, ts, stream.Description),
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: utils.GetVideoThumbnail(stream.URL),
 			},
