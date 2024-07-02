@@ -3,11 +3,13 @@ package utils
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"runtime"
 	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/bwmarrin/discordgo"
 	"github.com/charmbracelet/log"
 
@@ -124,14 +126,57 @@ func GetVideoThumbnail(stream string) string {
 	if strings.Contains(stream, "twitch") {
 		name := strings.Split(stream, "/")[3]
 		return fmt.Sprintf("https://static-cdn.jtvnw.net/previews-ttv/live_user_%s-1280x720.jpg", name)
-	} else if strings.Contains(stream, "youtube") && strings.Contains(stream, "=") {
-		ID := strings.Split(stream, "=")[1]
-		return fmt.Sprintf("https://img.youtube.com/vi/%s/mqdefault.jpg", ID)
+	} else if strings.Contains(stream, "youtube") {
+		return GetYoutubeLiveThumbnail(stream)
 	} else if strings.Contains(stream, "facebook") {
 		name := strings.Split(stream, "/")[3]
 		return fmt.Sprintf("https://graph.facebook.com/%s/picture?type=large", name)
 	}
 	return ""
+}
+
+// return the url of a youtube live stream thumbnail
+func GetYoutubeLiveThumbnail(stream string) string {
+	var ID string
+	if strings.Contains(stream, "=") {
+		// thumbnail from direct link
+		ID = strings.Split(stream, "=")[1]
+	} else {
+		doc, err := GetHtmlBody(stream)
+		if err != nil {
+			Log.ErrorWarn.WithPrefix(" MAIN").Error("error getting youtube thumbnail", "err", err)
+			reports.DM(Session, fmt.Sprintf("error getting youtube thumbnail:\n\terr=%s", err))
+			return ""
+		}
+		// will get ID if there is a current or upcoming stream
+		doc.Find("link").Each(func(i int, s *goquery.Selection) {
+			url, _ := s.Attr("href")
+			if strings.Contains(url, "?v=") {
+				ID = strings.Split(url, "?v=")[1]
+			}
+		})
+	}
+	if ID != "" {
+		return fmt.Sprintf("https://img.youtube.com/vi/%s/mqdefault.jpg", ID)
+	}
+	return ""
+}
+
+// return the html body of a webpage as a goquery doc from a url
+func GetHtmlBody(url string) (*goquery.Document, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	return doc, err
 }
 
 // set the discord session so it is globally available

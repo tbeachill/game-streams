@@ -4,6 +4,7 @@ go 1.21.6
 
 require (
 	github.com/BurntSushi/toml v1.3.2
+	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/bwmarrin/discordgo v0.27.1
 	github.com/charmbracelet/log v0.3.1
 	github.com/joho/godotenv v1.5.1
@@ -12,6 +13,7 @@ require (
 )
 
 require (
+	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/lipgloss v0.9.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
@@ -26,5 +28,6 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
+	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 )
