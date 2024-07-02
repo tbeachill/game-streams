@@ -13,6 +13,8 @@ import (
 	"gamestreambot/utils"
 )
 
+var STREAM_T_MINUS = time.Minute * 10
+
 // return a list of all upcoming streams as a slice of embeds
 func StreamList() (*discordgo.MessageEmbed, error) {
 	embed := &discordgo.MessageEmbed{
@@ -91,7 +93,7 @@ func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 	return embed, nil
 }
 
-// create a goroutine to sleep until 10 minutes before the stream, then run the notification function
+// create a goroutine to sleep until STREAM_T_MINUS before the stream, then run the notification function
 func ScheduleNotifications(session *discordgo.Session) error {
 	var streamList db.Streams
 	if todayErr := streamList.GetToday(); todayErr != nil {
@@ -110,7 +112,7 @@ func ScheduleNotifications(session *discordgo.Session) error {
 				reports.DM(session, fmt.Sprintf("error parsing time:\n\terr=%s", parseErr))
 				return
 			}
-			timeToStream := streamTime.Sub(time.Now().UTC()) - (time.Minute * 10)
+			timeToStream := streamTime.Sub(time.Now().UTC()) - STREAM_T_MINUS
 			time.Sleep(timeToStream)
 			PostStreamLink(*currentStream, session)
 		}(&stream)
@@ -148,12 +150,21 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 			reports.DM(session, fmt.Sprintf("error creating embed:\n\tserver=%s\n\terr=%s", server, embedErr))
 			continue
 		}
-		_, postErr := session.ChannelMessageSendEmbed(options.AnnounceChannel.Value, embed)
+		msg, postErr := session.ChannelMessageSendEmbed(options.AnnounceChannel.Value, embed)
 		if postErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error posting message", "server", server, "channel", options.AnnounceChannel, "role", options.AnnounceRole, "err", postErr)
 			reports.DM(session, fmt.Sprintf("error posting message:\n\tserver=%s\n\tchannel=%s\n\trole=%s\n\terr=%s", server, options.AnnounceChannel.Value, options.AnnounceRole.Value, postErr))
 		}
+		go EditAnnouncementEmbed(msg, embed, session)
 	}
+}
+
+// edit the announcement embed to show that the stream has started
+func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed, session *discordgo.Session) {
+	embed.Description = embed.Description[0:14] + "ed" + embed.Description[15:]
+	medit := discordgo.NewMessageEdit(msg.ChannelID, msg.ID).SetEmbed(embed)
+	time.Sleep(STREAM_T_MINUS)
+	session.ChannelMessageEditComplex(medit)
 }
 
 // create an embed for a stream
@@ -170,14 +181,14 @@ func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, 
 			Title:       stream.Name,
 			URL:         stream.URL,
 			Type:        "video",
-			Description: fmt.Sprintf("%sStream starting %s\n\n%s", role, ts, stream.Description),
+			Description: fmt.Sprintf("%s**Stream starting %s.**\n\n%s", role, ts, stream.Description),
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: utils.GetVideoThumbnail(stream.URL),
 			},
 			Color: 0xc3d23e,
 			Fields: []*discordgo.MessageEmbedField{
 				{
-					Name:   "Platforms",
+					Name:   "\u200b\nPlatforms",
 					Value:  stream.Platform,
 					Inline: false,
 				},
