@@ -8,6 +8,9 @@ import (
 	"gamestreambot/utils"
 )
 
+// Options is a struct that contains the options for a server. It contains the server ID, the channel to announce
+// streams, the role to announce streams, and flags for each platform to announce streams for. It also contains a flag
+// to reset the options for a server.
 type Options struct {
 	ServerID        string
 	AnnounceChannel StringSet
@@ -18,15 +21,20 @@ type Options struct {
 	PC              BoolSet
 	Reset           bool
 }
+
+// StringSet is a struct that contains a string value and a boolean flag to determine if the value has been set.
 type StringSet struct {
 	Value string
 	Set   bool
 }
+
+// BoolSet is a struct that contains a boolean value and a boolean flag to determine if the value has been set.
 type BoolSet struct {
 	Value bool
 	Set   bool
 }
 
+// NewOptions returns a new Options struct with default values and the given server ID.
 func NewOptions(serverID string) Options {
 	return Options{
 		ServerID:        serverID,
@@ -40,7 +48,8 @@ func NewOptions(serverID string) Options {
 	}
 }
 
-// set the options for a server
+// Set will write the values of the options struct to the servers table of the database. If the server is not in the
+// table, it will insert a new row. If the server is in the table, it will update the row.
 func (o *Options) Set() error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -63,7 +72,9 @@ func (o *Options) Set() error {
 	return nil
 }
 
-// get the options for a server and set the options struct
+// Get will get the settings for a server from the servers table of the database and write them to the options struct.
+// If the server is not in the table, it will set the default values for the options struct and write them to the
+// database.
 func (o *Options) Get(serverID string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -81,7 +92,8 @@ func (o *Options) Get(serverID string) error {
 	return nil
 }
 
-// merge the options from a new options struct with the current options struct
+// Merge will merge the values of the given options struct into the options struct calling the method. If a value is set
+// in the given options struct, it will overwrite the value in the calling options struct.
 func (o *Options) Merge(p Options) {
 	if p.AnnounceChannel.Set {
 		o.AnnounceChannel = p.AnnounceChannel
@@ -103,7 +115,8 @@ func (o *Options) Merge(p Options) {
 	}
 }
 
-// check if a server is in the servers table
+// checkOptions checks if the given server ID exists in the servers table of the database. Returns true if the server
+// ID exists, false if it does not.
 func checkOptions(serverID string) bool {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -117,7 +130,7 @@ func checkOptions(serverID string) bool {
 	return getErr == nil
 }
 
-// remove a server from the servers table
+// RemoveOptions will remove the server from the servers table of the database.
 func RemoveOptions(serverID string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {

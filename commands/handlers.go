@@ -12,7 +12,7 @@ import (
 	"gamestreambot/utils"
 )
 
-// map of command names to their respective functions
+// commandHandlers is a map of command names to their respective handler functions.
 var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 	"streams":    listStreams,
 	"streaminfo": streamInfo,
@@ -20,7 +20,9 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	"settings":   settings,
 }
 
-// list all upcoming streams by getting an embed from the StreamList method and responding to the interaction with it
+// listStreams gets a list of all upcoming streams as an embed. If the embed is successfully created, it responds
+// to the interaction with the embed. If an error occurs, indicating no upcoming streams or an error creating the embed,
+// it responds with an error message.
 func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed, listErr := streams.StreamList()
 	if listErr != nil {
@@ -52,7 +54,10 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
-// get information about a specific stream from the stream name by running a sql query and responding to the interaction with the embed
+// streamInfo gets the information for a specific stream by title. It extracts the stream name from the options then
+// gets the stream information from the database. If the stream is found, it creates an embed with the stream
+// information and responds to the interaction with the embed. If the stream is not found or an error occurs,
+// it responds with an error message.
 func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	streamName := i.ApplicationCommandData().Options[0].Value.(string)
 	embed, infoErr := streams.StreamInfo(streamName)
@@ -85,7 +90,8 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
-// return the help message for the bot explaining what it does and how to use it
+// help responds to the interaction with a help message containing information about the bot and its commands.
+// this command is only available to server administrators.
 func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -125,8 +131,11 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
-// create an options struct from parsing the options from the interaction and pass it to the settings function
-// then respond to the interaction with the updated settings, or an error message if an error occurred
+// settings updates the bot settings for the server. It parses the options from the interaction into an options struct.
+// If the options are empty, it responds with the current settings. If the reset option is true, it resets the settings
+// to default. If the options are not empty, it first gets the current settings from the database, then merges the
+// new settings with the current settings. It then writes the new settings to the database and responds with the
+// updated settings. If an error occurs, it responds with an error message.
 func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := parseOptions(i.ApplicationCommandData().Options)
 	utils.Log.Info.WithPrefix(" CMND").Info("options", "options", options)
@@ -239,7 +248,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
-// parse the options from the interaction into an options struct
+// parseOptions parses the options from the interaction into an options struct.
 func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) *db.Options {
 	var o db.Options
 	for _, option := range options {

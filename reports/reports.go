@@ -6,9 +6,9 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// Send a direct message to me containing the given message
+// DM sends a direct message to the bot owner. The owner's Discord ID is stored in the OWNER_ID environment variable.
 func DM(session *discordgo.Session, message string) {
-	st, err := session.UserChannelCreate(os.Getenv("MY_USER_ID"))
+	st, err := session.UserChannelCreate(os.Getenv("OWNER_ID"))
 	if err != nil {
 		return
 	}

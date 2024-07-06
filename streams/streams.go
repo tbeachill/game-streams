@@ -13,10 +13,11 @@ import (
 	"gamestreambot/utils"
 )
 
-// the time before a stream starts to send a notification
+// STREAM_T_MINUS is the time before a stream to send a notification
 var STREAM_T_MINUS = time.Minute * 10
 
-// return a list of all upcoming streams as a slice of embeds
+// StreamList populates a Streams struct with upcoming streams from the streams table of the database.
+// It then creates a discordgo.MessageEmbed struct with the date, time and title of the next 10 upcoming streams.
 func StreamList() (*discordgo.MessageEmbed, error) {
 	embed := &discordgo.MessageEmbed{
 		Title: "Upcoming Streams",
@@ -45,7 +46,8 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 	return embed, nil
 }
 
-// get the information for a stream
+// StreamInfo gets a stream from the streams table of the database by name. It then creates a discordgo.MessageEmbed
+// struct with the date, time, platforms, URL, and description of the stream.
 func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 	utils.Log.Info.WithPrefix(" CMND").Info("getting stream info", "name", streamName)
 	var streams db.Streams
@@ -94,7 +96,10 @@ func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 	return embed, nil
 }
 
-// create a goroutine to sleep until STREAM_T_MINUS before the stream, then run the notification function
+// ScheduleNotifications gets all streams for today that have not yet started from the streams table of the database.
+// It then schedules notifications for each stream by creating a goroutine for each stream that sleeps until the
+// streams start time - STREAM_T_MINUS, then posts a message to the servers that are following one or more of the
+// platforms of the stream by calling the PostStreamLink function.
 func ScheduleNotifications(session *discordgo.Session) error {
 	var streamList db.Streams
 	if todayErr := streamList.GetToday(); todayErr != nil {
@@ -124,7 +129,8 @@ func ScheduleNotifications(session *discordgo.Session) error {
 	return nil
 }
 
-// post a message to every server that is following the platform  and has a channel set when a stream is about to start
+// PostStreamLink posts an embed with the given streams information to the servers that are following one or more of
+// the platforms of the stream and has an announcement channel set.
 func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 	utils.Log.Info.WithPrefix("SCHED").Info("posting stream link to subscribed servers", "stream", stream.Name, "platforms", stream.Platform)
 	allServerPlatforms, platErr := getAllPlatforms(stream)
@@ -133,6 +139,8 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		reports.DM(session, fmt.Sprintf("error getting server platforms:\n\terr=%s", platErr))
 		return
 	}
+	// Removing duplicates is necessary because a server may follow multiple platforms and the stream may be
+	// related to multiple platforms. Therefore the same server may be added to allServerPlatforms multiple times.
 	uniqueServers := utils.RemoveSliceDuplicates(allServerPlatforms)
 	MakeStreamUrlDirect(&stream)
 
@@ -161,8 +169,9 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 	}
 }
 
-// get the direct url of a youtube stream and update the stream URL in the struct
-// this is done so the embed links to the stream vod after the stream has ended
+// MakeStreamUrlDirect checks if the stream URL is a Youtube link and if so, gets the direct URL to the stream.
+// This is done as streams could be linked to as a profile's /live URL which would no longer link to the correct video
+// after the stream has ended.
 func MakeStreamUrlDirect(stream *db.Stream) {
 	if strings.Contains(stream.URL, "youtube") {
 		directUrl, success := utils.GetYoutubeDirectUrl(stream.URL)
@@ -172,7 +181,9 @@ func MakeStreamUrlDirect(stream *db.Stream) {
 	}
 }
 
-// edit the announcement embed to show that the stream has started
+// EditAnnouncementEmbed edits the description of an announcement embed to show that the stream has started.
+// It does this by changing the "starting" to "started" in the description. This is achieved by creating a new
+// goroutine that sleeps for STREAM_T_MINUS then edits the message.
 func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed, session *discordgo.Session) {
 	embed.Description = embed.Description[0:14] + "ed" + embed.Description[17:]
 	medit := discordgo.NewMessageEdit(msg.ChannelID, msg.ID).SetEmbed(embed)
@@ -180,7 +191,8 @@ func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed
 	session.ChannelMessageEditComplex(medit)
 }
 
-// create an embed for a stream
+// createStreamEmbed returns a discordgo.MessageEmbed struct with the stream information from the given stream and
+// announcement role.
 func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, error) {
 	ts, tsErr := utils.CreateTimestampRelative(stream.Date, stream.Time)
 	if tsErr != nil {
@@ -210,8 +222,7 @@ func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, 
 	return embed, nil
 }
 
-// split the list of platforms then search the database for servers following each platforms
-// return a slice of server IDs
+// getAllPlatforms returns a slice of server IDs that are following one or more of the platforms of the given stream.
 func getAllPlatforms(stream db.Stream) ([]string, error) {
 	platforms := strings.Split(stream.Platform, ",")
 	var allServerPlatforms []string
@@ -227,7 +238,7 @@ func getAllPlatforms(stream db.Stream) ([]string, error) {
 	return allServerPlatforms, nil
 }
 
-// return an embed field with the stream information
+// streamEmbedField returns a discordgo.MessageEmbedField struct with the date, time, and name of the given stream.
 func streamEmbedField(stream db.Stream) (*discordgo.MessageEmbedField, error) {
 	ds, ts, tsErr := utils.CreateTimestamp(stream.Date, stream.Time)
 	if tsErr != nil {

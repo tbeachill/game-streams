@@ -16,6 +16,8 @@ import (
 	"gamestreambot/utils"
 )
 
+// Run is the main function that runs the bot. It creates a new Discord session, registers the commands,
+// and starts the updater and scheduler goroutines. The bot runs until it receives a termination signal (ctrl + c).
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)
 	if sessionErr != nil {
@@ -43,7 +45,7 @@ func Run(botToken, appID string) {
 	<-c
 }
 
-// check for updates to the streams every hour, on the hour by running the update method of the Streams struct
+// startUpdater creates a new Streams struct and updates the streams every hour by running the Update method.
 func startUpdater() {
 	var s db.Streams
 	for {
@@ -58,7 +60,9 @@ func startUpdater() {
 	}
 }
 
-// schedule notifications for today's streams every day at midnight UTC by running the ScheduleNotifications method of the Streams struct
+// startScheduler runs at startup, then at midnight UTC every day. It checks if there are any streams tomorrow with no
+// time set and alerts me to add a time. It creates a streams struct with today's streams and schedules notifications
+// for each stream by running the ScheduleNotifications method.
 func startScheduler(session *discordgo.Session) {
 	startTime := time.Now().UTC()
 	for {

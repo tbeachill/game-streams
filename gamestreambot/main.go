@@ -10,6 +10,15 @@ import (
 	"gamestreambot/utils"
 )
 
+// main is the entry point for the bot. It sets the file paths, initializes the logger, and loads the .env file.
+// It then creates/loads the database and starts the bot.
+// The environment variables are:
+//
+//	DISCORD_TOKEN - the token for the Discord bot.
+//	APPLICATION_ID - the application ID for the Discord bot.
+//	OWNER_ID - the Discord user ID of the bot owner.
+//	STREAM_URL - the Github URL for the streams.toml file.
+//	API_URL - the Github API URL for the repository that contains the streams.toml file.
 func main() {
 	utils.Files.SetPaths()
 	utils.Log.Init()

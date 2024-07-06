@@ -13,6 +13,7 @@ import (
 	"gamestreambot/utils"
 )
 
+// Config is a struct that holds the configuration values for the bot.
 type Config struct {
 	ID         int
 	StreamURL  string
@@ -21,7 +22,7 @@ type Config struct {
 	CommitTime time.Time
 }
 
-// get the values of the config struct from the db or set default values if none are found
+// Get gets the configuration values from the database and sets them in the Config struct.
 func (c *Config) Get() error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -46,7 +47,8 @@ func (c *Config) Get() error {
 	return nil
 }
 
-// set the default values for the config struct and write to the db
+// SetDefault sets the default values for the config struct from the environment variables and writes them to the
+// database.
 func (c *Config) SetDefault() error {
 	utils.Log.Info.WithPrefix(" MAIN").Info("setting default config")
 	c.StreamURL = os.Getenv("STREAM_URL")
@@ -70,7 +72,7 @@ func (c *Config) SetDefault() error {
 	return nil
 }
 
-// write the values of the config struct to the db
+// Set writes the current values of the Config struct to the database.
 func (c *Config) Set() error {
 	utils.Log.Info.WithPrefix(" MAIN").Info("updating config")
 	sqlStmt := `
@@ -90,8 +92,9 @@ func (c *Config) Set() error {
 	return nil
 }
 
-// get the last updated time from the db and compare to the last commit time from the api
-// return true if the commit time is newer than the last updated time
+// Check checks whether the streams.toml file has been updated. It gets the time of the last commit to the streams.toml
+// in the flat-files repository and compares it to the last update time stored in the database. If the commit time is
+// after the last update time, it returns true.
 func (c *Config) Check() (bool, error) {
 	if c.LastUpdate == "" {
 		return true, nil

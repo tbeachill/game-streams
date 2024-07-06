@@ -13,8 +13,8 @@ import (
 	"gamestreambot/utils"
 )
 
-// runner function to update the streams in the db, will return early if there are any errors
-// or there are no updates
+// Update checks for new streams in the streams.toml file of the flat-files repository and updates the database by
+// inserting new streams, updating existing streams, and deleting streams that have been marked for deletion.
 func (s *Streams) Update() error {
 	var c Config
 
@@ -72,7 +72,7 @@ func (s *Streams) Update() error {
 	return nil
 }
 
-// parse streams.toml and return as a Streams struct
+// parseToml parses the streams.toml file from the flat-files repository and returns as a Streams struct.
 func parseToml(c Config) Streams {
 	utils.Log.Info.WithPrefix("UPDAT").Info("parsing toml")
 	response, httpErr := http.Get(c.StreamURL)
@@ -93,7 +93,8 @@ func parseToml(c Config) Streams {
 	return streamList
 }
 
-// format the date and time from the toml file
+// FormatDate runs the ParseTomlDate function on each stream in the Streams struct.
+// This converts the date string from DD/MM/YYYY to YYYY-MM-DD.
 func (s *Streams) FormatDate() error {
 	for i, stream := range s.Streams {
 		d, err := utils.ParseTomlDate(stream.Date)
@@ -105,7 +106,8 @@ func (s *Streams) FormatDate() error {
 	return nil
 }
 
-// update an existing stream in the db
+// UpdateRow updates streams in the streams table of the database with information from the Streams struct.
+// This is done when the ID of a stream in the Streams struct has been set to a non-zero value.
 func (s *Streams) UpdateRow() error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -131,8 +133,8 @@ func (s *Streams) UpdateRow() error {
 	return nil
 }
 
-// check for duplicates in the db, if a stream in the list is found in the db, go to the next row
-// if none match, add the stream to a new list
+// CheckForDuplicates checks the streams table of the database for duplicates of streams in the Streams struct.
+// If a a stream already exists in the streams table of the database, it is removed from the Streams struct.
 func (s *Streams) CheckForDuplicates() error {
 	rowNumber, countErr := countRows()
 	if countErr != nil {
@@ -176,7 +178,7 @@ OUTER:
 	return nil
 }
 
-// count the number of rows in the streams table
+// countRows returns the number of rows in the streams table of the database.
 func countRows() (int, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -196,7 +198,7 @@ func countRows() (int, error) {
 	return count, nil
 }
 
-// update db with new streams
+// InsertStreams inserts all of the streams from the Streams struct into the streams table of the database.
 func (s *Streams) InsertStreams() {
 	db, sqlErr := sql.Open("sqlite3", utils.Files.DB)
 	if sqlErr != nil {
@@ -223,7 +225,8 @@ func (s *Streams) InsertStreams() {
 	}
 }
 
-// delete streams from the db if the delete flag is set to true
+// DeleteStreams deletes streams from the streams table of the database that have been marked for deletion.
+// This is done by setting the delete flag of a stream in the Streams struct to true.
 func (s *Streams) DeleteStreams() {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {

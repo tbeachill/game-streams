@@ -8,8 +8,10 @@ import (
 	"gamestreambot/utils"
 )
 
-// create the db with a streams table containing stream information and an options table
-// containing server specific options
+// CreateDB creates the database if it does not exist. It creates the streams, config, and servers tables.
+// streams contains information about the streams.
+// config contains configuration information for the bot.
+// servers contains information about the servers that the bot is in and their settings.
 func CreateDB() error {
 	utils.Log.Info.WithPrefix(" MAIN").Info("loading/creating database")
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)

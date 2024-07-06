@@ -10,7 +10,7 @@ import (
 	"gamestreambot/utils"
 )
 
-// get a list of all server IDs that the bot is present in from the servers table
+// GetServerIDs returns a list of all server IDs from the servers table
 func GetServerIDs() ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -36,7 +36,8 @@ func GetServerIDs() ([]string, error) {
 	return serverIDs, nil
 }
 
-// check if a server ID is in the servers table
+// CheckServerID checks if the given server ID exists in the servers table. Returns true if the server ID exists,
+// false if it does not.
 func CheckServerID(serverID string) (bool, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -55,7 +56,7 @@ func CheckServerID(serverID string) (bool, error) {
 	return true, nil
 }
 
-// get a list of all server IDs from the servers table where the given platform is true
+// GetPlatformServerIDs returns a list of server IDs that have the given platform set to true in the servers table.
 func GetPlatformServerIDs(platform string) ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {

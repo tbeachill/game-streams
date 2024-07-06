@@ -2,9 +2,16 @@ package commands
 
 import "github.com/bwmarrin/discordgo"
 
+// admin is the permission level for an administrator. This is used to set the permissions for the help
+// and settings commands.
 var admin int64 = discordgo.PermissionAdministrator
+
+// boolFalse is used to set the default permissions for the settings command. This is required because
+// the DefaultMemberPermissions field expects a pointer to a boolean value.
 var boolFalse bool = false
 
+// commands is a slice of all the commands that the bot can register with Discord. Each command has a name and
+// description, and some commands have options and permissions.
 var commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "streams",

@@ -10,23 +10,28 @@ import (
 	"gamestreambot/utils"
 )
 
-// returns the number of servers the bot is currently in by checking the cache
+// GetGuildNumber returns the number of servers the bot is in.
 func GetGuildNumber(session *discordgo.Session) int {
 	num := len(session.State.Guilds)
 	return num
 }
 
-// logs the number of servers the bot is in
+// logGuildNumber reports the number of servers the bot is in to the console and the bot owner via DM.
 func logGuildNumber(session *discordgo.Session) {
 	guildNum := GetGuildNumber(session)
 	utils.Log.Info.WithPrefix("STATS").Infof("connected to %d server%s", guildNum, utils.Pluralise(guildNum))
 	reports.DM(session, fmt.Sprintf("connected to %d server%s", guildNum, utils.Pluralise(guildNum)))
 }
 
-// logs when the bot joins or leaves a server
+// MonitorGuilds monitors the servers the bot is in. It sets up handlers for when the bot joins or leaves a server.
+// It logs to console and DMs the bot owner when the bot joins or leaves a server.
+// When the bot joins a server, it checks if the server is already in the servers table of the database. If not, it
+// adds the server to the servers table with default options. When the bot is removed from a server, it removes the
+// server from the servers table.
 func MonitorGuilds(session *discordgo.Session) {
 	logGuildNumber(session)
 	utils.Log.Info.WithPrefix("STATS").Info("adding server join handler")
+
 	// join handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildCreate) {
 		utils.Log.Info.WithPrefix("STATS").Info("joined server", "server", e.Guild.Name)
@@ -50,6 +55,7 @@ func MonitorGuilds(session *discordgo.Session) {
 		}
 	})
 	utils.Log.Info.WithPrefix("STATS").Info("adding server leave handler")
+
 	// leave handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
 		utils.Log.Info.WithPrefix("STATS").Info("left server", "server", e.Guild.Name)

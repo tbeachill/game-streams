@@ -16,21 +16,29 @@ import (
 	"gamestreambot/reports"
 )
 
+// Files is a struct that holds the file paths of important files for the bot.
 var Files FilePaths
+
+// Log is a struct that holds the loggers for the bot.
 var Log Logger
+
+// Session is a pointer to the discord session.
 var Session *discordgo.Session
 
+// FilePaths is a struct that holds the file paths of important files for the bot.
 type FilePaths struct {
 	DotEnv string
 	DB     string
 	Log    string
 }
 
+// Logger is a struct that holds the loggers for the bot.
 type Logger struct {
 	ErrorWarn *log.Logger
 	Info      *log.Logger
 }
 
+// SetPaths sets the file paths for the bot depending on the operating system.
 func (s *FilePaths) SetPaths() {
 	if runtime.GOOS == "windows" {
 		s.DotEnv = "config/.env"
@@ -47,6 +55,7 @@ func (s *FilePaths) SetPaths() {
 	}
 }
 
+// Init initializes the loggers for the bot.
 func (l *Logger) Init() {
 	l.Info = log.NewWithOptions(os.Stderr, log.Options{
 		ReportTimestamp: true,
@@ -65,7 +74,7 @@ func (l *Logger) Init() {
 	l.ErrorWarn.SetOutput(mw)
 }
 
-// create a unix timestamp from a date and time
+// CreateTimestamp creates absolute Discord timestamps from date and time strings.
 func CreateTimestamp(d string, t string) (string, string, error) {
 	layout := "2006-01-02 15:04"
 	if t == "" {
@@ -82,13 +91,15 @@ func CreateTimestamp(d string, t string) (string, string, error) {
 	return fmt.Sprintf("<t:%d:d>", dt.Unix()), fmt.Sprintf("<t:%d:t>", dt.Unix()), err
 }
 
-// create a unix timestamp from a date and time and return the relative discord time string
+// CreateTimestampRelative returns a relative Discord timestamp from date and time strings.
+// e.g. "in 2 hours"
 func CreateTimestampRelative(d string, t string) (string, error) {
 	layout := "2006-01-02 15:04"
 	dt, err := time.Parse(layout, fmt.Sprintf("%s %s", d, t))
 	return fmt.Sprintf("<t:%d:R>", dt.Unix()), err
 }
 
+// ParseTomlDate converts a date string from DD/MM/YYYY to YYYY-MM-DD.
 func ParseTomlDate(d string) (string, error) {
 	splitStr := strings.Split(d, "/")
 	if len(splitStr) != 3 {
@@ -97,6 +108,7 @@ func ParseTomlDate(d string) (string, error) {
 	return fmt.Sprintf("%s-%s-%s", splitStr[2], splitStr[1], splitStr[0]), nil
 }
 
+// Pluralise returns an "s" if n is not 1. Used for pluralising words.
 func Pluralise(n int) string {
 	if n == 1 {
 		return ""
@@ -104,7 +116,7 @@ func Pluralise(n int) string {
 	return "s"
 }
 
-// remove duplicates from a slice of strings
+// RemoveSliceDuplicates removes duplicates from a slice of strings and returns a map of the unique strings.
 func RemoveSliceDuplicates(s []string) map[string]bool {
 	m := make(map[string]bool)
 	for _, str := range s {
@@ -113,7 +125,7 @@ func RemoveSliceDuplicates(s []string) map[string]bool {
 	return m
 }
 
-// return a placeholder string if the input string is empty
+// PlaceholderText returns "not set" if the given string is empty.
 func PlaceholderText(s string) string {
 	if len(s) == 0 {
 		return "not set"
@@ -121,7 +133,7 @@ func PlaceholderText(s string) string {
 	return s
 }
 
-// return the url of the stream thumbnail depending on the website
+// GetVideoThumbnail returns the thumbnail of a video stream from a given URL.
 func GetVideoThumbnail(stream string) string {
 	if strings.Contains(stream, "twitch") {
 		name := strings.Split(stream, "/")[3]
@@ -135,7 +147,10 @@ func GetVideoThumbnail(stream string) string {
 	return ""
 }
 
-// return the url of a youtube live stream thumbnail
+// GetYoutubeLiveThumbnail returns the thumbnail of a YouTube stream from a given URL.
+// If the URL is a direct link to the stream, it extract the video ID from the URL.
+// If the URL is a channel link, it will call GetYoutubeDirectUrl to get the direct link and extract the video ID from
+// that.
 func GetYoutubeLiveThumbnail(streamUrl string) string {
 	var ID string = ""
 
@@ -155,7 +170,7 @@ func GetYoutubeLiveThumbnail(streamUrl string) string {
 	return ""
 }
 
-// return the direct url of a youtube stream from its live url and a bool indicating success
+// GetYoutubeDirectUrl returns the direct URL of a YouTube stream from a profiles /live URL.
 func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
 	var directUrl string = ""
 	var success bool = false
@@ -166,7 +181,6 @@ func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
 		reports.DM(Session, fmt.Sprintf("error getting youtube html:\n\terr=%s", err))
 		return "", false
 	}
-	// will get url if
 	doc.Find("link").Each(func(i int, s *goquery.Selection) {
 		url, _ := s.Attr("href")
 		if strings.Contains(url, "?v=") {
@@ -177,7 +191,7 @@ func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
 	return directUrl, success
 }
 
-// return the html body of a webpage as a goquery doc from a url
+// GetHtmlBody returns the HTML body of a given URL as a goquery.Document struct.
 func GetHtmlBody(url string) (*goquery.Document, error) {
 	res, err := http.Get(url)
 	if err != nil {
@@ -194,12 +208,12 @@ func GetHtmlBody(url string) (*goquery.Document, error) {
 	return doc, err
 }
 
-// set the discord session so it is globally available
+// RegisterSession sets the global Session variable.
 func RegisterSession(s *discordgo.Session) {
 	Session = s
 }
 
-// send an intro DM to a server admin when the bot is added to a server
+// IntroDM sends an introductory DM to a user when they add the bot to their server.
 func IntroDM(userID string) {
 	message := "🕹 Hello! Thank you for adding me to your server! 🕹\n\n" +
 		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings` in the server you added me to.\n\n" +

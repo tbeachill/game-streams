@@ -9,7 +9,7 @@ import (
 	"gamestreambot/utils"
 )
 
-// register commands listed in commands.go
+// RegisterCommands registers all commands in the commands slice, which is defined in commands.go
 func RegisterCommands(appID string, s *discordgo.Session) {
 	for _, c := range commands {
 		_, err := s.ApplicationCommandCreate(appID, "", c)
@@ -21,7 +21,7 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 	}
 }
 
-// remove all registered global commands
+// RemoveAllCommands retieves all registered commands and removes them from the application.
 func RemoveAllCommands(appID string, s *discordgo.Session) {
 	commands, err := s.ApplicationCommands(appID, "")
 	if err != nil {
@@ -38,7 +38,7 @@ func RemoveAllCommands(appID string, s *discordgo.Session) {
 	}
 }
 
-// register command handlers in handlers.go
+// RegisterHandler registers the command handler functions, defined in handlers.go, for each command.
 func RegisterHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
