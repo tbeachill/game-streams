@@ -10,7 +10,7 @@ import (
 	"gamestreambot/utils"
 )
 
-// get a list of all server IDs that the bot is present in from the settings table
+// get a list of all server IDs that the bot is present in from the servers table
 func GetServerIDs() ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -18,7 +18,7 @@ func GetServerIDs() ([]string, error) {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query("select server_id from settings")
+	rows, queryErr := db.Query("select server_id from servers")
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -36,7 +36,7 @@ func GetServerIDs() ([]string, error) {
 	return serverIDs, nil
 }
 
-// check if a server ID is in the settings table
+// check if a server ID is in the servers table
 func CheckServerID(serverID string) (bool, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -44,7 +44,7 @@ func CheckServerID(serverID string) (bool, error) {
 	}
 	defer db.Close()
 
-	row := db.QueryRow("select server_id from settings where server_id = ?", serverID)
+	row := db.QueryRow("select server_id from servers where server_id = ?", serverID)
 	var checkID string
 	scanErr := row.Scan(&checkID)
 	if scanErr == sql.ErrNoRows {
@@ -55,7 +55,7 @@ func CheckServerID(serverID string) (bool, error) {
 	return true, nil
 }
 
-// get a list of all server IDs from the settings table where the given platform is true
+// get a list of all server IDs from the servers table where the given platform is true
 func GetPlatformServerIDs(platform string) ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -65,7 +65,7 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 
 	platform = strings.ToLower(platform)
 	utils.Log.Info.WithPrefix(" DB").Info("getting server IDs for", "platform", platform)
-	query := fmt.Sprintf("select server_id from settings where %s = %s", platform, "1")
+	query := fmt.Sprintf("select server_id from servers where %s = %s", platform, "1")
 	rows, queryErr := db.Query(query)
 	if queryErr != nil {
 		return nil, queryErr

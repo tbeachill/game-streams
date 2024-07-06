@@ -50,12 +50,12 @@ func (o *Options) Set() error {
 	utils.Log.Info.Info("setting options", "server", o.ServerID, "options", o)
 
 	if !checkOptions(o.ServerID) {
-		_, execErr := db.Exec("insert into settings (server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc) values (?, ?, ?, ?, ?, ?, ?)", o.ServerID, o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value)
+		_, execErr := db.Exec("insert into servers (server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc) values (?, ?, ?, ?, ?, ?, ?)", o.ServerID, o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value)
 		if execErr != nil {
 			return execErr
 		}
 	} else {
-		_, execErr := db.Exec("update settings set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ? where server_id = ?", o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.ServerID)
+		_, execErr := db.Exec("update servers set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ? where server_id = ?", o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.ServerID)
 		if execErr != nil {
 			return execErr
 		}
@@ -73,7 +73,7 @@ func (o *Options) Get(serverID string) error {
 	if !checkOptions(serverID) {
 		o.Set()
 	}
-	row := db.QueryRow("select server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc from settings where server_id = ?", serverID)
+	row := db.QueryRow("select server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc from servers where server_id = ?", serverID)
 	scanErr := row.Scan(&o.ServerID, &o.AnnounceChannel.Value, &o.AnnounceRole.Value, &o.Playstation.Value, &o.Xbox.Value, &o.Nintendo.Value, &o.PC.Value)
 	if scanErr != nil {
 		return scanErr
@@ -103,7 +103,7 @@ func (o *Options) Merge(p Options) {
 	}
 }
 
-// check if a server is in the settings table
+// check if a server is in the servers table
 func checkOptions(serverID string) bool {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -112,12 +112,12 @@ func checkOptions(serverID string) bool {
 	}
 	defer db.Close()
 
-	rows := db.QueryRow("select server_id from settings where server_id = ?", serverID)
+	rows := db.QueryRow("select server_id from servers where server_id = ?", serverID)
 	getErr := rows.Scan(&serverID)
 	return getErr == nil
 }
 
-// remove a server from the settings table
+// remove a server from the servers table
 func RemoveOptions(serverID string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -126,7 +126,7 @@ func RemoveOptions(serverID string) error {
 	defer db.Close()
 
 	utils.Log.Info.WithPrefix("STATS").Info("removing from options table", "server", serverID)
-	_, execErr := db.Exec("delete from settings where server_id = ?", serverID)
+	_, execErr := db.Exec("delete from servers where server_id = ?", serverID)
 	if execErr != nil {
 		return execErr
 	}
