@@ -67,6 +67,7 @@ func startScheduler(session *discordgo.Session) {
 	startTime := time.Now().UTC()
 	for {
 		utils.Log.Info.WithPrefix("SCHED").Info("scheduling notifications for today's streams...")
+
 		// check for streams tomorrow that have no time so I can be alerted to add a time
 		var s db.Streams
 		if tomorrowErr := s.CheckTomorrow(); tomorrowErr != nil {
@@ -77,6 +78,7 @@ func startScheduler(session *discordgo.Session) {
 			utils.Log.Info.WithPrefix("SCHED").Info("streams tomorrow with no time", "streams", s.Streams)
 			reports.DM(utils.Session, fmt.Sprintf("streams tomorrow with no time:\n\tstreams=%v", s.Streams))
 		}
+
 		// schedule notifications for today's streams
 		if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error scheduling today's streams", "err", scheduleErr)

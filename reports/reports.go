@@ -12,5 +12,8 @@ func DM(session *discordgo.Session, message string) {
 	if err != nil {
 		return
 	}
-	session.ChannelMessageSend(st.ID, message)
+	_, sendErr := session.ChannelMessageSend(st.ID, message)
+	if sendErr != nil {
+		return
+	}
 }

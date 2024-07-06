@@ -188,7 +188,11 @@ func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed
 	embed.Description = embed.Description[0:14] + "ed" + embed.Description[17:]
 	medit := discordgo.NewMessageEdit(msg.ChannelID, msg.ID).SetEmbed(embed)
 	time.Sleep(STREAM_T_MINUS)
-	session.ChannelMessageEditComplex(medit)
+	_, editErr := session.ChannelMessageEditComplex(medit)
+	if editErr != nil {
+		utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error editing message", "channel", msg.ChannelID, "message", msg.ID, "err", editErr)
+		reports.DM(session, fmt.Sprintf("error editing message:\n\tchannel=%s\n\tmessage=%s\n\terr=%s", msg.ChannelID, msg.ID, editErr))
+	}
 }
 
 // createStreamEmbed returns a discordgo.MessageEmbed struct with the stream information from the given stream and

@@ -82,7 +82,9 @@ func (o *Options) Get(serverID string) error {
 	}
 	defer db.Close()
 	if !checkOptions(serverID) {
-		o.Set()
+		if o.Set() != nil {
+			return openErr
+		}
 	}
 	row := db.QueryRow("select server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc from servers where server_id = ?", serverID)
 	scanErr := row.Scan(&o.ServerID, &o.AnnounceChannel.Value, &o.AnnounceRole.Value, &o.Playstation.Value, &o.Xbox.Value, &o.Nintendo.Value, &o.PC.Value)
