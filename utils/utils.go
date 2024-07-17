@@ -25,6 +25,9 @@ var Log Logger
 // Session is a pointer to the discord session.
 var Session *discordgo.Session
 
+// StartTime is the time the bot started.
+var StartTime time.Time
+
 // FilePaths is a struct that holds the file paths of important files for the bot.
 type FilePaths struct {
 	DotEnv string

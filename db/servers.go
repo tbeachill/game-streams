@@ -10,8 +10,8 @@ import (
 	"gamestreambot/utils"
 )
 
-// GetServerIDs returns a list of all server IDs from the servers table
-func GetServerIDs() ([]string, error) {
+// GetAllServerIDs returns a list of all server IDs from the servers table
+func GetAllServerIDs() ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return nil, openErr

@@ -38,6 +38,7 @@ func Run(botToken, appID string) {
 	go startUpdater()
 	go startScheduler(session)
 	stats.MonitorGuilds(session)
+	utils.StartTime = time.Now().UTC()
 	reports.DM(session, "bot started")
 	utils.Log.Info.WithPrefix(" MAIN").Info("running. press ctrl + c to terminate")
 	c := make(chan os.Signal, 1)
@@ -64,10 +65,11 @@ func startUpdater() {
 // time set and alerts me to add a time. It creates a streams struct with today's streams and schedules notifications
 // for each stream by running the ScheduleNotifications method.
 func startScheduler(session *discordgo.Session) {
-	startTime := time.Now().UTC()
+	// timeToRun is the hour of the day in UTC to run the scheduler
+	timeToRun := 5
+
 	for {
 		utils.Log.Info.WithPrefix("SCHED").Info("scheduling notifications for today's streams...")
-
 		// check for streams tomorrow that have no time so I can be alerted to add a time
 		var s db.Streams
 		if tomorrowErr := s.CheckTomorrow(); tomorrowErr != nil {
@@ -85,11 +87,10 @@ func startScheduler(session *discordgo.Session) {
 			reports.DM(utils.Session, fmt.Sprintf("error scheduling todays streams:\n\terr=%s", scheduleErr))
 		}
 		hour, min, _ := time.Now().UTC().Clock()
-		hoursRemaining := 24 - hour
+		hoursRemaining := (timeToRun + 24) - hour
 		minsRemaining := 60 - min
 		utils.Log.Info.WithPrefix("SCHED").Info("sleeping until next day", "hours", hoursRemaining, "minutes", minsRemaining)
 		time.Sleep(time.Duration(hoursRemaining*60+minsRemaining) * time.Minute)
-		utils.Log.Info.WithPrefix("SCHED").Info("we survived another day", "uptime", time.Now().UTC().Sub(startTime))
-		reports.DM(utils.Session, fmt.Sprintf("we survived another day\n\tuptime=%s\n\tservers=%d", time.Now().UTC().Sub(startTime).Round(time.Second), stats.GetGuildNumber(session)))
+		stats.RemoveOldServerIDs(session)
 	}
 }
