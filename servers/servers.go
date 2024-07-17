@@ -79,15 +79,13 @@ func GetAllServerIDsFromDiscord(session *discordgo.Session) []string {
 
 // RemoveOldServerIDs removes server IDs from the servers table that are not in the Discord returned list of server IDs.
 // This is for data cleanup in case the bot is removed from a server and the server ID is not removed from the database.
-func RemoveOldServerIDs(session *discordgo.Session) {
+func RemoveOldServerIDs(session *discordgo.Session) error {
 	utils.Log.Info.WithPrefix("STATS").Info("removing old server IDs")
 	discordServerIDs := GetAllServerIDsFromDiscord(session)
 	dbServerIDs, getErr := db.GetAllServerIDs()
 
 	if getErr != nil {
-		utils.Log.ErrorWarn.WithPrefix("STATS").Error("error getting server IDs", "err", getErr)
-		reports.DM(session, fmt.Sprintf("error getting server IDs:\n\terr=%s", getErr))
-		return
+		return getErr
 	}
 	for _, dbID := range dbServerIDs {
 		found := false
@@ -100,9 +98,9 @@ func RemoveOldServerIDs(session *discordgo.Session) {
 		if !found {
 			utils.Log.Info.WithPrefix("STATS").Info("removing old server ID", "server", dbID)
 			if removeErr := db.RemoveOptions(dbID); removeErr != nil {
-				utils.Log.ErrorWarn.WithPrefix("STATS").Error("error removing server options", "server", dbID, "err", removeErr)
-				reports.DM(session, fmt.Sprintf("error removing server options:\n\tserver=%s\n\terr=%s", dbID, removeErr))
+				return removeErr
 			}
 		}
 	}
+	return nil
 }
