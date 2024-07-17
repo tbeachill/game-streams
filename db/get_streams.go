@@ -53,7 +53,7 @@ func (s *Streams) Query(q string, params ...string) error {
 
 	for rows.Next() {
 		var stream Stream
-		scanErr := rows.Scan(&stream.Name, &stream.Platform, &stream.Date, &stream.Time, &stream.Description, &stream.URL)
+		scanErr := rows.Scan(&stream.ID, &stream.Name, &stream.Platform, &stream.Date, &stream.Time, &stream.Description, &stream.URL)
 		if scanErr != nil {
 			return scanErr
 		}
@@ -63,8 +63,14 @@ func (s *Streams) Query(q string, params ...string) error {
 }
 
 // GetUpcoming gets the next 10 upcoming streams from the streams table of the database.
-func (s *Streams) GetUpcoming() error {
-	if err := s.Query("select name, platform, date, time, description, url from streams where date > date('now') UNION select name, platform, date, time, description, url from streams where date = date('now') and time >= time('now') order by date, time limit 10"); err != nil {
+func (s *Streams) GetUpcoming(params ...int) error {
+	var limit int
+	if len(params) == 0 {
+		limit = 10
+	} else {
+		limit = params[0]
+	}
+	if err := s.Query(fmt.Sprintf("select * from streams where date > date('now') UNION select * from streams where date = date('now') and time >= time('now') order by date, time limit %d", limit)); err != nil {
 		return err
 	}
 	return nil
@@ -72,7 +78,7 @@ func (s *Streams) GetUpcoming() error {
 
 // GetToday gets all streams for today that have not yet started from the streams table of the database.
 func (s *Streams) GetToday() error {
-	if err := s.Query("select name, platform, date, time, description, url from streams where date = date('now') and time >= time('now') order by time"); err != nil {
+	if err := s.Query("select * from streams where date = date('now') and time >= time('now') order by time"); err != nil {
 		return err
 	}
 	return nil
@@ -81,7 +87,7 @@ func (s *Streams) GetToday() error {
 // CheckTomorrow checks for streams in the streams table of the database that are scheduled for tomorrow but do not
 // have a time set.
 func (s *Streams) CheckTomorrow() error {
-	if err := s.Query("select name, platform, date, time, description, url from streams where date = date('now', '+1 day') and time = ''"); err != nil {
+	if err := s.Query("select * from streams where date = date('now', '+1 day') and time = ''"); err != nil {
 		return err
 	}
 	return nil
@@ -92,8 +98,30 @@ func (s *Streams) CheckTomorrow() error {
 func (s *Streams) GetInfo(name string) error {
 	name = fmt.Sprintf("%%%s%%", strings.Trim(name, " "))
 
-	if err := s.Query("select name, platform, date, time, description, url from (select * from streams where date = date('now') and time >= time('now') UNION select * from streams where date > date('now')) where name like ? collate nocase limit 1", name); err != nil {
+	if err := s.Query("select * from (select * from streams where date = date('now') and time >= time('now') UNION select * from streams where date > date('now')) where name like ? collate nocase limit 1", name); err != nil {
 		return err
 	}
 	return nil
+}
+
+// ProvideUnsetValues provides default values for the stream struct.
+func (s *Stream) ProvideUnsetValues() {
+	if s.Name == "" {
+		s.Name = "NOT SET"
+	}
+	if s.Platform == "" {
+		s.Platform = "NOT SET"
+	}
+	if s.Date == "" {
+		s.Date = "NOT SET"
+	}
+	if s.Time == "" {
+		s.Time = "NOT SET"
+	}
+	if s.Description == "" {
+		s.Description = "NOT SET"
+	}
+	if s.URL == "" {
+		s.URL = "NOT SET"
+	}
 }

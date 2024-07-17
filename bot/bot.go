@@ -11,7 +11,7 @@ import (
 	"gamestreambot/commands"
 	"gamestreambot/db"
 	"gamestreambot/reports"
-	"gamestreambot/stats"
+	"gamestreambot/servers"
 	"gamestreambot/streams"
 	"gamestreambot/utils"
 )
@@ -35,9 +35,10 @@ func Run(botToken, appID string) {
 	//commands.RemoveAllCommands(appID, session)
 	commands.RegisterCommands(appID, session)
 	commands.RegisterHandler(session, &discordgo.InteractionCreate{})
+	commands.RegisterOwnerCommands(session)
 	go startUpdater()
 	go startScheduler(session)
-	stats.MonitorGuilds(session)
+	servers.MonitorGuilds(session)
 	utils.StartTime = time.Now().UTC()
 	reports.DM(session, "bot started")
 	utils.Log.Info.WithPrefix(" MAIN").Info("running. press ctrl + c to terminate")
@@ -80,17 +81,20 @@ func startScheduler(session *discordgo.Session) {
 			utils.Log.Info.WithPrefix("SCHED").Info("streams tomorrow with no time", "streams", s.Streams)
 			reports.DM(utils.Session, fmt.Sprintf("streams tomorrow with no time:\n\tstreams=%v", s.Streams))
 		}
-
 		// schedule notifications for today's streams
 		if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error scheduling today's streams", "err", scheduleErr)
 			reports.DM(utils.Session, fmt.Sprintf("error scheduling todays streams:\n\terr=%s", scheduleErr))
+		}
+		// remove old server IDs from the servers table
+		if removeErr := servers.RemoveOldServerIDs(session); removeErr != nil {
+			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error removing old servers", "err", removeErr)
+			reports.DM(utils.Session, fmt.Sprintf("error removing old servers:\n\terr=%s", removeErr))
 		}
 		hour, min, _ := time.Now().UTC().Clock()
 		hoursRemaining := (timeToRun + 24) - hour
 		minsRemaining := 60 - min
 		utils.Log.Info.WithPrefix("SCHED").Info("sleeping until next day", "hours", hoursRemaining, "minutes", minsRemaining)
 		time.Sleep(time.Duration(hoursRemaining*60+minsRemaining) * time.Minute)
-		stats.RemoveOldServerIDs(session)
 	}
 }
