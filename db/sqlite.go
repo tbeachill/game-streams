@@ -35,7 +35,7 @@ func CreateDB() error {
 		return tableErr
 	}
 	sqlStmt = `
-	create table if not exists servers (server_id integer not null primary key, announce_channel text, announce_role text, playstation boolean, xbox boolean, nintendo boolean, pc boolean);
+	create table if not exists servers (server_id integer not null primary key, announce_channel text, announce_role text, playstation boolean, xbox boolean, nintendo boolean, pc boolean, vr boolean);
 	`
 	_, tableErr = db.Exec(sqlStmt)
 	if tableErr != nil {

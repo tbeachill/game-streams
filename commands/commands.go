@@ -78,6 +78,12 @@ var commands = []*discordgo.ApplicationCommand{
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "vr",
+				Description: "Enable or disable VR stream announcements",
+				Required:    false,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionBoolean,
 				Name:        "reset",
 				Description: "Reset all settings to default",
 				Required:    false,

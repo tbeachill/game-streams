@@ -19,6 +19,7 @@ type Options struct {
 	Xbox            BoolSet
 	Nintendo        BoolSet
 	PC              BoolSet
+	VR              BoolSet
 	Reset           bool
 }
 
@@ -44,6 +45,7 @@ func NewOptions(serverID string) Options {
 		Xbox:            BoolSet{false, false},
 		Nintendo:        BoolSet{false, false},
 		PC:              BoolSet{false, false},
+		VR:              BoolSet{false, false},
 		Reset:           false,
 	}
 }
@@ -59,12 +61,12 @@ func (o *Options) Set() error {
 	utils.Log.Info.Info("setting options", "server", o.ServerID, "options", o)
 
 	if !checkOptions(o.ServerID) {
-		_, execErr := db.Exec("insert into servers (server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc) values (?, ?, ?, ?, ?, ?, ?)", o.ServerID, o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value)
+		_, execErr := db.Exec("insert into servers (server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc, vr) values (?, ?, ?, ?, ?, ?, ?, ?)", o.ServerID, o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.VR.Value)
 		if execErr != nil {
 			return execErr
 		}
 	} else {
-		_, execErr := db.Exec("update servers set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ? where server_id = ?", o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.ServerID)
+		_, execErr := db.Exec("update servers set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, vr = ? where server_id = ?", o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.VR.Value, o.ServerID)
 		if execErr != nil {
 			return execErr
 		}
@@ -86,8 +88,8 @@ func (o *Options) Get(serverID string) error {
 			return openErr
 		}
 	}
-	row := db.QueryRow("select server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc from servers where server_id = ?", serverID)
-	scanErr := row.Scan(&o.ServerID, &o.AnnounceChannel.Value, &o.AnnounceRole.Value, &o.Playstation.Value, &o.Xbox.Value, &o.Nintendo.Value, &o.PC.Value)
+	row := db.QueryRow("select server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc, vr from servers where server_id = ?", serverID)
+	scanErr := row.Scan(&o.ServerID, &o.AnnounceChannel.Value, &o.AnnounceRole.Value, &o.Playstation.Value, &o.Xbox.Value, &o.Nintendo.Value, &o.PC.Value, &o.VR.Value)
 	if scanErr != nil {
 		return scanErr
 	}
@@ -114,6 +116,9 @@ func (o *Options) Merge(p Options) {
 	}
 	if p.PC.Set {
 		o.PC = p.PC
+	}
+	if p.VR.Set {
+		o.VR = p.VR
 	}
 }
 
