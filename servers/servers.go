@@ -30,39 +30,39 @@ func logGuildNumber(session *discordgo.Session) {
 // server from the servers table.
 func MonitorGuilds(session *discordgo.Session) {
 	logGuildNumber(session)
-	utils.Log.Info.WithPrefix("STATS").Info("adding server join handler")
+	utils.Log.Info.WithPrefix("SERVR").Info("adding server join handler")
 
 	// join handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildCreate) {
-		utils.Log.Info.WithPrefix("STATS").Info("joined server", "server", e.Guild.Name)
+		utils.Log.Info.WithPrefix("SERVR").Info("joined server", "server", e.Guild.Name)
 		reports.DM(s, fmt.Sprintf("joined server:\n\tserver=%s", e.Guild.Name))
 		logGuildNumber(s)
 
 		present, checkErr := db.CheckServerID(e.Guild.ID)
 		if checkErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("STATS").Error("error checking server ID", "err", checkErr)
+			utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error checking server ID", "err", checkErr)
 			reports.DM(s, fmt.Sprintf("error checking server ID:\n\terr=%s", checkErr))
 			return
 		}
 		if !present {
-			utils.Log.Info.WithPrefix("STATS").Info("adding server to database", "server", e.Guild.Name)
+			utils.Log.Info.WithPrefix("SERVR").Info("adding server to database", "server", e.Guild.Name)
 			utils.IntroDM(e.OwnerID)
 			o := db.NewOptions(e.Guild.ID)
 			if setErr := o.Set(); setErr != nil {
-				utils.Log.ErrorWarn.WithPrefix("STATS").Error("error setting server options", "server", e.Guild.Name, "err", setErr)
+				utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error setting server options", "server", e.Guild.Name, "err", setErr)
 				reports.DM(s, fmt.Sprintf("error setting server options:\n\tserver=%s\n\terr=%s", e.Guild.Name, setErr))
 			}
 		}
 	})
-	utils.Log.Info.WithPrefix("STATS").Info("adding server leave handler")
+	utils.Log.Info.WithPrefix("SERVR").Info("adding server leave handler")
 
 	// leave handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
-		utils.Log.Info.WithPrefix("STATS").Info("left server", "server", e.Guild.Name)
+		utils.Log.Info.WithPrefix("SERVR").Info("left server", "server", e.Guild.Name)
 		reports.DM(s, fmt.Sprintf("left server:\n\tserver=%s", e.Guild.Name))
 		logGuildNumber(s)
 		if removeErr := db.RemoveOptions(e.Guild.ID); removeErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("STATS").Error("error removing server options", "server", e.Guild.Name, "err", removeErr)
+			utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error removing server options", "server", e.Guild.Name, "err", removeErr)
 			reports.DM(s, fmt.Sprintf("error removing server options:\n\tserver=%s\n\terr=%s", e.Guild.Name, removeErr))
 		}
 	})
@@ -80,7 +80,6 @@ func GetAllServerIDsFromDiscord(session *discordgo.Session) []string {
 // RemoveOldServerIDs removes server IDs from the servers table that are not in the Discord returned list of server IDs.
 // This is for data cleanup in case the bot is removed from a server and the server ID is not removed from the database.
 func RemoveOldServerIDs(session *discordgo.Session) error {
-	utils.Log.Info.WithPrefix("STATS").Info("removing old server IDs")
 	discordServerIDs := GetAllServerIDsFromDiscord(session)
 	dbServerIDs, getErr := db.GetAllServerIDs()
 
@@ -96,7 +95,7 @@ func RemoveOldServerIDs(session *discordgo.Session) error {
 			}
 		}
 		if !found {
-			utils.Log.Info.WithPrefix("STATS").Info("removing old server ID", "server", dbID)
+			utils.Log.Info.WithPrefix("SERVR").Info("removing old server ID", "server", dbID)
 			if removeErr := db.RemoveOptions(dbID); removeErr != nil {
 				return removeErr
 			}
