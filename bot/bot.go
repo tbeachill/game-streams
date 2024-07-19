@@ -94,6 +94,8 @@ func startScheduler(session *discordgo.Session) {
 		}
 		utils.Log.Info.WithPrefix("SCHED").Info("truncating logs...")
 		utils.TruncateLogs()
+		utils.Log.Info.WithPrefix("SCHED").Info("backing up database...")
+		utils.BackupDB()
 
 		hour, min, _ := time.Now().UTC().Clock()
 		hoursRemaining := (timeToRun + 24) - hour
