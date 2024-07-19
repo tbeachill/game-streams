@@ -71,7 +71,7 @@ func (bucket Bucket) CleanUp() {
 	}
 }
 
-// CheckBucket checks if todays backup already exists in the bucket.
+// TodaysBackupExists checks if todays backup already exists in the bucket.
 func (bucket Bucket) TodaysBackupExists() bool {
 	objects, err := bucket.Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucket.Name),
