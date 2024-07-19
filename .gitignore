@@ -3,3 +3,4 @@ media/
 .env
 gamestream.db
 *.log
+.vscode/
