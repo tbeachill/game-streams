@@ -99,7 +99,6 @@ func (c *Config) Check() (bool, error) {
 	if c.LastUpdate == "" {
 		return true, nil
 	}
-	utils.Log.Info.WithPrefix("UPDAT").Info("getting last update time")
 	response, httpErr := http.Get(c.APIURL)
 	if httpErr != nil {
 		return false, httpErr
@@ -121,7 +120,6 @@ func (c *Config) Check() (bool, error) {
 	}
 	c.CommitTime = commitTime
 
-	utils.Log.Info.WithPrefix("UPDAT").Info("comparing update times")
 	dbTime, parseErr := time.Parse(time.RFC3339, c.LastUpdate)
 	if parseErr != nil {
 		return false, parseErr

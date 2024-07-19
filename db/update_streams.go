@@ -74,7 +74,6 @@ func (s *Streams) Update() error {
 
 // parseToml parses the streams.toml file from the flat-files repository and returns as a Streams struct.
 func parseToml(c Config) Streams {
-	utils.Log.Info.WithPrefix("UPDAT").Info("parsing toml")
 	response, httpErr := http.Get(c.StreamURL)
 	if httpErr != nil {
 		return Streams{}
