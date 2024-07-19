@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"net/http"
@@ -214,6 +215,38 @@ func GetHtmlBody(url string) (*goquery.Document, error) {
 // RegisterSession sets the global Session variable.
 func RegisterSession(s *discordgo.Session) {
 	Session = s
+}
+
+// TruncateLogs deletes log file entries older than 14 days by looking at
+// the timestamp at the start of each line
+func TruncateLogs() {
+	logFile, err := os.OpenFile(Files.Log, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		Log.ErrorWarn.WithPrefix(" MAIN").Error("error opening log file", "err", err)
+		return
+	}
+	defer logFile.Close()
+
+	lines := []string{}
+	scanner := bufio.NewScanner(logFile)
+	for scanner.Scan() {
+		line := scanner.Text()
+		timestamp := line[0:10]
+		t, err := time.Parse("2006/01/02", timestamp)
+		if err != nil {
+			lines = append(lines, line)
+			continue
+		}
+		if t.After(time.Now().UTC().AddDate(0, 0, -14)) {
+			lines = append(lines, line)
+		}
+	}
+
+	logFile.Truncate(0)
+	logFile.Seek(0, 0)
+	for _, line := range lines {
+		fmt.Fprintln(logFile, line)
+	}
 }
 
 // IntroDM sends an introductory DM to a user when they add the bot to their server.

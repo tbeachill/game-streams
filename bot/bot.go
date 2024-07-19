@@ -87,10 +87,14 @@ func startScheduler(session *discordgo.Session) {
 			reports.DM(utils.Session, fmt.Sprintf("error scheduling todays streams:\n\terr=%s", scheduleErr))
 		}
 		// remove old server IDs from the servers table
+		utils.Log.Info.WithPrefix("SCHED").Info("removing old server IDs...")
 		if removeErr := servers.RemoveOldServerIDs(session); removeErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error removing old servers", "err", removeErr)
 			reports.DM(utils.Session, fmt.Sprintf("error removing old servers:\n\terr=%s", removeErr))
 		}
+		utils.Log.Info.WithPrefix("SCHED").Info("truncating logs...")
+		utils.TruncateLogs()
+
 		hour, min, _ := time.Now().UTC().Clock()
 		hoursRemaining := (timeToRun + 24) - hour
 		minsRemaining := 60 - min
