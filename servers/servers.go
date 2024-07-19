@@ -19,7 +19,7 @@ func GetGuildNumber(session *discordgo.Session) int {
 // logGuildNumber reports the number of servers the bot is in to the console and the bot owner via DM.
 func logGuildNumber(session *discordgo.Session) {
 	guildNum := GetGuildNumber(session)
-	utils.Log.Info.WithPrefix("STATS").Infof("connected to %d server%s", guildNum, utils.Pluralise(guildNum))
+	utils.Log.Info.WithPrefix("SERVR").Infof("connected to %d server%s", guildNum, utils.Pluralise(guildNum))
 	reports.DM(session, fmt.Sprintf("connected to %d server%s", guildNum, utils.Pluralise(guildNum)))
 }
 
