@@ -10,7 +10,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Stop bot service
-        run: sudo systemctl stop gamestreambot
+        run: sudo systemctl stop game-streams
 
   build:
     needs: stopbot
@@ -34,10 +34,10 @@ jobs:
         run: go mod verify
 
       - name: Vet
-        run: go vet gamestreambot/main.go
+        run: go vet game-streams/main.go
 
       - name: Build
-        run: go build -v -o bin/gamestreambot gamestreambot/main.go
+        run: go build -v -o bin/game-streams game-streams/main.go
 
   startbot:
     needs: build
@@ -46,4 +46,4 @@ jobs:
       - name: Start bot service
         run: |
           sudo systemctl daemon-reload
-          sudo systemctl start gamestreambot
+          sudo systemctl start game-streams
