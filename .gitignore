@@ -1,6 +1,4 @@
 bin/
 media/
-.env
-gamestream.db
-*.log
+config/
 .vscode/
