@@ -16,8 +16,9 @@ import (
 // STREAM_T_MINUS is the time before a stream to send a notification
 var STREAM_T_MINUS = time.Minute * 10
 
-// StreamList populates a Streams struct with upcoming streams from the streams table of the database.
-// It then creates a discordgo.MessageEmbed struct with the date, time and title of the next 10 upcoming streams.
+// StreamList populates a Streams struct with upcoming streams from the streams table
+// of the database. It then creates a discordgo.MessageEmbed struct with the date, time
+// and title of the next 10 upcoming streams.
 func StreamList() (*discordgo.MessageEmbed, error) {
 	embed := &discordgo.MessageEmbed{
 		Title: "Upcoming Streams",
@@ -32,7 +33,10 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 		return embed, errors.New("no streams found")
 	}
 	for i, stream := range streamList.Streams {
-		utils.Log.Info.WithPrefix(" CMND").Info("creating embed field", "name", stream.Name, "time", stream.Time)
+		utils.Log.Info.WithPrefix(" CMND").Info("creating embed field",
+			"name", stream.Name,
+			"time", stream.Time)
+
 		embedField, embedErr := streamEmbedField(stream)
 		if embedErr != nil {
 			return nil, embedErr
@@ -46,10 +50,13 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 	return embed, nil
 }
 
-// StreamInfo gets a stream from the streams table of the database by name. It then creates a discordgo.MessageEmbed
-// struct with the date, time, platforms, URL, and description of the stream.
+// StreamInfo gets a stream from the streams table of the database by name. It then
+// creates a discordgo.MessageEmbed struct with the date, time, platforms, URL, and
+// description of the stream.
 func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
-	utils.Log.Info.WithPrefix(" CMND").Info("getting stream info", "name", streamName)
+	utils.Log.Info.WithPrefix(" CMND").Info("getting stream info",
+		"name", streamName)
+
 	var streams db.Streams
 	if err := streams.GetInfo(streamName); err != nil {
 		return nil, err
@@ -96,10 +103,11 @@ func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 	return embed, nil
 }
 
-// ScheduleNotifications gets all streams for today that have not yet started from the streams table of the database.
-// It then schedules notifications for each stream by creating a goroutine for each stream that sleeps until the
-// streams start time - STREAM_T_MINUS, then posts a message to the servers that are following one or more of the
-// platforms of the stream by calling the PostStreamLink function.
+// ScheduleNotifications gets all streams for today that have not yet started from the
+// streams table of the database. It then schedules notifications for each stream by
+// creating a goroutine for each stream that sleeps until the streams start time -
+// STREAM_T_MINUS, then posts a message to the servers that are following one or more
+// of the platforms of the stream by calling the PostStreamLink function.
 func ScheduleNotifications(session *discordgo.Session) error {
 	var streamList db.Streams
 	if todayErr := streamList.GetToday(); todayErr != nil {
@@ -115,40 +123,61 @@ func ScheduleNotifications(session *discordgo.Session) error {
 			streamTime, parseErr := time.Parse("2006-01-02 15:04", dateTime)
 			if parseErr != nil {
 				utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error parsing time")
-				reports.DM(session, fmt.Sprintf("error parsing time:\n\terr=%s", parseErr))
+				reports.DM(session, fmt.Sprintf("error parsing time:\n\terr=%s",
+					parseErr))
+
 				return
 			}
 			timeToStream := streamTime.Sub(time.Now().UTC()) - STREAM_T_MINUS
 			time.Sleep(timeToStream)
 			PostStreamLink(*currentStream, session)
 		}(&stream)
-		utils.Log.Info.WithPrefix("SCHED").Info("scheduled stream", "goroutine", i+1, "name", stream.Name, "time", stream.Time)
+		utils.Log.Info.WithPrefix("SCHED").Info("scheduled stream",
+			"goroutine", i+1,
+			"name", stream.Name,
+			"time", stream.Time)
 	}
 	streamLen := len(streamList.Streams)
-	utils.Log.Info.WithPrefix("SCHED").Infof("scheduled %d stream%s for today", streamLen, utils.Pluralise(streamLen))
+	utils.Log.Info.WithPrefix("SCHED").Info("scheduled todays streams",
+		"count", streamLen)
 	return nil
 }
 
-// PostStreamLink posts an embed with the given streams information to the servers that are following one or more of
-// the platforms of the stream and has an announcement channel set.
+// PostStreamLink posts an embed with the given streams information to the servers
+// that are following one or more of the platforms of the stream and has an announcement
+// channel set.
 func PostStreamLink(stream db.Stream, session *discordgo.Session) {
-	utils.Log.Info.WithPrefix("SCHED").Info("posting stream link to subscribed servers", "stream", stream.Name, "platforms", stream.Platform)
+	utils.Log.Info.WithPrefix("SCHED").Info("posting stream link to subscribed servers",
+		"stream", stream.Name,
+		"platforms", stream.Platform)
+
 	allServerPlatforms, platErr := getAllPlatforms(stream)
 	if platErr != nil {
-		utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error getting server platforms", "err", platErr)
-		reports.DM(session, fmt.Sprintf("error getting server platforms:\n\terr=%s", platErr))
+		utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error getting server platforms",
+			"err", platErr)
+
+		reports.DM(session, fmt.Sprintf("error getting server platforms:\n\terr=%s",
+			platErr))
+
 		return
 	}
-	// Removing duplicates is necessary because a server may follow multiple platforms and the stream may be
-	// related to multiple platforms. Therefore the same server may be added to allServerPlatforms multiple times.
+	// Removing duplicates is necessary because a server may follow multiple platforms
+	// and the stream may be related to multiple platforms. Therefore the same server
+	// may be added to allServerPlatforms multiple times.
 	uniqueServers := utils.RemoveSliceDuplicates(allServerPlatforms)
 	MakeStreamUrlDirect(&stream)
 
 	for server := range uniqueServers {
 		var options db.Options
 		if getOptErr := options.Get(server); getOptErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error getting options", "server", server, "err", getOptErr)
-			reports.DM(session, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s", server, getOptErr))
+			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error getting options",
+				"server", server,
+				"err", getOptErr)
+
+			reports.DM(session, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s",
+				server,
+				getOptErr))
+
 			continue
 		}
 		if options.AnnounceChannel.Value == "" {
@@ -156,22 +185,37 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		}
 		embed, embedErr := createStreamEmbed(stream, options.AnnounceRole.Value)
 		if embedErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error creating embed", "server", server, "err", embedErr)
-			reports.DM(session, fmt.Sprintf("error creating embed:\n\tserver=%s\n\terr=%s", server, embedErr))
+			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error creating embed",
+				"server", server,
+				"err", embedErr)
+
+			reports.DM(session, fmt.Sprintf("error creating embed:\n\tserver=%s\n\terr=%s",
+				server,
+				embedErr))
+
 			continue
 		}
 		msg, postErr := session.ChannelMessageSendEmbed(options.AnnounceChannel.Value, embed)
 		if postErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error posting message", "server", server, "channel", options.AnnounceChannel, "role", options.AnnounceRole, "err", postErr)
-			reports.DM(session, fmt.Sprintf("error posting message:\n\tserver=%s\n\tchannel=%s\n\trole=%s\n\terr=%s", server, options.AnnounceChannel.Value, options.AnnounceRole.Value, postErr))
+			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error posting message",
+				"server", server,
+				"channel", options.AnnounceChannel,
+				"role", options.AnnounceRole,
+				"err", postErr)
+
+			reports.DM(session, fmt.Sprintf("error posting message:\n\tserver=%s\n\tchannel=%s\n\trole=%s\n\terr=%s",
+				server,
+				options.AnnounceChannel.Value,
+				options.AnnounceRole.Value,
+				postErr))
 		}
 		go EditAnnouncementEmbed(msg, embed, session)
 	}
 }
 
-// MakeStreamUrlDirect checks if the stream URL is a Youtube link and if so, gets the direct URL to the stream.
-// This is done as streams could be linked to as a profile's /live URL which would no longer link to the correct video
-// after the stream has ended.
+// MakeStreamUrlDirect checks if the stream URL is a Youtube link and if so, gets the
+// direct URL to the stream. This is done as streams could be linked to as a profile's
+// /live URL which would no longer link to the correct video after the stream has ended.
 func MakeStreamUrlDirect(stream *db.Stream) {
 	if strings.Contains(stream.URL, "youtube") {
 		directUrl, success := utils.GetYoutubeDirectUrl(stream.URL)
@@ -181,22 +225,30 @@ func MakeStreamUrlDirect(stream *db.Stream) {
 	}
 }
 
-// EditAnnouncementEmbed edits the description of an announcement embed to show that the stream has started.
-// It does this by changing the "starting" to "started" in the description. This is achieved by creating a new
-// goroutine that sleeps for STREAM_T_MINUS then edits the message.
+// EditAnnouncementEmbed edits the description of an announcement embed to show that
+// the stream has started. It does this by changing the "starting" to "started" in the
+// description. This is achieved by creating a new goroutine that sleeps for
+// STREAM_T_MINUS then edits the message.
 func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed, session *discordgo.Session) {
 	embed.Description = embed.Description[0:14] + "ed" + embed.Description[17:]
 	medit := discordgo.NewMessageEdit(msg.ChannelID, msg.ID).SetEmbed(embed)
 	time.Sleep(STREAM_T_MINUS)
 	_, editErr := session.ChannelMessageEditComplex(medit)
 	if editErr != nil {
-		utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error editing message", "channel", msg.ChannelID, "message", msg.ID, "err", editErr)
-		reports.DM(session, fmt.Sprintf("error editing message:\n\tchannel=%s\n\tmessage=%s\n\terr=%s", msg.ChannelID, msg.ID, editErr))
+		utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error editing message",
+			"channel", msg.ChannelID,
+			"message", msg.ID,
+			"err", editErr)
+
+		reports.DM(session, fmt.Sprintf("error editing message:\n\tchannel=%s\n\tmessage=%s\n\terr=%s",
+			msg.ChannelID,
+			msg.ID,
+			editErr))
 	}
 }
 
-// createStreamEmbed returns a discordgo.MessageEmbed struct with the stream information from the given stream and
-// announcement role.
+// createStreamEmbed returns a discordgo.MessageEmbed struct with the stream
+// information from the given stream and announcement role.
 func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, error) {
 	ts, tsErr := utils.CreateTimestampRelative(stream.Date, stream.Time)
 	if tsErr != nil {
@@ -226,7 +278,8 @@ func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, 
 	return embed, nil
 }
 
-// getAllPlatforms returns a slice of server IDs that are following one or more of the platforms of the given stream.
+// getAllPlatforms returns a slice of server IDs that are following one or more of the
+// platforms of the given stream.
 func getAllPlatforms(stream db.Stream) ([]string, error) {
 	platforms := strings.Split(stream.Platform, ",")
 	var allServerPlatforms []string
@@ -236,13 +289,16 @@ func getAllPlatforms(stream db.Stream) ([]string, error) {
 		if platErr != nil {
 			return nil, platErr
 		}
-		utils.Log.Info.WithPrefix("SCHED").Info("found servers for platform", "platform", platform)
+		utils.Log.Info.WithPrefix("SCHED").Info("found servers for platform",
+			"platform", platform)
+
 		allServerPlatforms = append(allServerPlatforms, server_list...)
 	}
 	return allServerPlatforms, nil
 }
 
-// streamEmbedField returns a discordgo.MessageEmbedField struct with the date, time, and name of the given stream.
+// streamEmbedField returns a discordgo.MessageEmbedField struct with the date, time,
+// and name of the given stream.
 func streamEmbedField(stream db.Stream) (*discordgo.MessageEmbedField, error) {
 	ds, ts, tsErr := utils.CreateTimestamp(stream.Date, stream.Time)
 	if tsErr != nil {

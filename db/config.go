@@ -22,7 +22,8 @@ type Config struct {
 	CommitTime time.Time
 }
 
-// Get gets the configuration values from the database and sets them in the Config struct.
+// Get gets the configuration values from the database and sets them in the Config
+// struct.
 func (c *Config) Get() error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -46,8 +47,8 @@ func (c *Config) Get() error {
 	return nil
 }
 
-// SetDefault sets the default values for the config struct from the environment variables and writes them to the
-// database.
+// SetDefault sets the default values for the config struct from the environment
+// variables and writes them to the database.
 func (c *Config) SetDefault() error {
 	utils.Log.Info.WithPrefix(" MAIN").Info("setting default config")
 	c.StreamURL = os.Getenv("STREAM_URL")
@@ -103,9 +104,10 @@ func (c *Config) Set() error {
 	return nil
 }
 
-// Check checks whether the streams.toml file has been updated. It gets the time of the last commit to the streams.toml
-// in the flat-files repository and compares it to the last update time stored in the database. If the commit time is
-// after the last update time, it returns true.
+// Check checks whether the streams.toml file has been updated. It gets the time of the
+// last commit to the streams.toml in the flat-files repository and compares it to the
+// last update time stored in the database. If the commit time is after the last update
+// time, it returns true.
 func (c *Config) Check() (bool, error) {
 	if c.LastUpdate == "" {
 		return true, nil

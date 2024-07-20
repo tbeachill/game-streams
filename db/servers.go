@@ -38,8 +38,8 @@ func GetAllServerIDs() ([]string, error) {
 	return serverIDs, nil
 }
 
-// CheckServerID checks if the given server ID exists in the servers table. Returns true if the server ID exists,
-// false if it does not.
+// CheckServerID checks if the given server ID exists in the servers table. Returns
+// true if the server ID exists, false if it does not.
 func CheckServerID(serverID string) (bool, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -62,7 +62,8 @@ func CheckServerID(serverID string) (bool, error) {
 	return true, nil
 }
 
-// GetPlatformServerIDs returns a list of server IDs that have the given platform set to true in the servers table.
+// GetPlatformServerIDs returns a list of server IDs that have the given platform set
+// to true in the servers table.
 func GetPlatformServerIDs(platform string) ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -71,7 +72,8 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 	defer db.Close()
 
 	platform = strings.ToLower(platform)
-	utils.Log.Info.WithPrefix(" DB").Info("getting server IDs for", "platform", platform)
+	utils.Log.Info.WithPrefix(" DB").Info("getting server IDs for",
+		"platform", platform)
 
 	rows, queryErr := db.Query(`SELECT server_id
 								FROM servers

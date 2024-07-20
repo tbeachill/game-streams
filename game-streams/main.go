@@ -10,7 +10,8 @@ import (
 	"gamestreambot/utils"
 )
 
-// main is the entry point for the bot. It sets the file paths, initializes the logger, and loads the .env file.
+// main is the entry point for the bot. It sets the file paths, initializes the logger,
+// and loads the .env file.
 // It then creates/loads the database and starts the bot.
 // The environment variables are:
 //
@@ -25,12 +26,14 @@ func main() {
 	utils.Log.Info.WithPrefix(" MAIN").Info("starting bot")
 
 	if envErr := godotenv.Load(utils.Files.DotEnv); envErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error loading .env file", "err", envErr)
+		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error loading .env file",
+			"err", envErr)
 		os.Exit(1)
 	}
 	createErr := db.CreateDB()
 	if createErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating database", "err", createErr)
+		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating database",
+			"err", createErr)
 		os.Exit(1)
 	}
 	botToken := os.Getenv("DISCORD_TOKEN")

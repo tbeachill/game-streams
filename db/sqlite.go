@@ -8,7 +8,8 @@ import (
 	"gamestreambot/utils"
 )
 
-// CreateDB creates the database if it does not exist. It creates the streams, config, and servers tables.
+// CreateDB creates the database if it does not exist. It creates the streams, config,
+// and servers tables.
 // streams contains information about the streams.
 // config contains configuration information for the bot.
 // servers contains information about the servers that the bot is in and their settings.

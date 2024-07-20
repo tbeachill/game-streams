@@ -13,8 +13,9 @@ import (
 	"gamestreambot/utils"
 )
 
-// Update checks for new streams in the streams.toml file of the flat-files repository and updates the database by
-// inserting new streams, updating existing streams, and deleting streams that have been marked for deletion.
+// Update checks for new streams in the streams.toml file of the flat-files repository
+// and updates the database by inserting new streams, updating existing streams, and
+// deleting streams that have been marked for deletion.
 func (s *Streams) Update() error {
 	var c Config
 
@@ -72,7 +73,8 @@ func (s *Streams) Update() error {
 	return nil
 }
 
-// parseToml parses the streams.toml file from the flat-files repository and returns as a Streams struct.
+// parseToml parses the streams.toml file from the flat-files repository and returns
+// as a Streams struct.
 func parseToml(c Config) Streams {
 	response, httpErr := http.Get(c.StreamURL)
 	if httpErr != nil {
@@ -105,8 +107,9 @@ func (s *Streams) FormatDate() error {
 	return nil
 }
 
-// UpdateRow updates streams in the streams table of the database with information from the Streams struct.
-// This is done when the ID of a stream in the Streams struct has been set to a non-zero value.
+// UpdateRow updates streams in the streams table of the database with information
+// from the Streams struct. This is done when the ID of a stream in the Streams struct
+// has been set to a non-zero value.
 func (s *Streams) UpdateRow() error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -117,7 +120,9 @@ func (s *Streams) UpdateRow() error {
 	var updateCount int
 	for i, stream := range s.Streams {
 		if stream.ID != 0 {
-			utils.Log.Info.WithPrefix("UPDAT").Info("updating stream", "id", stream.ID, "name", stream.Name)
+			utils.Log.Info.WithPrefix("UPDAT").Info("updating stream",
+				"id", stream.ID,
+				"name", stream.Name)
 
 			_, updateErr := db.Exec(`UPDATE streams
 									SET name = ?,
@@ -145,8 +150,9 @@ func (s *Streams) UpdateRow() error {
 	return nil
 }
 
-// CheckForDuplicates checks the streams table of the database for duplicates of streams in the Streams struct.
-// If a a stream already exists in the streams table of the database, it is removed from the Streams struct.
+// CheckForDuplicates checks the streams table of the database for duplicates of
+// streams in the Streams struct. If a a stream already exists in the streams table of
+// the database, it is removed from the Streams struct.
 func (s *Streams) CheckForDuplicates() error {
 	rowNumber, countErr := countRows()
 	if countErr != nil {
@@ -177,11 +183,18 @@ OUTER:
 	for _, s := range s.Streams {
 		for rows.Next() {
 			var stream Stream
-			scanErr := rows.Scan(&stream.Name, &stream.Platform, &stream.Date, &stream.Time)
+			scanErr := rows.Scan(&stream.Name,
+				&stream.Platform,
+				&stream.Date,
+				&stream.Time)
+
 			if scanErr != nil {
 				return scanErr
 			}
-			if s.Name == stream.Name && s.Platform == stream.Platform && s.Date == stream.Date && s.Time == stream.Time {
+			if s.Name == stream.Name &&
+				s.Platform == stream.Platform &&
+				s.Date == stream.Date &&
+				s.Time == stream.Time {
 				continue OUTER
 			}
 		}
@@ -211,11 +224,13 @@ func countRows() (int, error) {
 	return count, nil
 }
 
-// InsertStreams inserts all of the streams from the Streams struct into the streams table of the database.
+// InsertStreams inserts all of the streams from the Streams struct into the streams
+// table of the database.
 func (s *Streams) InsertStreams() {
 	db, sqlErr := sql.Open("sqlite3", utils.Files.DB)
 	if sqlErr != nil {
-		utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error opening db", "err", sqlErr)
+		utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error opening db",
+			"err", sqlErr)
 		reports.DM(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s", sqlErr))
 		return
 	}
@@ -243,15 +258,21 @@ func (s *Streams) InsertStreams() {
 			stream.URL)
 
 		if insertErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error inserting stream", "stream", stream.Name, "err", insertErr)
-			reports.DM(utils.Session, fmt.Sprintf("error inserting stream:\n\tstream=%s\n\terr=%s", stream.Name, insertErr))
+			utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error inserting stream",
+				"stream", stream.Name,
+				"err", insertErr)
+
+			reports.DM(utils.Session,
+				fmt.Sprintf("error inserting stream:\n\tstream=%s\n\terr=%s", stream.Name, insertErr))
+
 			continue
 		}
 	}
 }
 
-// DeleteStreams deletes streams from the streams table of the database that have been marked for deletion.
-// This is done by setting the delete flag of a stream in the Streams struct to true.
+// DeleteStreams deletes streams from the streams table of the database that have been
+// marked for deletion. This is done by setting the delete flag of a stream in the
+// Streams struct to true.
 func (s *Streams) DeleteStreams() {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -270,8 +291,12 @@ func (s *Streams) DeleteStreams() {
 				x.ID)
 
 			if deleteErr != nil {
-				utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error deleting stream", "stream", x.Name, "err", deleteErr)
-				reports.DM(utils.Session, fmt.Sprintf("error deleting stream:\n\tstream=%s\n\terr=%s", x.Name, deleteErr))
+				utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error deleting stream",
+					"stream", x.Name,
+					"err", deleteErr)
+
+				reports.DM(utils.Session,
+					fmt.Sprintf("error deleting stream:\n\tstream=%s\n\terr=%s", x.Name, deleteErr))
 				continue
 			}
 		}

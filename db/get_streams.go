@@ -10,8 +10,9 @@ import (
 	"gamestreambot/utils"
 )
 
-// Stream is a representation of a stream. It containes information about the stream, the ID of the row in the streams
-// table of the database and a flag to signify if the stream should be deleted.
+// Stream is a representation of a stream. It containes information about the stream,
+// the ID of the row in the streams table of the database and a flag to signify if the
+// stream should be deleted.
 type Stream struct {
 	ID          int
 	Name        string
@@ -28,8 +29,9 @@ type Streams struct {
 	Streams []Stream
 }
 
-// Query is a helper function to query the database using the given query string (q) and optional parameters.
-// It will scan the results of the query into a Stream struct, appending each stream to the Streams slice of the struct.
+// Query is a helper function to query the database using the given query string (q)
+// and optional parameters. It will scan the results of the query into a Stream struct,
+// appending each stream to the Streams slice of the struct.
 func (s *Streams) Query(q string, params ...string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -53,7 +55,15 @@ func (s *Streams) Query(q string, params ...string) error {
 
 	for rows.Next() {
 		var stream Stream
-		scanErr := rows.Scan(&stream.ID, &stream.Name, &stream.Platform, &stream.Date, &stream.Time, &stream.Description, &stream.URL)
+
+		scanErr := rows.Scan(&stream.ID,
+			&stream.Name,
+			&stream.Platform,
+			&stream.Date,
+			&stream.Time,
+			&stream.Description,
+			&stream.URL)
+
 		if scanErr != nil {
 			return scanErr
 		}
@@ -86,7 +96,8 @@ func (s *Streams) GetUpcoming(params ...int) error {
 	return nil
 }
 
-// GetToday gets all streams for today that have not yet started from the streams table of the database.
+// GetToday gets all streams for today that have not yet started from the streams
+// table of the database.
 func (s *Streams) GetToday() error {
 	if err := s.Query(` SELECT *
 						FROM streams
@@ -98,7 +109,8 @@ func (s *Streams) GetToday() error {
 	return nil
 }
 
-// CheckTomorrow checks for streams in the streams table of the database that are scheduled for tomorrow but do not
+// CheckTomorrow checks for streams in the streams table of the database that are
+// scheduled for tomorrow but do not
 // have a time set.
 func (s *Streams) CheckTomorrow() error {
 	if err := s.Query(`SELECT *
@@ -110,8 +122,9 @@ func (s *Streams) CheckTomorrow() error {
 	return nil
 }
 
-// GetInfo gets a stream from the streams table of the database by name. It appends wildcard characters to the name to
-// allow for partial matching so that the user does not have to type the full name of the stream.
+// GetInfo gets a stream from the streams table of the database by name. It appends
+// wildcard characters to the name to allow for partial matching so that the user
+// does not have to type the full name of the stream.
 func (s *Streams) GetInfo(name string) error {
 	name = fmt.Sprintf("%%%s%%", strings.Trim(name, " "))
 

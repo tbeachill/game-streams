@@ -20,9 +20,10 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	"settings":   settings,
 }
 
-// listStreams gets a list of all upcoming streams as an embed. If the embed is successfully created, it responds
-// to the interaction with the embed. If an error occurs, indicating no upcoming streams or an error creating the embed,
-// it responds with an error message.
+// listStreams gets a list of all upcoming streams as an embed. If the embed is
+// successfully created, it responds to the interaction with the embed. If an error
+// occurs, indicating no upcoming streams or an error creating the embed, it responds
+// with an error message.
 func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed, listErr := streams.StreamList()
 	if listErr != nil {
@@ -33,7 +34,9 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Color:       0xc3d23e,
 			}
 		} else {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds", "err", listErr)
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds",
+				"err", listErr)
+
 			reports.DM(s, fmt.Sprintf("error creating embeds:\n\terr=%s", listErr))
 			embed = &discordgo.MessageEmbed{
 				Title:       "Upcoming Streams",
@@ -49,14 +52,20 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
-		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s", i.ApplicationCommandData().Name, respondErr))
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction",
+			"cmd", i.ApplicationCommandData().Name,
+			"err", respondErr)
+
+		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
+			i.ApplicationCommandData().Name,
+			respondErr))
 	}
 }
 
-// streamInfo gets the information for a specific stream by title. It extracts the stream name from the options then
-// gets the stream information from the database. If the stream is found, it creates an embed with the stream
-// information and responds to the interaction with the embed. If the stream is not found or an error occurs,
+// streamInfo gets the information for a specific stream by title. It extracts the
+// stream name from the options then gets the stream information from the database.
+// If the stream is found, it creates an embed with the stream information and responds
+// to the interaction with the embed. If the stream is not found or an error occurs,
 // it responds with an error message.
 func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	streamName := i.ApplicationCommandData().Options[0].Value.(string)
@@ -69,8 +78,11 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Color:       0xc3d23e,
 			}
 		} else {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds", "err", infoErr)
-			reports.DM(s, fmt.Sprintf("error creating embeds:\n\terr=%s", infoErr))
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds",
+				"err", infoErr)
+
+			reports.DM(s, fmt.Sprintf("error creating embeds:\n\terr=%s",
+				infoErr))
 			embed = &discordgo.MessageEmbed{
 				Title:       "Stream Info",
 				Description: "An error occurred",
@@ -85,13 +97,18 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
-		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s", i.ApplicationCommandData().Name, respondErr))
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction",
+			"cmd", i.ApplicationCommandData().Name,
+			"err", respondErr)
+
+		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
+			i.ApplicationCommandData().Name,
+			respondErr))
 	}
 }
 
-// help responds to the interaction with a help message containing information about the bot and its commands.
-// this command is only available to server administrators.
+// help responds to the interaction with a help message containing information about
+// the bot and its commands. This command is only available to server administrators.
 func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -126,16 +143,23 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
-		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s", i.ApplicationCommandData().Name, respondErr))
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction",
+			"cmd", i.ApplicationCommandData().Name,
+			"err", respondErr)
+
+		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
+			i.ApplicationCommandData().Name,
+			respondErr))
 	}
 }
 
-// settings updates the bot settings for the server. It parses the options from the interaction into an options struct.
-// If the options are empty, it responds with the current settings. If the reset option is true, it resets the settings
-// to default. If the options are not empty, it first gets the current settings from the database, then merges the
-// new settings with the current settings. It then writes the new settings to the database and responds with the
-// updated settings. If an error occurs, it responds with an error message.
+// settings updates the bot settings for the server. It parses the options from the
+// interaction into an options struct. If the options are empty, it responds with the
+// current settings. If the reset option is true, it resets the settings to default.
+// If the options are not empty, it first gets the current settings from the database,
+// then merges the new settings with the current settings. It then writes the new
+// settings to the database and responds with the updated settings. If an error occurs,
+// it responds with an error message.
 func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := parseOptions(i.ApplicationCommandData().Options)
 	utils.Log.Info.WithPrefix(" CMND").Info("options", "options", options)
@@ -148,16 +172,28 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if options.Reset {
 		*options = db.NewOptions(i.GuildID)
 		if optErr := options.Set(); optErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error resetting options", "server", i.GuildID, "err", optErr)
-			reports.DM(s, fmt.Sprintf("error resetting options:\n\tserver=%s\n\terr=%s", i.GuildID, optErr))
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error resetting options",
+				"server", i.GuildID,
+				"err", optErr)
+
+			reports.DM(s, fmt.Sprintf("error resetting options:\n\tserver=%s\n\terr=%s",
+				i.GuildID,
+				optErr))
+
 			status = "An error occurred. Settings may not have been reset."
 		}
 	}
 	var currentOptions = db.NewOptions(i.GuildID)
 
 	if getOptErr := currentOptions.Get(i.GuildID); getOptErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting options", "server", i.GuildID, "err", getOptErr)
-		reports.DM(s, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s", i.GuildID, getOptErr))
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting options",
+			"server", i.GuildID,
+			"err", getOptErr)
+
+		reports.DM(s, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s",
+			i.GuildID,
+			getOptErr))
+
 		status = "An error occurred. Settings may have not been updated."
 	}
 	currentOptions.Merge(*options)
@@ -167,8 +203,14 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if currentOptions.AnnounceChannel.Value != "" {
 		channel, cErr := s.Channel(currentOptions.AnnounceChannel.Value)
 		if cErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting channel name", "channel", currentOptions.AnnounceChannel, "err", cErr)
-			reports.DM(s, fmt.Sprintf("error getting channel name:\n\tchannel=%s\n\terr=%s", currentOptions.AnnounceChannel.Value, cErr))
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting channel name",
+				"channel", currentOptions.AnnounceChannel,
+				"err", cErr)
+
+			reports.DM(s, fmt.Sprintf("error getting channel name:\n\tchannel=%s\n\terr=%s",
+				currentOptions.AnnounceChannel.Value,
+				cErr))
+
 			channelName = currentOptions.AnnounceChannel.Value
 		} else {
 			channelName = channel.Name
@@ -177,8 +219,14 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if currentOptions.AnnounceRole.Value != "" {
 		role, rErr := s.State.Role(i.GuildID, currentOptions.AnnounceRole.Value)
 		if rErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting role name", "role", currentOptions.AnnounceRole, "err", rErr)
-			reports.DM(s, fmt.Sprintf("error getting role name:\n\trole=%s\n\terr=%s", currentOptions.AnnounceRole.Value, rErr))
+			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting role name",
+				"role", currentOptions.AnnounceRole,
+				"err", rErr)
+
+			reports.DM(s, fmt.Sprintf("error getting role name:\n\trole=%s\n\terr=%s",
+				currentOptions.AnnounceRole.Value,
+				rErr))
+
 			roleName = currentOptions.AnnounceRole.Value
 		} else {
 			roleName = role.Name
@@ -231,8 +279,14 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	settingsErr := currentOptions.Set()
 	if settingsErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error setting options", "server", i.GuildID, "err", settingsErr)
-		reports.DM(s, fmt.Sprintf("error setting options:\n\tserver=%s\n\terr=%s", i.GuildID, settingsErr))
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error setting options",
+			"server", i.GuildID,
+			"err", settingsErr)
+
+		reports.DM(s, fmt.Sprintf("error setting options:\n\tserver=%s\n\terr=%s",
+			i.GuildID,
+			settingsErr))
+
 		content = []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
 				Title:       "Settings",
@@ -248,8 +302,13 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction", "cmd", i.ApplicationCommandData().Name, "err", respondErr)
-		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s", i.ApplicationCommandData().Name, respondErr))
+		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction",
+			"cmd", i.ApplicationCommandData().Name,
+			"err", respondErr)
+
+		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
+			i.ApplicationCommandData().Name,
+			respondErr))
 	}
 }
 

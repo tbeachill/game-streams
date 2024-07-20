@@ -16,41 +16,59 @@ func GetGuildNumber(session *discordgo.Session) int {
 	return num
 }
 
-// logGuildNumber reports the number of servers the bot is in to the console and the bot owner via DM.
+// logGuildNumber reports the number of servers the bot is in to the console and the
+// bot owner via DM.
 func logGuildNumber(session *discordgo.Session) {
 	guildNum := GetGuildNumber(session)
-	utils.Log.Info.WithPrefix("SERVR").Infof("connected to %d server%s", guildNum, utils.Pluralise(guildNum))
-	reports.DM(session, fmt.Sprintf("connected to %d server%s", guildNum, utils.Pluralise(guildNum)))
+	utils.Log.Info.WithPrefix("SERVR").Info("connected",
+		"server_count", guildNum)
+
+	reports.DM(session, fmt.Sprintf("connected to %d server%s",
+		guildNum,
+		utils.Pluralise(guildNum)))
 }
 
-// MonitorGuilds monitors the servers the bot is in. It sets up handlers for when the bot joins or leaves a server.
-// It logs to console and DMs the bot owner when the bot joins or leaves a server.
-// When the bot joins a server, it checks if the server is already in the servers table of the database. If not, it
-// adds the server to the servers table with default options. When the bot is removed from a server, it removes the
-// server from the servers table.
+// MonitorGuilds monitors the servers the bot is in. It sets up handlers for when the
+// bot joins or leaves a server. When the bot joins a server, it checks if the server is
+// already in the servers table of the database. If not, it adds the server to the
+// servers table with default options. When the bot is removed from a server, it
+// removes the server from the servers table.
 func MonitorGuilds(session *discordgo.Session) {
 	logGuildNumber(session)
 	utils.Log.Info.WithPrefix("SERVR").Info("adding server join handler")
 
 	// join handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildCreate) {
-		utils.Log.Info.WithPrefix("SERVR").Info("joined server", "server", e.Guild.Name)
-		reports.DM(s, fmt.Sprintf("joined server:\n\tserver=%s", e.Guild.Name))
+		utils.Log.Info.WithPrefix("SERVR").Info("joined server",
+			"server", e.Guild.Name)
+
+		reports.DM(s, fmt.Sprintf("joined server:\n\tserver=%s",
+			e.Guild.Name))
+
 		logGuildNumber(s)
 
 		present, checkErr := db.CheckServerID(e.Guild.ID)
 		if checkErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error checking server ID", "err", checkErr)
+			utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error checking server ID",
+				"err", checkErr)
+
 			reports.DM(s, fmt.Sprintf("error checking server ID:\n\terr=%s", checkErr))
 			return
 		}
 		if !present {
-			utils.Log.Info.WithPrefix("SERVR").Info("adding server to database", "server", e.Guild.Name)
+			utils.Log.Info.WithPrefix("SERVR").Info("adding server to database",
+				"server", e.Guild.Name)
+
 			utils.IntroDM(e.OwnerID)
 			o := db.NewOptions(e.Guild.ID)
 			if setErr := o.Set(); setErr != nil {
-				utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error setting server options", "server", e.Guild.Name, "err", setErr)
-				reports.DM(s, fmt.Sprintf("error setting server options:\n\tserver=%s\n\terr=%s", e.Guild.Name, setErr))
+				utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error setting server options",
+					"server", e.Guild.Name,
+					"err", setErr)
+
+				reports.DM(s, fmt.Sprintf("error setting server options:\n\tserver=%s\n\terr=%s",
+					e.Guild.Name,
+					setErr))
 			}
 		}
 	})
@@ -58,17 +76,26 @@ func MonitorGuilds(session *discordgo.Session) {
 
 	// leave handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
-		utils.Log.Info.WithPrefix("SERVR").Info("left server", "server", e.Guild.Name)
+		utils.Log.Info.WithPrefix("SERVR").Info("left server",
+			"server", e.Guild.Name)
+
 		reports.DM(s, fmt.Sprintf("left server:\n\tserver=%s", e.Guild.Name))
+
 		logGuildNumber(s)
 		if removeErr := db.RemoveOptions(e.Guild.ID); removeErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error removing server options", "server", e.Guild.Name, "err", removeErr)
-			reports.DM(s, fmt.Sprintf("error removing server options:\n\tserver=%s\n\terr=%s", e.Guild.Name, removeErr))
+			utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error removing server options",
+				"server", e.Guild.Name,
+				"err", removeErr)
+
+			reports.DM(s, fmt.Sprintf("error removing server options:\n\tserver=%s\n\terr=%s",
+				e.Guild.Name,
+				removeErr))
 		}
 	})
 }
 
-// GetAllServerIDsFromDiscord returns a slice of all server IDs the bot is in as returned by Discord.
+// GetAllServerIDsFromDiscord returns a slice of all server IDs the bot is in as
+// returned by Discord.
 func GetAllServerIDsFromDiscord(session *discordgo.Session) []string {
 	var serverIDs []string
 	for _, guild := range session.State.Guilds {
@@ -77,8 +104,9 @@ func GetAllServerIDsFromDiscord(session *discordgo.Session) []string {
 	return serverIDs
 }
 
-// RemoveOldServerIDs removes server IDs from the servers table that are not in the Discord returned list of server IDs.
-// This is for data cleanup in case the bot is removed from a server and the server ID is not removed from the database.
+// RemoveOldServerIDs removes server IDs from the servers table that are not in the
+// Discord returned list of server IDs. This is for data cleanup in case the bot is
+// removed from a server and the server ID is not removed from the database.
 func RemoveOldServerIDs(session *discordgo.Session) error {
 	discordServerIDs := GetAllServerIDsFromDiscord(session)
 	dbServerIDs, getErr := db.GetAllServerIDs()
@@ -95,7 +123,9 @@ func RemoveOldServerIDs(session *discordgo.Session) error {
 			}
 		}
 		if !found {
-			utils.Log.Info.WithPrefix("SERVR").Info("removing old server ID", "server", dbID)
+			utils.Log.Info.WithPrefix("SERVR").Info("removing old server ID",
+				"server", dbID)
+
 			if removeErr := db.RemoveOptions(dbID); removeErr != nil {
 				return removeErr
 			}

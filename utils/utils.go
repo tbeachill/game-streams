@@ -51,7 +51,8 @@ func (s *FilePaths) SetPaths() {
 	} else {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			Log.ErrorWarn.WithPrefix(" MAIN").Fatal("could not set filepaths", "err", err)
+			Log.ErrorWarn.WithPrefix(" MAIN").Fatal("could not set filepaths",
+				"err", err)
 		}
 		s.DotEnv = fmt.Sprintf("%s/config/gamestreambot/.env", home)
 		s.DB = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
@@ -71,7 +72,8 @@ func (l *Logger) Init() {
 
 	logFile, err := os.OpenFile(Files.Log, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		l.ErrorWarn.WithPrefix(" MAIN").Fatal("Error opening log file", "err", err)
+		l.ErrorWarn.WithPrefix(" MAIN").Fatal("Error opening log file",
+			"err", err)
 	}
 	mw := io.MultiWriter(os.Stdout, logFile)
 	l.Info.SetOutput(mw)
@@ -95,8 +97,8 @@ func CreateTimestamp(d string, t string) (string, string, error) {
 	return fmt.Sprintf("<t:%d:d>", dt.Unix()), fmt.Sprintf("<t:%d:t>", dt.Unix()), err
 }
 
-// CreateTimestampRelative returns a relative Discord timestamp from date and time strings.
-// e.g. "in 2 hours"
+// CreateTimestampRelative returns a relative Discord timestamp from date and time
+// strings. e.g. "in 2 hours"
 func CreateTimestampRelative(d string, t string) (string, error) {
 	layout := "2006-01-02 15:04"
 	dt, err := time.Parse(layout, fmt.Sprintf("%s %s", d, t))
@@ -120,7 +122,8 @@ func Pluralise(n int) string {
 	return "s"
 }
 
-// RemoveSliceDuplicates removes duplicates from a slice of strings and returns a map of the unique strings.
+// RemoveSliceDuplicates removes duplicates from a slice of strings and returns a map
+// of the unique strings.
 func RemoveSliceDuplicates(s []string) map[string]bool {
 	m := make(map[string]bool)
 	for _, str := range s {
@@ -153,8 +156,8 @@ func GetVideoThumbnail(stream string) string {
 
 // GetYoutubeLiveThumbnail returns the thumbnail of a YouTube stream from a given URL.
 // If the URL is a direct link to the stream, it extract the video ID from the URL.
-// If the URL is a channel link, it will call GetYoutubeDirectUrl to get the direct link and extract the video ID from
-// that.
+// If the URL is a channel link, it will call GetYoutubeDirectUrl to get the direct
+// link and extract the video ID from that.
 func GetYoutubeLiveThumbnail(streamUrl string) string {
 	var ID string = ""
 
@@ -174,7 +177,8 @@ func GetYoutubeLiveThumbnail(streamUrl string) string {
 	return ""
 }
 
-// GetYoutubeDirectUrl returns the direct URL of a YouTube stream from a profiles /live URL.
+// GetYoutubeDirectUrl returns the direct URL of a YouTube stream from a profiles
+// /live URL.
 func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
 	var directUrl string = ""
 	var success bool = false
@@ -259,13 +263,17 @@ func IntroDM(userID string) {
 
 	st, err := Session.UserChannelCreate(userID)
 	if err != nil {
-		Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating intro DM channel", "err", err)
+		Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating intro DM channel",
+			"err", err)
+
 		reports.DM(Session, fmt.Sprintf("error creating intro DM channel:\n\terr=%s", err))
 		return
 	}
 	_, err = Session.ChannelMessageSend(st.ID, message)
 	if err != nil {
-		Log.ErrorWarn.WithPrefix(" MAIN").Error("error sending intro DM", "err", err)
+		Log.ErrorWarn.WithPrefix(" MAIN").Error("error sending intro DM",
+			"err", err)
+
 		reports.DM(Session, fmt.Sprintf("error sending intro DM:\n\terr=%s", err))
 		return
 	}
