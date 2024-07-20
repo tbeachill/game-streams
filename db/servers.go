@@ -18,7 +18,9 @@ func GetAllServerIDs() ([]string, error) {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query("select server_id from servers")
+	rows, queryErr := db.Query(`SELECT server_id
+								FROM servers`)
+
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -45,7 +47,11 @@ func CheckServerID(serverID string) (bool, error) {
 	}
 	defer db.Close()
 
-	row := db.QueryRow("select server_id from servers where server_id = ?", serverID)
+	row := db.QueryRow(`SELECT server_id
+						FROM servers
+						WHERE server_id = ?`,
+		serverID)
+
 	var checkID string
 	scanErr := row.Scan(&checkID)
 	if scanErr == sql.ErrNoRows {
@@ -66,8 +72,13 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 
 	platform = strings.ToLower(platform)
 	utils.Log.Info.WithPrefix(" DB").Info("getting server IDs for", "platform", platform)
-	query := fmt.Sprintf("select server_id from servers where %s = %s", platform, "1")
-	rows, queryErr := db.Query(query)
+
+	rows, queryErr := db.Query(`SELECT server_id
+								FROM servers
+								WHERE ? = ?`,
+		platform,
+		"1")
+
 	if queryErr != nil {
 		return nil, queryErr
 	}

@@ -28,13 +28,12 @@ func (c *Config) Get() error {
 	if openErr != nil {
 		return openErr
 	}
-
-	sqlStmt := `
-		select * from config where id = 1
-	`
 	defer db.Close()
 
-	row := db.QueryRow(sqlStmt)
+	row := db.QueryRow(`SELECT *
+						FROM config
+						WHERE id = 1`)
+
 	scanErr := row.Scan(&c.ID, &c.StreamURL, &c.APIURL, &c.LastUpdate)
 	if scanErr == sql.ErrNoRows {
 		utils.Log.Info.WithPrefix(" MAIN").Info("No config found, setting default")
@@ -55,16 +54,22 @@ func (c *Config) SetDefault() error {
 	c.APIURL = os.Getenv("API_URL")
 	c.LastUpdate = ""
 
-	sqlStmt := `
-		insert into config (id, stream_url, api_url, last_updated) values (1, ?, ?, ?)
-	`
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(sqlStmt, c.StreamURL, c.APIURL, "")
+	_, execErr := db.Exec(`INSERT INTO config
+								(id,
+								stream_url,
+								api_url,
+								last_updated)
+							VALUES (1, ?, ?, ?)`,
+		c.StreamURL,
+		c.APIURL,
+		"")
+
 	if execErr != nil {
 		return execErr
 	}
@@ -75,9 +80,7 @@ func (c *Config) SetDefault() error {
 // Set writes the current values of the Config struct to the database.
 func (c *Config) Set() error {
 	utils.Log.Info.WithPrefix(" MAIN").Info("updating config")
-	sqlStmt := `
-		update config set stream_url = ?, api_url = ?, last_updated = ? where id = 1
-	`
+
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
@@ -85,7 +88,15 @@ func (c *Config) Set() error {
 	defer db.Close()
 	c.LastUpdate = c.CommitTime.Format("2006-01-02T15:04:05Z07:00")
 
-	_, execErr := db.Exec(sqlStmt, c.StreamURL, c.APIURL, c.LastUpdate)
+	_, execErr := db.Exec(`UPDATE config
+							SET stream_url = ?,
+								api_url = ?,
+								last_updated = ?
+							WHERE id = 1`,
+		c.StreamURL,
+		c.APIURL,
+		c.LastUpdate)
+
 	if execErr != nil {
 		return execErr
 	}

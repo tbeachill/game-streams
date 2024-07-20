@@ -61,12 +61,47 @@ func (o *Options) Set() error {
 	utils.Log.Info.Info("setting options", "server", o.ServerID, "options", o)
 
 	if !checkOptions(o.ServerID) {
-		_, execErr := db.Exec("insert into servers (server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc, vr) values (?, ?, ?, ?, ?, ?, ?, ?)", o.ServerID, o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.VR.Value)
+		_, execErr := db.Exec(`INSERT INTO servers
+									(server_id,
+									announce_channel,
+									announce_role,
+									playstation,
+									xbox,
+									nintendo,
+									pc,
+									vr)
+								VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			o.ServerID,
+			o.AnnounceChannel.Value,
+			o.AnnounceRole.Value,
+			o.Playstation.Value,
+			o.Xbox.Value,
+			o.Nintendo.Value,
+			o.PC.Value,
+			o.VR.Value)
+
 		if execErr != nil {
 			return execErr
 		}
 	} else {
-		_, execErr := db.Exec("update servers set announce_channel = ?, announce_role = ?, playstation = ?, xbox = ?, nintendo = ?, pc = ?, vr = ? where server_id = ?", o.AnnounceChannel.Value, o.AnnounceRole.Value, o.Playstation.Value, o.Xbox.Value, o.Nintendo.Value, o.PC.Value, o.VR.Value, o.ServerID)
+		_, execErr := db.Exec(`UPDATE servers
+								SET announce_channel = ?,
+									announce_role = ?,
+									playstation = ?,
+									xbox = ?,
+									nintendo = ?,
+									pc = ?,
+									vr = ?
+								WHERE server_id = ?`,
+			o.AnnounceChannel.Value,
+			o.AnnounceRole.Value,
+			o.Playstation.Value,
+			o.Xbox.Value,
+			o.Nintendo.Value,
+			o.PC.Value,
+			o.VR.Value,
+			o.ServerID)
+
 		if execErr != nil {
 			return execErr
 		}
@@ -88,7 +123,18 @@ func (o *Options) Get(serverID string) error {
 			return openErr
 		}
 	}
-	row := db.QueryRow("select server_id, announce_channel, announce_role, playstation, xbox, nintendo, pc, vr from servers where server_id = ?", serverID)
+	row := db.QueryRow(`SELECT server_id,
+							announce_channel,
+							announce_role,
+							playstation,
+							xbox,
+							nintendo,
+							pc,
+							vr
+						FROM servers
+						WHERE server_id = ?`,
+		serverID)
+
 	scanErr := row.Scan(&o.ServerID, &o.AnnounceChannel.Value, &o.AnnounceRole.Value, &o.Playstation.Value, &o.Xbox.Value, &o.Nintendo.Value, &o.PC.Value, &o.VR.Value)
 	if scanErr != nil {
 		return scanErr
@@ -132,7 +178,11 @@ func checkOptions(serverID string) bool {
 	}
 	defer db.Close()
 
-	rows := db.QueryRow("select server_id from servers where server_id = ?", serverID)
+	rows := db.QueryRow(`SELECT server_id
+						FROM servers
+						WHERE server_id = ?`,
+		serverID)
+
 	getErr := rows.Scan(&serverID)
 	return getErr == nil
 }
@@ -146,7 +196,11 @@ func RemoveOptions(serverID string) error {
 	defer db.Close()
 
 	utils.Log.Info.WithPrefix("STATS").Info("removing from options table", "server", serverID)
-	_, execErr := db.Exec("delete from servers where server_id = ?", serverID)
+
+	_, execErr := db.Exec(`DELETE FROM servers
+							WHERE server_id = ?`,
+		serverID)
+
 	if execErr != nil {
 		return execErr
 	}

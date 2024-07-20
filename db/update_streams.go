@@ -114,14 +114,27 @@ func (s *Streams) UpdateRow() error {
 	}
 	defer db.Close()
 
-	sqlStmt := `
-	update streams set name = ?, platform = ?, date = ?, time = ?, description = ?, url = ? where id = ?
-	`
 	var updateCount int
 	for i, stream := range s.Streams {
 		if stream.ID != 0 {
 			utils.Log.Info.WithPrefix("UPDAT").Info("updating stream", "id", stream.ID, "name", stream.Name)
-			_, updateErr := db.Exec(sqlStmt, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL, stream.ID)
+
+			_, updateErr := db.Exec(`UPDATE streams
+									SET name = ?,
+										platform = ?,
+										date = ?,
+										time = ?,
+										description = ?,
+										url = ?
+									WHERE id = ?`,
+				stream.Name,
+				stream.Platform,
+				stream.Date,
+				stream.Time,
+				stream.Description,
+				stream.URL,
+				stream.ID)
+
 			if updateErr != nil {
 				return updateErr
 			}
@@ -149,10 +162,11 @@ func (s *Streams) CheckForDuplicates() error {
 	}
 	defer db.Close()
 
-	sqlStmt := `
-	select name, platform, date, time from streams
-	`
-	rows, queryErr := db.Query(sqlStmt)
+	rows, queryErr := db.Query(`SELECT name,
+									platform,
+									date,
+									time
+								FROM streams`)
 	if queryErr != nil {
 		return queryErr
 	}
@@ -185,11 +199,11 @@ func countRows() (int, error) {
 	}
 	defer db.Close()
 
-	sqlStmt := `
-	select count(*) from streams
-	`
 	var count int
-	row := db.QueryRow(sqlStmt)
+
+	row := db.QueryRow(`SELECT count(*)
+						FROM streams`)
+
 	scanErr := row.Scan(&count)
 	if scanErr != nil {
 		return 0, scanErr
@@ -207,15 +221,27 @@ func (s *Streams) InsertStreams() {
 	}
 	defer db.Close()
 
-	sqlStmt := `
-	insert into streams (name, platform, date, time, description, url) values (?, ?, ?, ?, ?, ?)
-	`
 	for _, stream := range s.Streams {
 		if stream.Name == "" {
 			continue
 		}
 		utils.Log.Info.WithPrefix("UPDAT").Info("inserting stream", "name", stream.Name)
-		_, insertErr := db.Exec(sqlStmt, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL)
+
+		_, insertErr := db.Exec(`INSERT INTO streams
+									(name,
+									platform,
+									date,
+									time,
+									description,
+									url)
+								VALUES (?, ?, ?, ?, ?, ?)`,
+			stream.Name,
+			stream.Platform,
+			stream.Date,
+			stream.Time,
+			stream.Description,
+			stream.URL)
+
 		if insertErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error inserting stream", "stream", stream.Name, "err", insertErr)
 			reports.DM(utils.Session, fmt.Sprintf("error inserting stream:\n\tstream=%s\n\terr=%s", stream.Name, insertErr))
@@ -235,13 +261,14 @@ func (s *Streams) DeleteStreams() {
 	}
 	defer db.Close()
 
-	sqlStmt := `
-	delete from streams where id = ?
-	`
 	for _, x := range s.Streams {
 		if x.Delete {
 			utils.Log.Info.WithPrefix("UPDAT").Info("deleting stream", "id", x.ID, "name", x.Name)
-			_, deleteErr := db.Exec(sqlStmt, x.ID)
+
+			_, deleteErr := db.Exec(`DELETE FROM streams
+									WHERE id = ?`,
+				x.ID)
+
 			if deleteErr != nil {
 				utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error deleting stream", "stream", x.Name, "err", deleteErr)
 				reports.DM(utils.Session, fmt.Sprintf("error deleting stream:\n\tstream=%s\n\terr=%s", x.Name, deleteErr))

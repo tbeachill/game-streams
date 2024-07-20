@@ -20,24 +20,39 @@ func CreateDB() error {
 	}
 	defer db.Close()
 
-	sqlStmt := `
-	create table if not exists streams (id integer not null primary key, name text, platform text, date text, time text, description text, url text);
-	`
-	_, tableErr := db.Exec(sqlStmt)
+	_, tableErr := db.Exec(`CREATE TABLE IF NOT EXISTS streams
+								(id INTEGER NOT NULL PRIMARY KEY,
+								name TEXT,
+								platform TEXT,
+								date TEXT,
+								time TEXT,
+								description TEXT,
+								url TEXT)`)
+
 	if tableErr != nil {
 		return tableErr
 	}
-	sqlStmt = `
-	create table if not exists config (id integer not null primary key, stream_url text, api_url text, last_updated text);
-	`
-	_, tableErr = db.Exec(sqlStmt)
+
+	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS config
+								(id INTEGER NOT NULL PRIMARY KEY,
+								stream_url TEXT,
+								api_url TEXT,
+								last_updated TEXT)`)
+
 	if tableErr != nil {
 		return tableErr
 	}
-	sqlStmt = `
-	create table if not exists servers (server_id integer not null primary key, announce_channel text, announce_role text, playstation boolean, xbox boolean, nintendo boolean, pc boolean, vr boolean);
-	`
-	_, tableErr = db.Exec(sqlStmt)
+
+	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS servers
+								(server_id INTEGER NOT NULL PRIMARY KEY,
+								announce_channel TEXT,
+								announce_role TEXT,
+								playstation BOOLEAN,
+								xbox BOOLEAN,
+								nintendo BOOLEAN,
+								pc BOOLEAN,
+								vr BOOLEAN);`)
+
 	if tableErr != nil {
 		return tableErr
 	}

@@ -70,7 +70,17 @@ func (s *Streams) GetUpcoming(params ...int) error {
 	} else {
 		limit = params[0]
 	}
-	if err := s.Query(fmt.Sprintf("select * from streams where date > date('now') UNION select * from streams where date = date('now') and time >= time('now') order by date, time limit %d", limit)); err != nil {
+	if err := s.Query(`SELECT *
+						FROM streams
+						WHERE date > date('now')
+					UNION
+						SELECT *
+						FROM streams
+						WHERE date = date('now')
+						AND time >= time('now')
+						ORDER BY date, time
+						LIMIT ?`,
+		fmt.Sprint(limit)); err != nil {
 		return err
 	}
 	return nil
@@ -78,7 +88,11 @@ func (s *Streams) GetUpcoming(params ...int) error {
 
 // GetToday gets all streams for today that have not yet started from the streams table of the database.
 func (s *Streams) GetToday() error {
-	if err := s.Query("select * from streams where date = date('now') and time >= time('now') order by time"); err != nil {
+	if err := s.Query(` SELECT *
+						FROM streams
+						WHERE date = date('now')
+						AND time >= time('now')
+						ORDER BY time`); err != nil {
 		return err
 	}
 	return nil
@@ -87,7 +101,10 @@ func (s *Streams) GetToday() error {
 // CheckTomorrow checks for streams in the streams table of the database that are scheduled for tomorrow but do not
 // have a time set.
 func (s *Streams) CheckTomorrow() error {
-	if err := s.Query("select * from streams where date = date('now', '+1 day') and time = ''"); err != nil {
+	if err := s.Query(`SELECT *
+						FROM streams
+						WHERE date = date('now', '+1 day')
+						AND time = ''`); err != nil {
 		return err
 	}
 	return nil
@@ -98,7 +115,20 @@ func (s *Streams) CheckTomorrow() error {
 func (s *Streams) GetInfo(name string) error {
 	name = fmt.Sprintf("%%%s%%", strings.Trim(name, " "))
 
-	if err := s.Query("select * from (select * from streams where date = date('now') and time >= time('now') UNION select * from streams where date > date('now')) where name like ? collate nocase limit 1", name); err != nil {
+	if err := s.Query(`SELECT *
+						FROM (
+							SELECT *
+							FROM streams
+							WHERE date = date('now')
+							AND time >= time('now')
+						UNION
+							SELECT *
+							FROM streams
+							WHERE date > date('now')
+						)
+						WHERE name LIKE ? collate nocase
+						LIMIT 1`,
+		name); err != nil {
 		return err
 	}
 	return nil
