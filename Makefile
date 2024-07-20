@@ -26,7 +26,7 @@ build: vet set
 	@echo "Building"
 	go env -w GOOS=windows
 	go env -w GOARCH=amd64
-	go build -o bin/game-streams_win64.exe main/main.go
+	go build -o bin/game-streams_win64.exe game-streams/main.go
 	@echo "Build complete"
 
 run: build
