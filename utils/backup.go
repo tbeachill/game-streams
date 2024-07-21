@@ -31,8 +31,7 @@ func (bucket Bucket) UploadFile(filePath string) {
 	objectKey := fmt.Sprintf("%s_%s", fileName, currentDate)
 
 	if err != nil {
-		Log.ErrorWarn.WithPrefix("SCHED").Error("could not open database file",
-			"err", err)
+		LogError("SCHED", "could not open database file", "err", err)
 	} else {
 		defer file.Close()
 		_, err = bucket.Client.PutObject(context.TODO(), &s3.PutObjectInput{
@@ -41,10 +40,9 @@ func (bucket Bucket) UploadFile(filePath string) {
 			Body:   file,
 		})
 		if err != nil {
-			Log.ErrorWarn.WithPrefix("SCHED").Error("could not upload database file",
-				"err", err)
+			LogError("SCHED", "could not upload database file", "err", err)
 		} else {
-			Log.Info.WithPrefix("SCHED").Info("database file uploaded successfully")
+			LogInfo("SCHED", "database file uploaded successfully", false)
 		}
 	}
 }
@@ -55,8 +53,7 @@ func (bucket Bucket) CleanUp() {
 		Bucket: aws.String(bucket.Name),
 	})
 	if err != nil {
-		Log.ErrorWarn.WithPrefix("SCHED").Error("could not list objects in bucket",
-			"err", err)
+		LogError("SCHED", "could not list objects in bucket", "err", err)
 		return
 	}
 	for _, object := range objects.Contents {
@@ -66,12 +63,11 @@ func (bucket Bucket) CleanUp() {
 				Key:    object.Key,
 			})
 			if err != nil {
-				Log.ErrorWarn.WithPrefix("SCHED").Error("could not delete object",
-					"obj", object.Key,
+				LogError("SCHED", "could not delete object",
+					"obj", *object.Key,
 					"err", err)
 			} else {
-				Log.Info.WithPrefix("SCHED").Info("deleted object",
-					"key", *object.Key)
+				LogInfo("SCHED", "deleted object", false, "key", *object.Key)
 			}
 		}
 	}
@@ -83,8 +79,7 @@ func (bucket Bucket) TodaysBackupExists() bool {
 		Bucket: aws.String(bucket.Name),
 	})
 	if err != nil {
-		Log.ErrorWarn.WithPrefix("SCHED").Error("could not list objects in bucket",
-			"err", err)
+		LogError("SCHED", "could not list objects in bucket", "err", err)
 		return false
 	}
 	currentDate := time.Now().UTC().Format("2006-01-02")
@@ -99,7 +94,7 @@ func (bucket Bucket) TodaysBackupExists() bool {
 // BackupDB uploads the database file to the Cloudflare bucket.
 func BackupDB() {
 	if runtime.GOOS == "windows" {
-		Log.Info.WithPrefix("SCHED").Info("backup not supported on windows")
+		LogInfo("SCHED", "backup not supported on windows", false)
 		return
 	}
 	godotenv.Load(".env")
@@ -119,8 +114,7 @@ func BackupDB() {
 		config.WithRegion("auto"),
 	)
 	if err != nil {
-		Log.ErrorWarn.WithPrefix("SCHED").Error("backup failed: could not load default config",
-			"err", err)
+		LogError("SCHED", "backup failed: could not load default config", "err", err)
 		return
 	}
 	bucket := Bucket{
@@ -131,7 +125,7 @@ func BackupDB() {
 		Client:    s3.NewFromConfig(cfg),
 	}
 	if bucket.TodaysBackupExists() {
-		Log.Info.WithPrefix("SCHED").Info("backup already exists for today")
+		LogInfo("SCHED", "backup already exists for today", false)
 		return
 	}
 	bucket.UploadFile(Files.DB)

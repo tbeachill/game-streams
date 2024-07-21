@@ -16,7 +16,7 @@ import (
 // blacklist contains information about users and servers that are blacklisted from
 // using the bot.
 func CreateDB() error {
-	utils.Log.Info.WithPrefix(" MAIN").Info("loading/creating database")
+	utils.LogInfo(" MAIN", "loading/creating database", false)
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr

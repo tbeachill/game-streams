@@ -4,7 +4,6 @@ import (
 	"database/sql"
 
 	"gamestreambot/utils"
-
 )
 
 // Blacklist is a struct that holds the blacklist values for the bot.

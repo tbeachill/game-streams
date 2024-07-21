@@ -1,13 +1,11 @@
 package commands
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 
 	"gamestreambot/db"
-	"gamestreambot/reports"
 	"gamestreambot/streams"
 	"gamestreambot/utils"
 )
@@ -34,10 +32,8 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Color:       0xc3d23e,
 			}
 		} else {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds",
+			utils.LogError(" CMND", "error creating embeds",
 				"err", listErr)
-
-			reports.DMOwner(s, fmt.Sprintf("error creating embeds:\n\terr=%s", listErr))
 			embed = &discordgo.MessageEmbed{
 				Title:       "Upcoming Streams",
 				Description: "An error occurred",
@@ -52,13 +48,9 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction",
+		utils.LogError(" CMND", "error responding to interaction",
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
-
-		reports.DMOwner(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
-			i.ApplicationCommandData().Name,
-			respondErr))
 	}
 }
 
@@ -78,11 +70,8 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Color:       0xc3d23e,
 			}
 		} else {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds",
+			utils.LogError(" CMND", "error creating embeds",
 				"err", infoErr)
-
-			reports.DMOwner(s, fmt.Sprintf("error creating embeds:\n\terr=%s",
-				infoErr))
 			embed = &discordgo.MessageEmbed{
 				Title:       "Stream Info",
 				Description: "An error occurred",
@@ -97,13 +86,9 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction",
+		utils.LogError(" CMND", "error responding to interaction",
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
-
-		reports.DMOwner(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
-			i.ApplicationCommandData().Name,
-			respondErr))
 	}
 }
 
@@ -143,13 +128,9 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction",
+		utils.LogError(" CMND", "error responding to interaction",
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
-
-		reports.DMOwner(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
-			i.ApplicationCommandData().Name,
-			respondErr))
 	}
 }
 
@@ -162,7 +143,8 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // it responds with an error message.
 func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := parseOptions(i.ApplicationCommandData().Options)
-	utils.Log.Info.WithPrefix(" CMND").Info("options", "options", options)
+	utils.LogInfo(" CMND", "options", false, "options", options)
+
 	var status string
 	if *options == (db.Options{}) || options.Reset {
 		status = "Current settings:"
@@ -172,13 +154,9 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if options.Reset {
 		*options = db.NewOptions(i.GuildID)
 		if optErr := options.Set(); optErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error resetting options",
+			utils.LogError(" CMND", "error resetting options",
 				"server", i.GuildID,
 				"err", optErr)
-
-			reports.DMOwner(s, fmt.Sprintf("error resetting options:\n\tserver=%s\n\terr=%s",
-				i.GuildID,
-				optErr))
 
 			status = "An error occurred. Settings may not have been reset."
 		}
@@ -186,13 +164,9 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var currentOptions = db.NewOptions(i.GuildID)
 
 	if getOptErr := currentOptions.Get(i.GuildID); getOptErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting options",
+		utils.LogError(" CMND", "error getting options",
 			"server", i.GuildID,
 			"err", getOptErr)
-
-		reports.DMOwner(s, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s",
-			i.GuildID,
-			getOptErr))
 
 		status = "An error occurred. Settings may have not been updated."
 	}
@@ -203,13 +177,10 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if currentOptions.AnnounceChannel.Value != "" {
 		channel, cErr := s.Channel(currentOptions.AnnounceChannel.Value)
 		if cErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting channel name",
+
+			utils.LogError(" CMND", "error getting channel name",
 				"channel", currentOptions.AnnounceChannel,
 				"err", cErr)
-
-			reports.DMOwner(s, fmt.Sprintf("error getting channel name:\n\tchannel=%s\n\terr=%s",
-				currentOptions.AnnounceChannel.Value,
-				cErr))
 
 			channelName = currentOptions.AnnounceChannel.Value
 		} else {
@@ -219,13 +190,9 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if currentOptions.AnnounceRole.Value != "" {
 		role, rErr := s.State.Role(i.GuildID, currentOptions.AnnounceRole.Value)
 		if rErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error getting role name",
+			utils.LogError(" CMND", "error getting role name",
 				"role", currentOptions.AnnounceRole,
 				"err", rErr)
-
-			reports.DMOwner(s, fmt.Sprintf("error getting role name:\n\trole=%s\n\terr=%s",
-				currentOptions.AnnounceRole.Value,
-				rErr))
 
 			roleName = currentOptions.AnnounceRole.Value
 		} else {
@@ -279,13 +246,9 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	settingsErr := currentOptions.Set()
 	if settingsErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error setting options",
+		utils.LogError(" CMND", "error setting options",
 			"server", i.GuildID,
 			"err", settingsErr)
-
-		reports.DMOwner(s, fmt.Sprintf("error setting options:\n\tserver=%s\n\terr=%s",
-			i.GuildID,
-			settingsErr))
 
 		content = []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
@@ -302,13 +265,9 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error responding to interaction",
+		utils.LogError(" CMND", "error responding to interaction",
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
-
-		reports.DMOwner(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
-			i.ApplicationCommandData().Name,
-			respondErr))
 	}
 }
 

@@ -13,8 +13,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bwmarrin/discordgo"
 	"github.com/charmbracelet/log"
-
-	"gamestreambot/reports"
 )
 
 // Files is a struct that holds the file paths of important files for the bot.
@@ -51,8 +49,7 @@ func (s *FilePaths) SetPaths() {
 	} else {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			Log.ErrorWarn.WithPrefix(" MAIN").Fatal("could not set filepaths",
-				"err", err)
+			LogError(" MAIN", "could not set filepaths", "err", err)
 		}
 		s.DotEnv = fmt.Sprintf("%s/config/gamestreambot/.env", home)
 		s.DB = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
@@ -78,6 +75,45 @@ func (l *Logger) Init() {
 	mw := io.MultiWriter(os.Stdout, logFile)
 	l.Info.SetOutput(mw)
 	l.ErrorWarn.SetOutput(mw)
+}
+
+// LogInfo logs an info message with a prefix.
+func LogInfo(prefix string, msg string, dm bool, keyvals ...interface{}) {
+	Log.Info.Helper()
+	Log.Info.WithPrefix(prefix).Info(msg, keyvals...)
+	if dm {
+		if len(keyvals) == 0 {
+			dmMsg := fmt.Sprintf("**info:**\n\tmsg=%s\n",
+				msg)
+			DMOwner(Session, dmMsg)
+		} else {
+			dmMsg := fmt.Sprintf("**info:**\n\tmsg=%s\n\tkeyvals:\n", msg)
+			// create a string from keyvals with key=val
+			for i := 0; i < len(keyvals); i += 2 {
+				dmMsg += fmt.Sprintf("\t\t%s=%v\n", keyvals[i], keyvals[i+1])
+			}
+			DMOwner(Session, dmMsg)
+		}
+	}
+}
+
+// LogError logs an error message with a prefix and sends a DM to the bot owner.
+func LogError(prefix string, msg string, keyvals ...interface{}) {
+	Log.ErrorWarn.Helper()
+	Log.ErrorWarn.WithPrefix(prefix).Error(msg, keyvals...)
+
+	if len(keyvals) == 0 {
+		dmMsg := fmt.Sprintf("**error:**\n\tmsg=%s\n",
+			msg)
+		DMOwner(Session, dmMsg)
+	} else {
+		dmMsg := fmt.Sprintf("**error:**\n\tmsg=%s\n\tkeyvals:\n", msg)
+		// create a string from keyvals with key=val
+		for i := 0; i < len(keyvals); i += 2 {
+			dmMsg += fmt.Sprintf("\t\t%s=%v\n", keyvals[i], keyvals[i+1])
+		}
+		DMOwner(Session, dmMsg)
+	}
 }
 
 // CreateTimestamp creates absolute Discord timestamps from date and time strings.
@@ -185,8 +221,7 @@ func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
 
 	doc, err := GetHtmlBody(streamUrl)
 	if err != nil {
-		Log.ErrorWarn.WithPrefix(" MAIN").Error("error getting youtube html", "err", err)
-		reports.DMOwner(Session, fmt.Sprintf("error getting youtube html:\n\terr=%s", err))
+		LogError(" MAIN", "error getting youtube html", "err", err)
 		return "", false
 	}
 	doc.Find("link").Each(func(i int, s *goquery.Selection) {
@@ -226,7 +261,7 @@ func RegisterSession(s *discordgo.Session) {
 func TruncateLogs() {
 	logFile, err := os.OpenFile(Files.Log, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		Log.ErrorWarn.WithPrefix(" MAIN").Error("error opening log file", "err", err)
+		LogError(" MAIN", "error opening log file", "err", err)
 		return
 	}
 	defer logFile.Close()
@@ -258,8 +293,7 @@ func IntroDM(userID string) {
 	message := "🕹 Hello! Thank you for adding me to your server! 🕹\n\n" +
 		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings` in the server you added me to.\n\n" +
 		"For more information, type `/help`."
-
-	Log.Info.WithPrefix(" MAIN").Info("sending intro DM", "user", userID)
+	LogInfo(" MAIN", "sending intro DM", false, "user", userID)
 
 	DM(userID, message)
 }
@@ -267,16 +301,24 @@ func IntroDM(userID string) {
 func DM(userID string, message string) {
 	st, err := Session.UserChannelCreate(userID)
 	if err != nil {
-		Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating DM channel",
-			"err", err)
-
-		reports.DMOwner(Session, fmt.Sprintf("error creating DM channel:\n\terr=%s", err))
+		LogError(" MAIN", "error creating DM channel", "err", err)
 		return
 	}
 	_, err = Session.ChannelMessageSend(st.ID, message)
 	if err != nil {
-		Log.ErrorWarn.WithPrefix(" MAIN").Error("error sending DM",
-			"err", err)
-		reports.DMOwner(Session, fmt.Sprintf("error sending DM:\n\terr=%s", err))
+		LogError(" MAIN", "error sending DM", "err", err)
+	}
+}
+
+// DM sends a direct message to the bot owner. The owner's Discord ID is stored in
+// the OWNER_ID environment variable.
+func DMOwner(session *discordgo.Session, message string) {
+	st, err := session.UserChannelCreate(os.Getenv("OWNER_ID"))
+	if err != nil {
+		return
+	}
+	_, sendErr := session.ChannelMessageSend(st.ID, message)
+	if sendErr != nil {
+		return
 	}
 }

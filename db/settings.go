@@ -186,7 +186,7 @@ func (o *Options) Merge(p Options) {
 func checkOptions(serverID string) bool {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
-		utils.Log.ErrorWarn.Error("error opening db", "error", openErr)
+		utils.LogError(" MAIN", "error opening database", "err", openErr)
 		return false
 	}
 	defer db.Close()
@@ -208,8 +208,7 @@ func RemoveOptions(serverID string) error {
 	}
 	defer db.Close()
 
-	utils.Log.Info.WithPrefix("STATS").Info("removing from options table",
-		"server", serverID)
+	utils.LogInfo(" MAIN", "removing from options table", false, "server", serverID)
 
 	_, execErr := db.Exec(`DELETE FROM servers
 							WHERE server_id = ?`,

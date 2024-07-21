@@ -9,7 +9,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 
 	"gamestreambot/db"
-	"gamestreambot/reports"
 	"gamestreambot/servers"
 	"gamestreambot/utils"
 )
@@ -78,11 +77,8 @@ func update(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "!update" {
 		var streams db.Streams
 		if updateErr := streams.Update(); updateErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error updating streams",
+			utils.LogError("OWNER", "error updating streams",
 				"err", updateErr)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("error updating streams:\n\terr=%s",
-				updateErr))
 		} else {
 			s.ChannelMessageSend(m.ChannelID, "streams updated")
 		}
@@ -99,10 +95,8 @@ func removeOldServers(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	if m.Content == "!removeoldservers" {
 		if removeErr := servers.RemoveOldServerIDs(s); removeErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("STATS").Error("error removing old servers",
+			utils.LogError("OWNER", "error removing old servers",
 				"err", removeErr)
-
-			reports.DMOwner(s, fmt.Sprintf("error removing old servers:\n\terr=%s", removeErr))
 		} else {
 			s.ChannelMessageSend(m.ChannelID, "old servers removed")
 		}
@@ -120,21 +114,15 @@ func sqlExecute(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content[:5] == "!sqlx" {
 		db, openErr := sql.Open("sqlite3", utils.Files.DB)
 		if openErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error opening db",
+			utils.LogError("OWNER", "error opening database",
 				"err", openErr)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s",
-				openErr))
 		}
 		defer db.Close()
 
-		sqlStmt := m.Content[6:]
-		_, execErr := db.Exec(sqlStmt)
+		_, execErr := db.Exec(m.Content[6:])
 		if execErr != nil {
-			utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error executing db",
+			utils.LogError("OWNER", "error executing database command",
 				"err", execErr)
-			reports.DMOwner(utils.Session, fmt.Sprintf("error executing db:\n\terr=%s",
-				execErr))
 		}
 		s.ChannelMessageSend(m.ChannelID, "sql executed")
 	}
@@ -150,11 +138,8 @@ func ownerListStreams(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "!streams" {
 		var streams db.Streams
 		if getErr := streams.GetUpcoming(50); getErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("LISTS").Error("error getting streams",
+			utils.LogError("OWNER", "error getting streams",
 				"err", getErr)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("error getting streams:\n\terr=%s",
-				getErr))
 		}
 		for _, stream := range streams.Streams {
 			stream.ProvideUnsetValues()

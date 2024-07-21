@@ -1,11 +1,8 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/bwmarrin/discordgo"
 
-	"gamestreambot/reports"
 	"gamestreambot/utils"
 )
 
@@ -15,15 +12,11 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 	for _, c := range commands {
 		_, err := s.ApplicationCommandCreate(appID, "", c)
 		if err != nil {
-			utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating command",
+			utils.LogError(" MAIN", "error creating command",
 				"cmd", c.Name,
 				"err", err)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("error creating command:\n\tcmd=%s\n\terr=%s",
-				c.Name,
-				err))
 		}
-		utils.Log.Info.WithPrefix(" MAIN").Info("registered command",
+		utils.LogInfo(" MAIN", "registered command", false,
 			"cmd", c.Name)
 	}
 }
@@ -33,25 +26,18 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 func RemoveAllCommands(appID string, s *discordgo.Session) {
 	commands, err := s.ApplicationCommands(appID, "")
 	if err != nil {
-		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error removing commands",
+		utils.LogError(" MAIN", "error removing commands",
 			"err", err)
-
-		reports.DMOwner(utils.Session, fmt.Sprintf("error removing commands:\n\terr=%s",
-			err))
 	}
 	for _, command := range commands {
 		if delErr := s.ApplicationCommandDelete(appID, "", command.ID); delErr != nil {
-
-			utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error removing command",
+			utils.LogError(" MAIN", "error removing command",
 				"cmd", command.Name,
 				"err", delErr)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("error removing command:\n\tcmd=%s\n\terr=%s",
-				command.Name,
-				delErr))
 			continue
 		}
-		utils.Log.Info.WithPrefix(" MAIN").Info("removed command", "cmd", command.Name)
+		utils.LogInfo(" MAIN", "removed command", false,
+			"cmd", command.Name)
 	}
 }
 

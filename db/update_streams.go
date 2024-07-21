@@ -2,14 +2,12 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/BurntSushi/toml"
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreambot/reports"
 	"gamestreambot/utils"
 )
 
@@ -28,17 +26,16 @@ func (s *Streams) Update() error {
 		return checkErr
 	}
 	if !updated {
-		utils.Log.Info.WithPrefix("UPDAT").Info("no new streams found")
+		utils.LogInfo("UPDAT", "no new streams found", false)
 		return nil
 	}
-
-	utils.Log.Info.WithPrefix("UPDAT").Info("found new version of toml")
+	utils.LogInfo("UPDAT", "found new version of toml", false)
 
 	*s = parseToml(c)
 
 	// if new version of toml is empty, update the last update time and return
 	if len(s.Streams) == 0 {
-		utils.Log.Info.WithPrefix("UPDAT").Info("toml is empty")
+		utils.LogInfo("UPDAT", "toml is empty", false)
 		if setErr := c.Set(); setErr != nil {
 			return setErr
 		}
@@ -56,7 +53,7 @@ func (s *Streams) Update() error {
 		return dupErr
 	}
 	if len(s.Streams) == 0 {
-		utils.Log.Info.WithPrefix("UPDAT").Info("no new streams found")
+		utils.LogInfo("UPDAT", "no new streams found", false)
 		if setErr := c.Set(); setErr != nil {
 			return setErr
 		}
@@ -120,7 +117,7 @@ func (s *Streams) UpdateRow() error {
 	var updateCount int
 	for i, stream := range s.Streams {
 		if stream.ID != 0 {
-			utils.Log.Info.WithPrefix("UPDAT").Info("updating stream",
+			utils.LogInfo("UPDAT", "updating stream", false,
 				"id", stream.ID,
 				"name", stream.Name)
 
@@ -229,9 +226,7 @@ func countRows() (int, error) {
 func (s *Streams) InsertStreams() {
 	db, sqlErr := sql.Open("sqlite3", utils.Files.DB)
 	if sqlErr != nil {
-		utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error opening db",
-			"err", sqlErr)
-		reports.DMOwner(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s", sqlErr))
+		utils.LogError("UPDAT", "error opening db", "err", sqlErr)
 		return
 	}
 	defer db.Close()
@@ -240,7 +235,8 @@ func (s *Streams) InsertStreams() {
 		if stream.Name == "" {
 			continue
 		}
-		utils.Log.Info.WithPrefix("UPDAT").Info("inserting stream", "name", stream.Name)
+		utils.LogInfo("UPDAT", "inserting stream", false,
+			"name", stream.Name)
 
 		_, insertErr := db.Exec(`INSERT INTO streams
 									(name,
@@ -258,12 +254,9 @@ func (s *Streams) InsertStreams() {
 			stream.URL)
 
 		if insertErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error inserting stream",
+			utils.LogError("UPDAT", "error inserting stream",
 				"stream", stream.Name,
 				"err", insertErr)
-
-			reports.DMOwner(utils.Session,
-				fmt.Sprintf("error inserting stream:\n\tstream=%s\n\terr=%s", stream.Name, insertErr))
 
 			continue
 		}
@@ -276,27 +269,25 @@ func (s *Streams) InsertStreams() {
 func (s *Streams) DeleteStreams() {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
-		utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error opening db", "err", openErr)
-		reports.DMOwner(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s", openErr))
+		utils.LogError("UPDAT", "error opening db", "err", openErr)
 		return
 	}
 	defer db.Close()
 
 	for _, x := range s.Streams {
 		if x.Delete {
-			utils.Log.Info.WithPrefix("UPDAT").Info("deleting stream", "id", x.ID, "name", x.Name)
+			utils.LogInfo("UPDAT", "deleting stream", false,
+				"id", x.ID,
+				"name", x.Name)
 
 			_, deleteErr := db.Exec(`DELETE FROM streams
 									WHERE id = ?`,
 				x.ID)
 
 			if deleteErr != nil {
-				utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error deleting stream",
+				utils.LogError("UPDAT", "error deleting stream",
 					"stream", x.Name,
 					"err", deleteErr)
-
-				reports.DMOwner(utils.Session,
-					fmt.Sprintf("error deleting stream:\n\tstream=%s\n\terr=%s", x.Name, deleteErr))
 				continue
 			}
 		}

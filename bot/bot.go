@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"time"
@@ -10,7 +9,6 @@ import (
 
 	"gamestreambot/commands"
 	"gamestreambot/db"
-	"gamestreambot/reports"
 	"gamestreambot/servers"
 	"gamestreambot/streams"
 	"gamestreambot/utils"
@@ -22,20 +20,13 @@ import (
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)
 	if sessionErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating Discord session",
+		utils.LogError(" MAIN", "error creating Discord session",
 			"err", sessionErr)
-
-		reports.DMOwner(session, fmt.Sprintf("error creating Discord session:\n\terr=%s",
-			sessionErr))
-
 		return
 	}
 	if openErr := session.Open(); openErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error connecting to Discord",
+		utils.LogError(" MAIN", "error connecting to Discord",
 			"err", openErr)
-
-		reports.DMOwner(session, fmt.Sprintf("error connecting to Discord:\n\terr=%s",
-			openErr))
 		return
 	}
 	defer session.Close()
@@ -48,8 +39,7 @@ func Run(botToken, appID string) {
 	go startScheduler(session)
 	servers.MonitorGuilds(session)
 	utils.StartTime = time.Now().UTC()
-	reports.DMOwner(session, "bot started")
-	utils.Log.Info.WithPrefix(" MAIN").Info("running. press ctrl + c to terminate")
+	utils.LogInfo(" MAIN", "bot started", true)
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
@@ -60,16 +50,13 @@ func Run(botToken, appID string) {
 func startUpdater() {
 	var s db.Streams
 	for {
-		utils.Log.Info.WithPrefix("UPDAT").Info("checking for stream updates...")
+		utils.LogInfo("UPDAT", "checking for stream updates...", false)
 		if updateErr := s.Update(); updateErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error updating streams",
+			utils.LogError("UPDAT", "error updating streams",
 				"err", updateErr)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("error updating streams:\n\terr=%s",
-				updateErr))
 		}
 		minsRemaining := 60 - time.Now().UTC().Minute()
-		utils.Log.Info.WithPrefix("UPDAT").Info("sleeping until next update",
+		utils.LogInfo("UPDAT", "sleeping until next update", false,
 			"minutes", minsRemaining)
 
 		time.Sleep(time.Duration(minsRemaining) * time.Minute)
@@ -85,52 +72,43 @@ func startScheduler(session *discordgo.Session) {
 	timeToRun := 5
 
 	for {
-		utils.Log.Info.WithPrefix("SCHED").Info("scheduling notifications for today's streams...")
+		utils.LogInfo("SCHED", "running scheduler...", false)
 		// check for streams tomorrow that have no time so I can add a time
 		var s db.Streams
 		if tomorrowErr := s.CheckTomorrow(); tomorrowErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error checking tomorrow's streams",
+			utils.LogError("SCHED", "error checking tomorrow's streams",
 				"err", tomorrowErr)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("error checking tomorrow's streams:\n\terr=%s",
-				tomorrowErr))
 		}
 		if len(s.Streams) > 0 {
-			utils.Log.Info.WithPrefix("SCHED").Info("streams tomorrow with no time",
-				"streams", s.Streams)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("streams tomorrow with no time:\n\tstreams=%v",
-				s.Streams))
+			cleanStreams := make(map[int]string)
+			for _, stream := range s.Streams {
+				cleanStreams[stream.ID] = stream.Name
+			}
+			utils.LogInfo("SCHED", "streams tomorrow with no time", true,
+				"streams", cleanStreams)
 		}
 		// schedule notifications for today's streams
 		if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error scheduling today's streams",
+			utils.LogError("SCHED", "error scheduling today's streams",
 				"err", scheduleErr)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("error scheduling todays streams:\n\terr=%s",
-				scheduleErr))
 		}
 		// remove old server IDs from the servers table
-		utils.Log.Info.WithPrefix("SCHED").Info("removing old server IDs...")
+		utils.LogInfo("SCHED", "removing old server IDs...", false)
 		if removeErr := servers.RemoveOldServerIDs(session); removeErr != nil {
-			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error removing old servers",
+			utils.LogError("SCHED", "error removing old servers",
 				"err", removeErr)
-
-			reports.DMOwner(utils.Session, fmt.Sprintf("error removing old servers:\n\terr=%s",
-				removeErr))
 		}
-		utils.Log.Info.WithPrefix("SCHED").Info("truncating logs...")
+		utils.LogInfo("SCHED", "truncating logs...", false)
 		utils.TruncateLogs()
-		utils.Log.Info.WithPrefix("SCHED").Info("backing up database...")
+		utils.LogInfo("SCHED", "backing up database...", false)
 		utils.BackupDB()
 
 		hour, min, _ := time.Now().UTC().Clock()
 		hoursRemaining := (timeToRun + 24) - hour
 		minsRemaining := 60 - min
-		utils.Log.Info.WithPrefix("SCHED").Info("sleeping until next day",
+		utils.LogInfo("SCHED", "sleeping until next day", false,
 			"hours", hoursRemaining,
 			"minutes", minsRemaining)
-
 		time.Sleep(time.Duration(hoursRemaining*60+minsRemaining) * time.Minute)
 	}
 }
