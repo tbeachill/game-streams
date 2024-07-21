@@ -139,7 +139,7 @@ func (s *Streams) GetInfo(name string) error {
 							FROM streams
 							WHERE date > date('now')
 						)
-						WHERE name LIKE ? collate nocase
+						WHERE name LIKE ? COLLATE NOCASE
 						LIMIT 1`,
 		name); err != nil {
 		return err
