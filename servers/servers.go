@@ -35,23 +35,17 @@ func MonitorGuilds(session *discordgo.Session) {
 	// join handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildCreate) {
 		utils.LogInfo("SERVR", "joined server", true,
-			"server", e.Guild.Name)
+			"server", e.Guild.Name,
+			"owner", e.Guild.OwnerID)
 		logGuildNumber(s)
-
-		// check if server is blacklisted and leave if it is
-		onBlacklist, reason := db.IsBlacklisted(e.Guild.ID, "server")
-		reason = fmt.Sprintf("blacklisted: %s", reason)
-		if onBlacklist {
-			utils.LogInfo("SERVR", "blacklisted server", true,
-				"server", e.Guild.Name)
-
-			if leaveServer(s, e.Guild.ID, reason, e) != nil {
-				utils.LogError("SERVR", "error leaving blacklisted server",
-					"server", e.Guild.Name)
-			}
+		// check if server is blacklisted
+		if leaveErr := LeaveIfBlacklisted(s, e.Guild.ID, e); leaveErr != nil {
+			utils.LogError("SERVR", "error leaving blacklisted server",
+				"server", e.Guild.Name,
+				"err", leaveErr)
 			return
 		}
-
+		// check if server ID is in the servers table
 		present, checkErr := db.CheckServerID(e.Guild.ID)
 		if checkErr != nil {
 			utils.LogError("SERVR", "error checking server ID",
@@ -76,7 +70,8 @@ func MonitorGuilds(session *discordgo.Session) {
 	// leave handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
 		utils.LogInfo("SERVR", "left server", true,
-			"server", e.Guild.Name)
+			"server", e.Guild.Name,
+			"owner", e.Guild.OwnerID)
 
 		logGuildNumber(s)
 		if removeErr := db.RemoveOptions(e.Guild.ID); removeErr != nil {
@@ -134,9 +129,20 @@ func leaveServer(session *discordgo.Session, serverID string, reason string, e *
 		"server", serverID,
 		"reason", reason)
 
+	utils.DM(e.OwnerID, fmt.Sprintf("I am leaving your server because %s", reason))
 	if removeErr := session.GuildLeave(serverID); removeErr != nil {
 		return removeErr
 	}
-	utils.DM(e.OwnerID, fmt.Sprintf("I have left your server because: %s", reason))
+
+	return nil
+}
+
+// leaveIfBlacklisted checks if the server with the given server ID is blacklisted. If
+// it is, the bot leaves the server.
+func LeaveIfBlacklisted(session *discordgo.Session, serverID string, e *discordgo.GuildCreate) error {
+	blacklisted, reason := db.IsBlacklisted(serverID, "server")
+	if blacklisted {
+		return leaveServer(session, serverID, fmt.Sprintf("blacklisted: %s", reason), e)
+	}
 	return nil
 }

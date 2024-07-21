@@ -23,12 +23,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 // occurs, indicating no upcoming streams or an error creating the embed, it responds
 // with an error message.
 func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	blacklisted, _ := db.IsBlacklisted(i.User.ID, "user")
-	if blacklisted {
-		utils.LogInfo(" CMND", "command ran by blacklisted user", true,
-			"cmd", i.ApplicationCommandData().Name,
-			"user_id", i.User.ID,
-			"name", i.User.Username)
+	if userIsBlacklisted(i) {
 		return
 	}
 	embed, listErr := streams.StreamList()
@@ -68,12 +63,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // to the interaction with the embed. If the stream is not found or an error occurs,
 // it responds with an error message.
 func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	blacklisted, _ := db.IsBlacklisted(i.User.ID, "user")
-	if blacklisted {
-		utils.LogInfo(" CMND", "command ran by blacklisted user", true,
-			"cmd", i.ApplicationCommandData().Name,
-			"user_id", i.User.ID,
-			"name", i.User.Username)
+	if userIsBlacklisted(i) {
 		return
 	}
 	streamName := i.ApplicationCommandData().Options[0].Value.(string)
@@ -111,12 +101,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // help responds to the interaction with a help message containing information about
 // the bot and its commands. This command is only available to server administrators.
 func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	blacklisted, _ := db.IsBlacklisted(i.User.ID, "user")
-	if blacklisted {
-		utils.LogInfo(" CMND", "command ran by blacklisted user", true,
-			"cmd", i.ApplicationCommandData().Name,
-			"user_id", i.User.ID,
-			"name", i.User.Username)
+	if userIsBlacklisted(i) {
 		return
 	}
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -166,12 +151,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // settings to the database and responds with the updated settings. If an error occurs,
 // it responds with an error message.
 func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	blacklisted, _ := db.IsBlacklisted(i.User.ID, "user")
-	if blacklisted {
-		utils.LogInfo(" CMND", "command ran by blacklisted user", true,
-			"cmd", i.ApplicationCommandData().Name,
-			"user_id", i.User.ID,
-			"name", i.User.Username)
+	if userIsBlacklisted(i) {
 		return
 	}
 	options := parseOptions(i.ApplicationCommandData().Options)
@@ -334,4 +314,23 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 		}
 	}
 	return &o
+}
+
+func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
+	var userID string
+	if i.GuildID == "" {
+		userID = i.User.ID
+	} else {
+		userID = i.Member.User.ID
+	}
+	blacklisted, reason := db.IsBlacklisted(userID, "user")
+	if blacklisted {
+		utils.LogInfo(" CMND", "blacklisted user tried to use command", false,
+			"user", i.User.ID,
+			"reason", reason,
+			"command", i.ApplicationCommandData().Name)
+		utils.DM(i.User.ID, "You are blacklisted from using this bot. Reason: "+reason)
+		return true
+	}
+	return false
 }
