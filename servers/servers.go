@@ -23,7 +23,7 @@ func logGuildNumber(session *discordgo.Session) {
 	utils.Log.Info.WithPrefix("SERVR").Info("connected",
 		"server_count", guildNum)
 
-	reports.DM(session, fmt.Sprintf("connected to %d server%s",
+	reports.DMOwner(session, fmt.Sprintf("connected to %d server%s",
 		guildNum,
 		utils.Pluralise(guildNum)))
 }
@@ -42,17 +42,30 @@ func MonitorGuilds(session *discordgo.Session) {
 		utils.Log.Info.WithPrefix("SERVR").Info("joined server",
 			"server", e.Guild.Name)
 
-		reports.DM(s, fmt.Sprintf("joined server:\n\tserver=%s",
+		reports.DMOwner(s, fmt.Sprintf("joined server:\n\tserver=%s",
 			e.Guild.Name))
-
 		logGuildNumber(s)
+
+		// check if server is blacklisted and leave if it is
+		onBlacklist, reason := db.IsBlacklisted(e.Guild.ID, "server")
+		reason = fmt.Sprintf("blacklisted: %s", reason)
+		if onBlacklist {
+			utils.Log.Info.WithPrefix("SERVR").Info("blacklisted server",
+				"server", e.Guild.Name)
+
+			if leaveServer(s, e.Guild.ID, reason, e) != nil {
+				utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error leaving blacklisted server",
+					"server", e.Guild.Name)
+			}
+			return
+		}
 
 		present, checkErr := db.CheckServerID(e.Guild.ID)
 		if checkErr != nil {
 			utils.Log.ErrorWarn.WithPrefix("SERVR").Error("error checking server ID",
 				"err", checkErr)
 
-			reports.DM(s, fmt.Sprintf("error checking server ID:\n\terr=%s", checkErr))
+			reports.DMOwner(s, fmt.Sprintf("error checking server ID:\n\terr=%s", checkErr))
 			return
 		}
 		if !present {
@@ -66,7 +79,7 @@ func MonitorGuilds(session *discordgo.Session) {
 					"server", e.Guild.Name,
 					"err", setErr)
 
-				reports.DM(s, fmt.Sprintf("error setting server options:\n\tserver=%s\n\terr=%s",
+				reports.DMOwner(s, fmt.Sprintf("error setting server options:\n\tserver=%s\n\terr=%s",
 					e.Guild.Name,
 					setErr))
 			}
@@ -79,7 +92,7 @@ func MonitorGuilds(session *discordgo.Session) {
 		utils.Log.Info.WithPrefix("SERVR").Info("left server",
 			"server", e.Guild.Name)
 
-		reports.DM(s, fmt.Sprintf("left server:\n\tserver=%s", e.Guild.Name))
+		reports.DMOwner(s, fmt.Sprintf("left server:\n\tserver=%s", e.Guild.Name))
 
 		logGuildNumber(s)
 		if removeErr := db.RemoveOptions(e.Guild.ID); removeErr != nil {
@@ -87,7 +100,7 @@ func MonitorGuilds(session *discordgo.Session) {
 				"server", e.Guild.Name,
 				"err", removeErr)
 
-			reports.DM(s, fmt.Sprintf("error removing server options:\n\tserver=%s\n\terr=%s",
+			reports.DMOwner(s, fmt.Sprintf("error removing server options:\n\tserver=%s\n\terr=%s",
 				e.Guild.Name,
 				removeErr))
 		}
@@ -131,5 +144,23 @@ func RemoveOldServerIDs(session *discordgo.Session) error {
 			}
 		}
 	}
+	return nil
+}
+
+// leaveServer leaves the server with the given server ID. It sends a DM to the server
+// owner with the reason the bot left the server.
+func leaveServer(session *discordgo.Session, serverID string, reason string, e *discordgo.GuildCreate) error {
+	utils.Log.Info.WithPrefix("SERVR").Info("leaving server",
+		"server", serverID,
+		"reason", reason)
+
+	reports.DMOwner(session, fmt.Sprintf("leaving server:\n\tserver=%s\n\treason=%s",
+		serverID,
+		reason))
+
+	if removeErr := session.GuildLeave(serverID); removeErr != nil {
+		return removeErr
+	}
+	utils.DM(e.OwnerID, fmt.Sprintf("I have left your server because: %s", reason))
 	return nil
 }

@@ -13,6 +13,8 @@ import (
 // streams contains information about the streams.
 // config contains configuration information for the bot.
 // servers contains information about the servers that the bot is in and their settings.
+// blacklist contains information about users and servers that are blacklisted from
+// using the bot.
 func CreateDB() error {
 	utils.Log.Info.WithPrefix(" MAIN").Info("loading/creating database")
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
@@ -57,5 +59,16 @@ func CreateDB() error {
 	if tableErr != nil {
 		return tableErr
 	}
+
+	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS blacklist
+								(discord_id INTEGER NOT NULL PRIMARY KEY,
+								id_type TEXT,
+								date TEXT,
+								reason TEXT)`)
+
+	if tableErr != nil {
+		return tableErr
+	}
+
 	return nil
 }
