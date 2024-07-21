@@ -298,6 +298,7 @@ func IntroDM(userID string) {
 	DM(userID, message)
 }
 
+// DM sends a direct message to a user.
 func DM(userID string, message string) {
 	st, err := Session.UserChannelCreate(userID)
 	if err != nil {
@@ -313,12 +314,5 @@ func DM(userID string, message string) {
 // DM sends a direct message to the bot owner. The owner's Discord ID is stored in
 // the OWNER_ID environment variable.
 func DMOwner(session *discordgo.Session, message string) {
-	st, err := session.UserChannelCreate(os.Getenv("OWNER_ID"))
-	if err != nil {
-		return
-	}
-	_, sendErr := session.ChannelMessageSend(st.ID, message)
-	if sendErr != nil {
-		return
-	}
+	DM(os.Getenv("OWNER_ID"), message)
 }
