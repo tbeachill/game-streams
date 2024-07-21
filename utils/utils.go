@@ -186,7 +186,7 @@ func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
 	doc, err := GetHtmlBody(streamUrl)
 	if err != nil {
 		Log.ErrorWarn.WithPrefix(" MAIN").Error("error getting youtube html", "err", err)
-		reports.DM(Session, fmt.Sprintf("error getting youtube html:\n\terr=%s", err))
+		reports.DMOwner(Session, fmt.Sprintf("error getting youtube html:\n\terr=%s", err))
 		return "", false
 	}
 	doc.Find("link").Each(func(i int, s *goquery.Selection) {
@@ -261,20 +261,22 @@ func IntroDM(userID string) {
 
 	Log.Info.WithPrefix(" MAIN").Info("sending intro DM", "user", userID)
 
+	DM(userID, message)
+}
+
+func DM(userID string, message string) {
 	st, err := Session.UserChannelCreate(userID)
 	if err != nil {
-		Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating intro DM channel",
+		Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating DM channel",
 			"err", err)
 
-		reports.DM(Session, fmt.Sprintf("error creating intro DM channel:\n\terr=%s", err))
+		reports.DMOwner(Session, fmt.Sprintf("error creating DM channel:\n\terr=%s", err))
 		return
 	}
 	_, err = Session.ChannelMessageSend(st.ID, message)
 	if err != nil {
-		Log.ErrorWarn.WithPrefix(" MAIN").Error("error sending intro DM",
+		Log.ErrorWarn.WithPrefix(" MAIN").Error("error sending DM",
 			"err", err)
-
-		reports.DM(Session, fmt.Sprintf("error sending intro DM:\n\terr=%s", err))
-		return
+		reports.DMOwner(Session, fmt.Sprintf("error sending DM:\n\terr=%s", err))
 	}
 }
