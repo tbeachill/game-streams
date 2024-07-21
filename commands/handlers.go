@@ -37,7 +37,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds",
 				"err", listErr)
 
-			reports.DM(s, fmt.Sprintf("error creating embeds:\n\terr=%s", listErr))
+			reports.DMOwner(s, fmt.Sprintf("error creating embeds:\n\terr=%s", listErr))
 			embed = &discordgo.MessageEmbed{
 				Title:       "Upcoming Streams",
 				Description: "An error occurred",
@@ -56,7 +56,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
 
-		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
+		reports.DMOwner(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
 			i.ApplicationCommandData().Name,
 			respondErr))
 	}
@@ -81,7 +81,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			utils.Log.ErrorWarn.WithPrefix(" CMND").Error("error creating embeds",
 				"err", infoErr)
 
-			reports.DM(s, fmt.Sprintf("error creating embeds:\n\terr=%s",
+			reports.DMOwner(s, fmt.Sprintf("error creating embeds:\n\terr=%s",
 				infoErr))
 			embed = &discordgo.MessageEmbed{
 				Title:       "Stream Info",
@@ -101,7 +101,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
 
-		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
+		reports.DMOwner(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
 			i.ApplicationCommandData().Name,
 			respondErr))
 	}
@@ -147,7 +147,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
 
-		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
+		reports.DMOwner(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
 			i.ApplicationCommandData().Name,
 			respondErr))
 	}
@@ -176,7 +176,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				"server", i.GuildID,
 				"err", optErr)
 
-			reports.DM(s, fmt.Sprintf("error resetting options:\n\tserver=%s\n\terr=%s",
+			reports.DMOwner(s, fmt.Sprintf("error resetting options:\n\tserver=%s\n\terr=%s",
 				i.GuildID,
 				optErr))
 
@@ -190,7 +190,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"server", i.GuildID,
 			"err", getOptErr)
 
-		reports.DM(s, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s",
+		reports.DMOwner(s, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s",
 			i.GuildID,
 			getOptErr))
 
@@ -207,7 +207,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				"channel", currentOptions.AnnounceChannel,
 				"err", cErr)
 
-			reports.DM(s, fmt.Sprintf("error getting channel name:\n\tchannel=%s\n\terr=%s",
+			reports.DMOwner(s, fmt.Sprintf("error getting channel name:\n\tchannel=%s\n\terr=%s",
 				currentOptions.AnnounceChannel.Value,
 				cErr))
 
@@ -223,7 +223,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				"role", currentOptions.AnnounceRole,
 				"err", rErr)
 
-			reports.DM(s, fmt.Sprintf("error getting role name:\n\trole=%s\n\terr=%s",
+			reports.DMOwner(s, fmt.Sprintf("error getting role name:\n\trole=%s\n\terr=%s",
 				currentOptions.AnnounceRole.Value,
 				rErr))
 
@@ -283,7 +283,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"server", i.GuildID,
 			"err", settingsErr)
 
-		reports.DM(s, fmt.Sprintf("error setting options:\n\tserver=%s\n\terr=%s",
+		reports.DMOwner(s, fmt.Sprintf("error setting options:\n\tserver=%s\n\terr=%s",
 			i.GuildID,
 			settingsErr))
 
@@ -306,7 +306,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
 
-		reports.DM(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
+		reports.DMOwner(s, fmt.Sprintf("error responding to interaction:\n\tcmd=%s\n\terr=%s",
 			i.ApplicationCommandData().Name,
 			respondErr))
 	}

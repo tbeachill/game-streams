@@ -123,7 +123,7 @@ func ScheduleNotifications(session *discordgo.Session) error {
 			streamTime, parseErr := time.Parse("2006-01-02 15:04", dateTime)
 			if parseErr != nil {
 				utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error parsing time")
-				reports.DM(session, fmt.Sprintf("error parsing time:\n\terr=%s",
+				reports.DMOwner(session, fmt.Sprintf("error parsing time:\n\terr=%s",
 					parseErr))
 
 				return
@@ -156,7 +156,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error getting server platforms",
 			"err", platErr)
 
-		reports.DM(session, fmt.Sprintf("error getting server platforms:\n\terr=%s",
+		reports.DMOwner(session, fmt.Sprintf("error getting server platforms:\n\terr=%s",
 			platErr))
 
 		return
@@ -174,7 +174,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 				"server", server,
 				"err", getOptErr)
 
-			reports.DM(session, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s",
+			reports.DMOwner(session, fmt.Sprintf("error getting options:\n\tserver=%s\n\terr=%s",
 				server,
 				getOptErr))
 
@@ -189,7 +189,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 				"server", server,
 				"err", embedErr)
 
-			reports.DM(session, fmt.Sprintf("error creating embed:\n\tserver=%s\n\terr=%s",
+			reports.DMOwner(session, fmt.Sprintf("error creating embed:\n\tserver=%s\n\terr=%s",
 				server,
 				embedErr))
 
@@ -203,7 +203,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 				"role", options.AnnounceRole,
 				"err", postErr)
 
-			reports.DM(session, fmt.Sprintf("error posting message:\n\tserver=%s\n\tchannel=%s\n\trole=%s\n\terr=%s",
+			reports.DMOwner(session, fmt.Sprintf("error posting message:\n\tserver=%s\n\tchannel=%s\n\trole=%s\n\terr=%s",
 				server,
 				options.AnnounceChannel.Value,
 				options.AnnounceRole.Value,
@@ -240,7 +240,7 @@ func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed
 			"message", msg.ID,
 			"err", editErr)
 
-		reports.DM(session, fmt.Sprintf("error editing message:\n\tchannel=%s\n\tmessage=%s\n\terr=%s",
+		reports.DMOwner(session, fmt.Sprintf("error editing message:\n\tchannel=%s\n\tmessage=%s\n\terr=%s",
 			msg.ChannelID,
 			msg.ID,
 			editErr))

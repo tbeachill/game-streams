@@ -25,7 +25,7 @@ func Run(botToken, appID string) {
 		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating Discord session",
 			"err", sessionErr)
 
-		reports.DM(session, fmt.Sprintf("error creating Discord session:\n\terr=%s",
+		reports.DMOwner(session, fmt.Sprintf("error creating Discord session:\n\terr=%s",
 			sessionErr))
 
 		return
@@ -34,7 +34,7 @@ func Run(botToken, appID string) {
 		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error connecting to Discord",
 			"err", openErr)
 
-		reports.DM(session, fmt.Sprintf("error connecting to Discord:\n\terr=%s",
+		reports.DMOwner(session, fmt.Sprintf("error connecting to Discord:\n\terr=%s",
 			openErr))
 		return
 	}
@@ -48,7 +48,7 @@ func Run(botToken, appID string) {
 	go startScheduler(session)
 	servers.MonitorGuilds(session)
 	utils.StartTime = time.Now().UTC()
-	reports.DM(session, "bot started")
+	reports.DMOwner(session, "bot started")
 	utils.Log.Info.WithPrefix(" MAIN").Info("running. press ctrl + c to terminate")
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -65,7 +65,7 @@ func startUpdater() {
 			utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error updating streams",
 				"err", updateErr)
 
-			reports.DM(utils.Session, fmt.Sprintf("error updating streams:\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error updating streams:\n\terr=%s",
 				updateErr))
 		}
 		minsRemaining := 60 - time.Now().UTC().Minute()
@@ -92,14 +92,14 @@ func startScheduler(session *discordgo.Session) {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error checking tomorrow's streams",
 				"err", tomorrowErr)
 
-			reports.DM(utils.Session, fmt.Sprintf("error checking tomorrow's streams:\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error checking tomorrow's streams:\n\terr=%s",
 				tomorrowErr))
 		}
 		if len(s.Streams) > 0 {
 			utils.Log.Info.WithPrefix("SCHED").Info("streams tomorrow with no time",
 				"streams", s.Streams)
 
-			reports.DM(utils.Session, fmt.Sprintf("streams tomorrow with no time:\n\tstreams=%v",
+			reports.DMOwner(utils.Session, fmt.Sprintf("streams tomorrow with no time:\n\tstreams=%v",
 				s.Streams))
 		}
 		// schedule notifications for today's streams
@@ -107,7 +107,7 @@ func startScheduler(session *discordgo.Session) {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error scheduling today's streams",
 				"err", scheduleErr)
 
-			reports.DM(utils.Session, fmt.Sprintf("error scheduling todays streams:\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error scheduling todays streams:\n\terr=%s",
 				scheduleErr))
 		}
 		// remove old server IDs from the servers table
@@ -116,7 +116,7 @@ func startScheduler(session *discordgo.Session) {
 			utils.Log.ErrorWarn.WithPrefix("SCHED").Error("error removing old servers",
 				"err", removeErr)
 
-			reports.DM(utils.Session, fmt.Sprintf("error removing old servers:\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error removing old servers:\n\terr=%s",
 				removeErr))
 		}
 		utils.Log.Info.WithPrefix("SCHED").Info("truncating logs...")

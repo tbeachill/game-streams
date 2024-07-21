@@ -19,7 +19,7 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 				"cmd", c.Name,
 				"err", err)
 
-			reports.DM(utils.Session, fmt.Sprintf("error creating command:\n\tcmd=%s\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error creating command:\n\tcmd=%s\n\terr=%s",
 				c.Name,
 				err))
 		}
@@ -36,7 +36,7 @@ func RemoveAllCommands(appID string, s *discordgo.Session) {
 		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error removing commands",
 			"err", err)
 
-		reports.DM(utils.Session, fmt.Sprintf("error removing commands:\n\terr=%s",
+		reports.DMOwner(utils.Session, fmt.Sprintf("error removing commands:\n\terr=%s",
 			err))
 	}
 	for _, command := range commands {
@@ -46,7 +46,7 @@ func RemoveAllCommands(appID string, s *discordgo.Session) {
 				"cmd", command.Name,
 				"err", delErr)
 
-			reports.DM(utils.Session, fmt.Sprintf("error removing command:\n\tcmd=%s\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error removing command:\n\tcmd=%s\n\terr=%s",
 				command.Name,
 				delErr))
 			continue

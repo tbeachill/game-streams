@@ -81,7 +81,7 @@ func update(s *discordgo.Session, m *discordgo.MessageCreate) {
 			utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error updating streams",
 				"err", updateErr)
 
-			reports.DM(utils.Session, fmt.Sprintf("error updating streams:\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error updating streams:\n\terr=%s",
 				updateErr))
 		} else {
 			s.ChannelMessageSend(m.ChannelID, "streams updated")
@@ -102,7 +102,7 @@ func removeOldServers(s *discordgo.Session, m *discordgo.MessageCreate) {
 			utils.Log.ErrorWarn.WithPrefix("STATS").Error("error removing old servers",
 				"err", removeErr)
 
-			reports.DM(s, fmt.Sprintf("error removing old servers:\n\terr=%s", removeErr))
+			reports.DMOwner(s, fmt.Sprintf("error removing old servers:\n\terr=%s", removeErr))
 		} else {
 			s.ChannelMessageSend(m.ChannelID, "old servers removed")
 		}
@@ -123,7 +123,7 @@ func sqlExecute(s *discordgo.Session, m *discordgo.MessageCreate) {
 			utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error opening db",
 				"err", openErr)
 
-			reports.DM(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s",
 				openErr))
 		}
 		defer db.Close()
@@ -133,7 +133,7 @@ func sqlExecute(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if execErr != nil {
 			utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error executing db",
 				"err", execErr)
-			reports.DM(utils.Session, fmt.Sprintf("error executing db:\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error executing db:\n\terr=%s",
 				execErr))
 		}
 		s.ChannelMessageSend(m.ChannelID, "sql executed")
@@ -153,7 +153,7 @@ func ownerListStreams(s *discordgo.Session, m *discordgo.MessageCreate) {
 			utils.Log.ErrorWarn.WithPrefix("LISTS").Error("error getting streams",
 				"err", getErr)
 
-			reports.DM(utils.Session, fmt.Sprintf("error getting streams:\n\terr=%s",
+			reports.DMOwner(utils.Session, fmt.Sprintf("error getting streams:\n\terr=%s",
 				getErr))
 		}
 		for _, stream := range streams.Streams {

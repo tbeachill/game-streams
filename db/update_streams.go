@@ -231,7 +231,7 @@ func (s *Streams) InsertStreams() {
 	if sqlErr != nil {
 		utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error opening db",
 			"err", sqlErr)
-		reports.DM(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s", sqlErr))
+		reports.DMOwner(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s", sqlErr))
 		return
 	}
 	defer db.Close()
@@ -262,7 +262,7 @@ func (s *Streams) InsertStreams() {
 				"stream", stream.Name,
 				"err", insertErr)
 
-			reports.DM(utils.Session,
+			reports.DMOwner(utils.Session,
 				fmt.Sprintf("error inserting stream:\n\tstream=%s\n\terr=%s", stream.Name, insertErr))
 
 			continue
@@ -277,7 +277,7 @@ func (s *Streams) DeleteStreams() {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		utils.Log.ErrorWarn.WithPrefix("UPDAT").Error("error opening db", "err", openErr)
-		reports.DM(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s", openErr))
+		reports.DMOwner(utils.Session, fmt.Sprintf("error opening db:\n\terr=%s", openErr))
 		return
 	}
 	defer db.Close()
@@ -295,7 +295,7 @@ func (s *Streams) DeleteStreams() {
 					"stream", x.Name,
 					"err", deleteErr)
 
-				reports.DM(utils.Session,
+				reports.DMOwner(utils.Session,
 					fmt.Sprintf("error deleting stream:\n\tstream=%s\n\terr=%s", x.Name, deleteErr))
 				continue
 			}
