@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -22,6 +23,8 @@ func RegisterOwnerCommands(s *discordgo.Session) {
 	s.AddHandler(removeOldServers)
 	s.AddHandler(sqlExecute)
 	s.AddHandler(ownerListStreams)
+	s.AddHandler(blacklistEdit)
+	s.AddHandler(blacklistGet)
 }
 
 // listCommands is a command that lists all the owner commands
@@ -36,7 +39,10 @@ func listCommands(s *discordgo.Session, m *discordgo.MessageCreate) {
 			"!removeoldservers\n"+
 			"!sqlx <command>\n"+
 			"!streams\n"+
-			"!log```")
+			"!log\n"+
+			"!blacklist add <type> <id> <reason>\n"+
+			"!blacklist rm <id>\n"+
+			"!blacklist get```")
 	}
 }
 
@@ -111,15 +117,16 @@ func sqlExecute(s *discordgo.Session, m *discordgo.MessageCreate) {
 		len(m.Content) < 6 {
 		return
 	}
-	if m.Content[:5] == "!sqlx" {
+	command := m.Content[:5]
+	if command == "!sqlx" {
 		db, openErr := sql.Open("sqlite3", utils.Files.DB)
 		if openErr != nil {
 			utils.LogError("OWNER", "error opening database",
 				"err", openErr)
 		}
 		defer db.Close()
-
-		_, execErr := db.Exec(m.Content[6:])
+		query := m.Content[6:]
+		_, execErr := db.Exec(query)
 		if execErr != nil {
 			utils.LogError("OWNER", "error executing database command",
 				"err", execErr)
@@ -149,5 +156,102 @@ func ownerListStreams(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "----------------")
 			time.Sleep(time.Second / 2)
 		}
+	}
+}
+
+// blacklistEdit allows the owner to add or remove users or servers from the blacklist
+func blacklistEdit(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID ||
+		m.Author.ID != os.Getenv("OWNER_ID") {
+		return
+	}
+	splitString := strings.Split(m.Content, " ")
+	if len(splitString) < 2 {
+		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist add"+
+			" [type] [id] [reason]` or `!blacklist rm [id]` or `!blacklist get`")
+		return
+	} else if splitString[1] == "get" {
+		return
+	}
+	command := splitString[0]
+	subCommand := splitString[1]
+	if command == "!blacklist" {
+		if subCommand == "add" {
+			blacklistAdd(s, m, splitString)
+		} else if subCommand == "rm" {
+			blacklistRemove(s, m, splitString)
+		} else {
+			s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist add"+
+				" [type] [id] [reason]` or `!blacklist rm [id]` or `!blacklist get`")
+		}
+	}
+}
+
+// blacklistAdd adds a user or server to the blacklist
+func blacklistAdd(s *discordgo.Session, m *discordgo.MessageCreate, splitString []string) {
+	if len(splitString) < 5 || splitString[2] == "" || splitString[3] == "" ||
+		splitString[4] == "" {
+		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist add"+
+			" [type] [id] [reason]`")
+		return
+	}
+	id_type := splitString[2]
+	id := splitString[3]
+	reason := strings.Join(splitString[4:], " ")
+	println(reason)
+	if db.AddToBlacklist(id, id_type, reason) != nil {
+		utils.LogError("OWNER", "error adding to blacklist",
+			"id", id,
+			"id_type", id_type,
+			"reason", reason)
+	} else {
+		s.ChannelMessageSend(m.ChannelID, "added to blacklist")
+	}
+}
+
+// blacklistRemove removes a user or server from the blacklist
+func blacklistRemove(s *discordgo.Session, m *discordgo.MessageCreate, splitString []string) {
+	if len(splitString) < 3 || splitString[2] == "" || len(splitString) > 3 {
+		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist rm [id]`")
+		return
+	}
+
+	id := splitString[2]
+	exists, _ := db.IsBlacklisted(id, "")
+	if !exists {
+		s.ChannelMessageSend(m.ChannelID, "id not in blacklist")
+		return
+	}
+	if db.RemoveFromBlacklist(id) != nil {
+		utils.LogError("OWNER", "error removing from blacklist",
+			"id", id)
+	} else {
+		s.ChannelMessageSend(m.ChannelID, "removed from blacklist")
+	}
+}
+
+// blacklistGet lists all blacklisted users and servers
+func blacklistGet(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID ||
+		m.Author.ID != os.Getenv("OWNER_ID") ||
+		len(m.Content) < 14 {
+		return
+	}
+	if m.Content == "!blacklist get" {
+		blacklist, err := db.GetBlacklist()
+		if err != nil {
+			utils.LogError("OWNER", "error getting blacklist",
+				"err", err)
+		}
+		if len(blacklist) == 0 {
+			s.ChannelMessageSend(m.ChannelID, "blacklist is empty")
+			return
+		}
+		var msg string
+		for _, entry := range blacklist {
+			msg += fmt.Sprintf("id: `%d` id_type: `%s` date: `%s` reason: `%s`\n",
+				entry.ID, entry.IDType, entry.Date, entry.Reason)
+		}
+		s.ChannelMessageSend(m.ChannelID, msg)
 	}
 }
