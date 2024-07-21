@@ -26,6 +26,8 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	db.IncrementUsageCount(i.GuildID)
+
 	embed, listErr := streams.StreamList()
 	if listErr != nil {
 		if listErr.Error() == "no streams found" {
@@ -66,6 +68,8 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	db.IncrementUsageCount(i.GuildID)
+
 	streamName := i.ApplicationCommandData().Options[0].Value.(string)
 	embed, infoErr := streams.StreamInfo(streamName)
 	if infoErr != nil {
@@ -104,6 +108,8 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	db.IncrementUsageCount(i.GuildID)
+
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -154,17 +160,18 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	db.IncrementUsageCount(i.GuildID)
+
 	options := parseOptions(i.ApplicationCommandData().Options)
-	utils.LogInfo(" CMND", "options", false, "options", options)
 
 	var status string
-	if *options == (db.Options{}) || options.Reset {
+	if *options == (db.Settings{}) || options.Reset {
 		status = "Current settings:"
 	} else {
 		status = "Settings successfully updated\nCurrent settings:"
 	}
 	if options.Reset {
-		*options = db.NewOptions(i.GuildID)
+		*options = db.NewSettings(i.GuildID)
 		if optErr := options.Set(); optErr != nil {
 			utils.LogError(" CMND", "error resetting options",
 				"server", i.GuildID,
@@ -173,7 +180,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			status = "An error occurred. Settings may not have been reset."
 		}
 	}
-	var currentOptions = db.NewOptions(i.GuildID)
+	var currentOptions = db.NewSettings(i.GuildID)
 
 	if getOptErr := currentOptions.Get(i.GuildID); getOptErr != nil {
 		utils.LogError(" CMND", "error getting options",
@@ -283,37 +290,37 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
-// parseOptions parses the options from the interaction into an options struct.
-func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) *db.Options {
-	var o db.Options
+// parseOptions parses the options from the interaction into a settings struct.
+func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) *db.Settings {
+	var s db.Settings
 	for _, option := range options {
 		switch option.Name {
 		case "channel":
-			o.AnnounceChannel.Value = option.Value.(string)
-			o.AnnounceChannel.Set = true
+			s.AnnounceChannel.Value = option.Value.(string)
+			s.AnnounceChannel.Set = true
 		case "role":
-			o.AnnounceRole.Value = option.Value.(string)
-			o.AnnounceRole.Set = true
+			s.AnnounceRole.Value = option.Value.(string)
+			s.AnnounceRole.Set = true
 		case "playstation":
-			o.Playstation.Value = option.Value.(bool)
-			o.Playstation.Set = true
+			s.Playstation.Value = option.Value.(bool)
+			s.Playstation.Set = true
 		case "xbox":
-			o.Xbox.Value = option.Value.(bool)
-			o.Xbox.Set = true
+			s.Xbox.Value = option.Value.(bool)
+			s.Xbox.Set = true
 		case "nintendo":
-			o.Nintendo.Value = option.Value.(bool)
-			o.Nintendo.Set = true
+			s.Nintendo.Value = option.Value.(bool)
+			s.Nintendo.Set = true
 		case "pc":
-			o.PC.Value = option.Value.(bool)
-			o.PC.Set = true
+			s.PC.Value = option.Value.(bool)
+			s.PC.Set = true
 		case "vr":
-			o.VR.Value = option.Value.(bool)
-			o.VR.Set = true
+			s.VR.Value = option.Value.(bool)
+			s.VR.Set = true
 		case "reset":
-			o.Reset = option.Value.(bool)
+			s.Reset = option.Value.(bool)
 		}
 	}
-	return &o
+	return &s
 }
 
 func userIsBlacklisted(i *discordgo.InteractionCreate) bool {

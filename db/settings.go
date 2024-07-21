@@ -2,17 +2,18 @@ package db
 
 import (
 	"database/sql"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"gamestreambot/utils"
 )
 
-// Options is a struct that contains the options for a server. It contains the
+// Settings is a struct that contains the options for a server. It contains the
 // server ID, the channel to announce streams, the role to announce streams, and flags
 // for each platform to announce streams for. It also contains a flag to reset the
 // options for a server.
-type Options struct {
+type Settings struct {
 	ServerID        string
 	AnnounceChannel StringSet
 	AnnounceRole    StringSet
@@ -38,12 +39,12 @@ type BoolSet struct {
 	Set   bool
 }
 
-// NewOptions returns a new Options struct with default values and the given server ID.
-func NewOptions(serverID string) Options {
-	return Options{
+// NewSettings returns a new Settings struct with default values and the given server ID.
+func NewSettings(serverID string) Settings {
+	return Settings{
 		ServerID:        serverID,
-		AnnounceChannel: StringSet{"", false},
-		AnnounceRole:    StringSet{"", false},
+		AnnounceChannel: StringSet{"0", false},
+		AnnounceRole:    StringSet{"0", false},
 		Playstation:     BoolSet{false, false},
 		Xbox:            BoolSet{false, false},
 		Nintendo:        BoolSet{false, false},
@@ -53,19 +54,19 @@ func NewOptions(serverID string) Options {
 	}
 }
 
-// Set will write the values of the options struct to the servers table of the database.
-// If the server is not in the table, it will insert a new row. If the server is in the
-// table, it will update the row.
-func (o *Options) Set() error {
+// Set will write the values of the Settings struct to the server_settings table of the
+// database. If the server is not in the table, it will insert a new row. If the server
+// is in the table, it will update the row.
+func (s *Settings) Set() error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
-	utils.Log.Info.Info("setting options", "server", o.ServerID, "options", o)
+	utils.LogInfo(" CMND", "applying settings", false, "server", s.ServerID, "settings", s)
 
-	if !checkOptions(o.ServerID) {
-		_, execErr := db.Exec(`INSERT INTO servers
+	if !checkSettings(s.ServerID) {
+		_, execErr := db.Exec(`INSERT INTO server_settings
 									(server_id,
 									announce_channel,
 									announce_role,
@@ -75,20 +76,41 @@ func (o *Options) Set() error {
 									pc,
 									vr)
 								VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-			o.ServerID,
-			o.AnnounceChannel.Value,
-			o.AnnounceRole.Value,
-			o.Playstation.Value,
-			o.Xbox.Value,
-			o.Nintendo.Value,
-			o.PC.Value,
-			o.VR.Value)
+			s.ServerID,
+			s.AnnounceChannel.Value,
+			s.AnnounceRole.Value,
+			s.Playstation.Value,
+			s.Xbox.Value,
+			s.Nintendo.Value,
+			s.PC.Value,
+			s.VR.Value)
 
 		if execErr != nil {
 			return execErr
 		}
+		inServerTable, err := CheckServerID(s.ServerID)
+		if err != nil {
+			return err
+		}
+		if !inServerTable {
+			_, execErr = db.Exec(`INSERT INTO servers
+									(server_id,
+									server_name,
+									owner_id,
+									date_joined,
+									usage_count)
+								VALUES (?, ?, ?, ?, ?)`,
+				s.ServerID,
+				"",
+				"",
+				time.Now().UTC().Format("2006-01-02"),
+				0)
+			if execErr != nil {
+				return execErr
+			}
+		}
 	} else {
-		_, execErr := db.Exec(`UPDATE servers
+		_, execErr := db.Exec(`UPDATE server_settings
 								SET announce_channel = ?,
 									announce_role = ?,
 									playstation = ?,
@@ -97,14 +119,14 @@ func (o *Options) Set() error {
 									pc = ?,
 									vr = ?
 								WHERE server_id = ?`,
-			o.AnnounceChannel.Value,
-			o.AnnounceRole.Value,
-			o.Playstation.Value,
-			o.Xbox.Value,
-			o.Nintendo.Value,
-			o.PC.Value,
-			o.VR.Value,
-			o.ServerID)
+			s.AnnounceChannel.Value,
+			s.AnnounceRole.Value,
+			s.Playstation.Value,
+			s.Xbox.Value,
+			s.Nintendo.Value,
+			s.PC.Value,
+			s.VR.Value,
+			s.ServerID)
 
 		if execErr != nil {
 			return execErr
@@ -116,14 +138,14 @@ func (o *Options) Set() error {
 // Get will get the settings for a server from the servers table of the database and
 // write them to the options struct. If the server is not in the table, it will set the
 // default values for the options struct and write them to the database.
-func (o *Options) Get(serverID string) error {
+func (s *Settings) Get(serverID string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
-	if !checkOptions(serverID) {
-		if o.Set() != nil {
+	if !checkSettings(serverID) {
+		if s.Set() != nil {
 			return openErr
 		}
 	}
@@ -135,18 +157,18 @@ func (o *Options) Get(serverID string) error {
 							nintendo,
 							pc,
 							vr
-						FROM servers
+						FROM server_settings
 						WHERE server_id = ?`,
 		serverID)
 
-	scanErr := row.Scan(&o.ServerID,
-		&o.AnnounceChannel.Value,
-		&o.AnnounceRole.Value,
-		&o.Playstation.Value,
-		&o.Xbox.Value,
-		&o.Nintendo.Value,
-		&o.PC.Value,
-		&o.VR.Value)
+	scanErr := row.Scan(&s.ServerID,
+		&s.AnnounceChannel.Value,
+		&s.AnnounceRole.Value,
+		&s.Playstation.Value,
+		&s.Xbox.Value,
+		&s.Nintendo.Value,
+		&s.PC.Value,
+		&s.VR.Value)
 
 	if scanErr != nil {
 		return scanErr
@@ -157,33 +179,33 @@ func (o *Options) Get(serverID string) error {
 // Merge will merge the values of the given options struct into the options struct
 // calling the method. If a value is set in the given options struct, it will overwrite
 // the value in the calling options struct.
-func (o *Options) Merge(p Options) {
-	if p.AnnounceChannel.Set {
-		o.AnnounceChannel = p.AnnounceChannel
+func (s *Settings) Merge(t Settings) {
+	if t.AnnounceChannel.Set {
+		s.AnnounceChannel = t.AnnounceChannel
 	}
-	if p.AnnounceRole.Set {
-		o.AnnounceRole = p.AnnounceRole
+	if t.AnnounceRole.Set {
+		s.AnnounceRole = t.AnnounceRole
 	}
-	if p.Playstation.Set {
-		o.Playstation = p.Playstation
+	if t.Playstation.Set {
+		s.Playstation = t.Playstation
 	}
-	if p.Xbox.Set {
-		o.Xbox = p.Xbox
+	if t.Xbox.Set {
+		s.Xbox = t.Xbox
 	}
-	if p.Nintendo.Set {
-		o.Nintendo = p.Nintendo
+	if t.Nintendo.Set {
+		s.Nintendo = t.Nintendo
 	}
-	if p.PC.Set {
-		o.PC = p.PC
+	if t.PC.Set {
+		s.PC = t.PC
 	}
-	if p.VR.Set {
-		o.VR = p.VR
+	if t.VR.Set {
+		s.VR = t.VR
 	}
 }
 
 // checkOptions checks if the given server ID exists in the servers table of the
 // database. Returns true if the server ID exists, false if it does not.
-func checkOptions(serverID string) bool {
+func checkSettings(serverID string) bool {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		utils.LogError(" MAIN", "error opening database", "err", openErr)
@@ -192,30 +214,10 @@ func checkOptions(serverID string) bool {
 	defer db.Close()
 
 	rows := db.QueryRow(`SELECT server_id
-						FROM servers
+						FROM server_settings
 						WHERE server_id = ?`,
 		serverID)
 
 	getErr := rows.Scan(&serverID)
 	return getErr == nil
-}
-
-// RemoveOptions will remove the server from the servers table of the database.
-func RemoveOptions(serverID string) error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
-	if openErr != nil {
-		return openErr
-	}
-	defer db.Close()
-
-	utils.LogInfo(" MAIN", "removing from options table", false, "server", serverID)
-
-	_, execErr := db.Exec(`DELETE FROM servers
-							WHERE server_id = ?`,
-		serverID)
-
-	if execErr != nil {
-		return execErr
-	}
-	return nil
 }

@@ -195,14 +195,14 @@ func blacklistAdd(s *discordgo.Session, m *discordgo.MessageCreate, splitString 
 			" [type] [id] [reason]`")
 		return
 	}
-	id_type := splitString[2]
+	idType := splitString[2]
 	id := splitString[3]
 	reason := strings.Join(splitString[4:], " ")
 	println(reason)
-	if db.AddToBlacklist(id, id_type, reason) != nil {
+	if db.AddToBlacklist(id, idType, reason, 1) != nil {
 		utils.LogError("OWNER", "error adding to blacklist",
 			"id", id,
-			"id_type", id_type,
+			"id_type", idType,
 			"reason", reason)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "added to blacklist")
@@ -249,8 +249,8 @@ func blacklistGet(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		var msg string
 		for _, entry := range blacklist {
-			msg += fmt.Sprintf("id: `%d` id_type: `%s` date: `%s` reason: `%s`\n",
-				entry.ID, entry.IDType, entry.Date, entry.Reason)
+			msg += fmt.Sprintf("id: `%d` id_type: `%s` date_added: `%s` date_expires `%s` reason: `%s`\n",
+				entry.ID, entry.IDType, entry.DateAdded, entry.DateExpires, entry.Reason)
 		}
 		s.ChannelMessageSend(m.ChannelID, msg)
 	}

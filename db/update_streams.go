@@ -73,7 +73,7 @@ func (s *Streams) Update() error {
 // parseToml parses the streams.toml file from the flat-files repository and returns
 // as a Streams struct.
 func parseToml(c Config) Streams {
-	response, httpErr := http.Get(c.StreamURL)
+	response, httpErr := http.Get(c.TomlURL)
 	if httpErr != nil {
 		return Streams{}
 	}
@@ -122,12 +122,12 @@ func (s *Streams) UpdateRow() error {
 				"name", stream.Name)
 
 			_, updateErr := db.Exec(`UPDATE streams
-									SET name = ?,
+									SET stream_name = ?,
 										platform = ?,
-										date = ?,
-										time = ?,
-										description = ?,
-										url = ?
+										stream_date = ?,
+										start_time = ?,
+										stream_desc = ?,
+										stream_url = ?
 									WHERE id = ?`,
 				stream.Name,
 				stream.Platform,
@@ -165,10 +165,10 @@ func (s *Streams) CheckForDuplicates() error {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query(`SELECT name,
+	rows, queryErr := db.Query(`SELECT stream_name,
 									platform,
-									date,
-									time
+									stream_date,
+									start_time
 								FROM streams`)
 	if queryErr != nil {
 		return queryErr
@@ -239,12 +239,12 @@ func (s *Streams) InsertStreams() {
 			"name", stream.Name)
 
 		_, insertErr := db.Exec(`INSERT INTO streams
-									(name,
+									(stream_name,
 									platform,
-									date,
-									time,
-									description,
-									url)
+									stream_date,
+									start_time,
+									stream_desc,
+									stream_url)
 								VALUES (?, ?, ?, ?, ?, ?)`,
 			stream.Name,
 			stream.Platform,

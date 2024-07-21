@@ -9,10 +9,11 @@ import (
 
 // Blacklist is a struct that holds the blacklist values for the bot.
 type Blacklist struct {
-	ID     int
-	IDType string
-	Date   string
-	Reason string
+	ID          int
+	IDType      string
+	DateAdded   string
+	DateExpires string
+	Reason      string
 }
 
 // IsBlacklisted checks if the given ID is blacklisted. Returns true if the ID is blacklisted,
@@ -47,11 +48,11 @@ func IsBlacklisted(id string, idType string) (bool, string) {
 }
 
 // AddToBlacklist adds the given ID to the blacklist table in the database.
-func AddToBlacklist(id string, idType string, reason string) error {
+func AddToBlacklist(id string, idType string, reason string, length_days int) error {
 	utils.LogInfo("OWNER", "adding to blacklist table", false,
 		"id", id,
-		"idType",
-		idType,
+		"idType", idType,
+		"days", length_days,
 		"reason", reason)
 
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
@@ -61,9 +62,15 @@ func AddToBlacklist(id string, idType string, reason string) error {
 	defer db.Close()
 
 	currentDate := time.Now().UTC().Format("2006-01-02")
-	_, execErr := db.Exec(`INSERT INTO blacklist (discord_id, id_type, date, reason)
+	expiryDate := time.Now().AddDate(0, 0, length_days).UTC().Format("2006-01-02")
+	_, execErr := db.Exec(`INSERT INTO blacklist
+								(discord_id,
+								id_type,
+								date_added,
+								date_expires,
+								reason)
 							VALUES (?, ?, ?, ?)`,
-		id, idType, currentDate, reason)
+		id, idType, currentDate, expiryDate, reason)
 	return execErr
 }
 
@@ -91,7 +98,11 @@ func GetBlacklist() ([]Blacklist, error) {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query(`SELECT discord_id, id_type, date, reason
+	rows, queryErr := db.Query(`SELECT discord_id,
+									id_type,
+									date_added,
+									date_expires,
+									reason
 								FROM blacklist`)
 	if queryErr != nil {
 		return nil, queryErr
@@ -101,7 +112,7 @@ func GetBlacklist() ([]Blacklist, error) {
 	var blacklist []Blacklist
 	for rows.Next() {
 		var b Blacklist
-		scanErr := rows.Scan(&b.ID, &b.IDType, &b.Date, &b.Reason)
+		scanErr := rows.Scan(&b.ID, &b.IDType, &b.DateAdded, &b.DateExpires, &b.Reason)
 		if scanErr != nil {
 			return nil, scanErr
 		}

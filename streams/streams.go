@@ -161,29 +161,29 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 	MakeStreamUrlDirect(&stream)
 
 	for server := range uniqueServers {
-		var options db.Options
-		if getOptErr := options.Get(server); getOptErr != nil {
-			utils.LogError("SCHED", "error getting options",
+		var settings db.Settings
+		if getSetErr := settings.Get(server); getSetErr != nil {
+			utils.LogError("SCHED", "error getting settings",
 				"server", server,
-				"err", getOptErr)
+				"err", getSetErr)
 			continue
 		}
-		if options.AnnounceChannel.Value == "" {
+		if settings.AnnounceChannel.Value == "" {
 			continue
 		}
-		embed, embedErr := createStreamEmbed(stream, options.AnnounceRole.Value)
+		embed, embedErr := createStreamEmbed(stream, settings.AnnounceRole.Value)
 		if embedErr != nil {
 			utils.LogError("SCHED", "error creating embed",
 				"server", server,
 				"err", embedErr)
 			continue
 		}
-		msg, postErr := session.ChannelMessageSendEmbed(options.AnnounceChannel.Value, embed)
+		msg, postErr := session.ChannelMessageSendEmbed(settings.AnnounceChannel.Value, embed)
 		if postErr != nil {
 			utils.LogError("SCHED", "error posting message",
 				"server", server,
-				"channel", options.AnnounceChannel,
-				"role", options.AnnounceRole,
+				"channel", settings.AnnounceChannel,
+				"role", settings.AnnounceRole,
 				"err", postErr)
 		}
 		go EditAnnouncementEmbed(msg, embed, session)

@@ -25,12 +25,12 @@ func CreateDB() error {
 
 	_, tableErr := db.Exec(`CREATE TABLE IF NOT EXISTS streams
 								(id INTEGER NOT NULL PRIMARY KEY,
-								name TEXT,
+								stream_name TEXT,
 								platform TEXT,
-								date TEXT,
-								time TEXT,
-								description TEXT,
-								url TEXT)`)
+								stream_date TEXT,
+								start_time TEXT,
+								stream_desc TEXT,
+								stream_url TEXT)`)
 
 	if tableErr != nil {
 		return tableErr
@@ -38,7 +38,7 @@ func CreateDB() error {
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS config
 								(id INTEGER NOT NULL PRIMARY KEY,
-								stream_url TEXT,
+								toml_url TEXT,
 								api_url TEXT,
 								last_updated TEXT)`)
 
@@ -48,13 +48,24 @@ func CreateDB() error {
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS servers
 								(server_id INTEGER NOT NULL PRIMARY KEY,
+								server_name TEXT,
+								owner_id INTEGER,
+								date_joined TEXT,
+								usage_count INTEGER)`)
+
+	if tableErr != nil {
+		return tableErr
+	}
+
+	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS server_settings
+								(server_id INTEGER NOT NULL PRIMARY KEY,
 								announce_channel TEXT,
 								announce_role TEXT,
 								playstation BOOLEAN,
 								xbox BOOLEAN,
 								nintendo BOOLEAN,
 								pc BOOLEAN,
-								vr BOOLEAN);`)
+								vr BOOLEAN)`)
 
 	if tableErr != nil {
 		return tableErr
@@ -63,7 +74,8 @@ func CreateDB() error {
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS blacklist
 								(discord_id INTEGER NOT NULL PRIMARY KEY,
 								id_type TEXT,
-								date TEXT,
+								date_added TEXT,
+								date_expires TEXT,
 								reason TEXT)`)
 
 	if tableErr != nil {

@@ -16,7 +16,7 @@ import (
 // Config is a struct that holds the configuration values for the bot.
 type Config struct {
 	ID         int
-	StreamURL  string
+	TomlURL    string
 	APIURL     string
 	LastUpdate string
 	CommitTime time.Time
@@ -35,7 +35,7 @@ func (c *Config) Get() error {
 						FROM config
 						WHERE id = 1`)
 
-	scanErr := row.Scan(&c.ID, &c.StreamURL, &c.APIURL, &c.LastUpdate)
+	scanErr := row.Scan(&c.ID, &c.TomlURL, &c.APIURL, &c.LastUpdate)
 	if scanErr == sql.ErrNoRows {
 		utils.LogInfo(" MAIN", "No config found, setting default", false)
 		if defaultErr := c.SetDefault(); defaultErr != nil {
@@ -51,7 +51,7 @@ func (c *Config) Get() error {
 // variables and writes them to the database.
 func (c *Config) SetDefault() error {
 	utils.LogInfo(" MAIN", "Setting default config", false)
-	c.StreamURL = os.Getenv("STREAM_URL")
+	c.TomlURL = os.Getenv("TOML_URL")
 	c.APIURL = os.Getenv("API_URL")
 	c.LastUpdate = ""
 
@@ -63,11 +63,11 @@ func (c *Config) SetDefault() error {
 
 	_, execErr := db.Exec(`INSERT INTO config
 								(id,
-								stream_url,
+								toml_url,
 								api_url,
 								last_updated)
 							VALUES (1, ?, ?, ?)`,
-		c.StreamURL,
+		c.TomlURL,
 		c.APIURL,
 		"")
 
@@ -90,11 +90,11 @@ func (c *Config) Set() error {
 	c.LastUpdate = c.CommitTime.Format("2006-01-02T15:04:05Z07:00")
 
 	_, execErr := db.Exec(`UPDATE config
-							SET stream_url = ?,
+							SET toml_url = ?,
 								api_url = ?,
 								last_updated = ?
 							WHERE id = 1`,
-		c.StreamURL,
+		c.TomlURL,
 		c.APIURL,
 		c.LastUpdate)
 

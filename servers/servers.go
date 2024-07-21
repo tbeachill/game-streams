@@ -57,15 +57,16 @@ func MonitorGuilds(session *discordgo.Session) {
 				"server", e.Guild.Name)
 
 			utils.IntroDM(e.OwnerID)
-			o := db.NewOptions(e.Guild.ID)
-			if setErr := o.Set(); setErr != nil {
-				utils.LogError("SERVR", "error setting server options",
+
+			newErr := db.NewServer(e.Guild.ID, e.Guild.Name, e.Guild.OwnerID)
+			if newErr != nil {
+				utils.LogError("SERVR", "error adding server to database",
 					"server", e.Guild.Name,
-					"err", setErr)
+					"err", newErr)
 			}
 		}
 	})
-	utils.LogInfo("SERVR", "added server join handler", false)
+	utils.LogInfo("SERVR", "adding server leave handler", false)
 
 	// leave handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
@@ -74,8 +75,8 @@ func MonitorGuilds(session *discordgo.Session) {
 			"owner", e.Guild.OwnerID)
 
 		logGuildNumber(s)
-		if removeErr := db.RemoveOptions(e.Guild.ID); removeErr != nil {
-			utils.LogError("SERVR", "error removing server options",
+		if removeErr := db.RemoveServer(e.Guild.ID); removeErr != nil {
+			utils.LogError("SERVR", "error removing server",
 				"server", e.Guild.Name,
 				"err", removeErr)
 		}
@@ -114,7 +115,7 @@ func RemoveOldServerIDs(session *discordgo.Session) error {
 			utils.LogInfo("SERVR", "removing old server ID", false,
 				"server", dbID)
 
-			if removeErr := db.RemoveOptions(dbID); removeErr != nil {
+			if removeErr := db.RemoveServer(dbID); removeErr != nil {
 				return removeErr
 			}
 		}
@@ -145,4 +146,37 @@ func LeaveIfBlacklisted(session *discordgo.Session, serverID string, e *discordg
 		return leaveServer(session, serverID, fmt.Sprintf("blacklisted: %s", reason), e)
 	}
 	return nil
+}
+
+// GetServerName returns the name of a server from a server ID.
+func GetServerName(serverID string) string {
+	server, err := utils.Session.Guild(serverID)
+	if err != nil {
+		utils.LogError(" MAIN", "error getting server name", "err", err)
+		return ""
+	}
+	return server.Name
+}
+
+// GetServerOwner returns the owner of a server from a server ID.
+func GetServerOwner(serverID string) string {
+	server, err := utils.Session.Guild(serverID)
+	if err != nil {
+		utils.LogError(" MAIN", "error getting server owner", "err", err)
+		return ""
+	}
+	return server.OwnerID
+}
+
+// ServerMaintenance checks the servers table for servers that are no longer in the
+// discord returned list of servers and removes them from the servers table.
+// it then checks for connected servers that are not in the servers table and adds
+// them to the servers table. Then it checks for blacklisted servers and removes them
+// from the servers table. Then it checks for servers in the servers table with missing
+// columns and adds the missing columns.
+func ServerMaintenance(session *discordgo.Session) error {
+	// remove servers that are not in the discord list
+	// add servers that are in the discord list but not in the servers table
+	// remove blacklisted servers
+	// add missing columns
 }
