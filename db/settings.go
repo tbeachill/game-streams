@@ -65,7 +65,7 @@ func (s *Settings) Set() error {
 	defer db.Close()
 	utils.LogInfo(" CMND", "applying settings", false, "server", s.ServerID, "settings", s)
 
-	if !checkSettings(s.ServerID) {
+	if !CheckSettings(s.ServerID) {
 		_, execErr := db.Exec(`INSERT INTO server_settings
 									(server_id,
 									announce_channel,
@@ -144,7 +144,7 @@ func (s *Settings) Get(serverID string) error {
 		return openErr
 	}
 	defer db.Close()
-	if !checkSettings(serverID) {
+	if !CheckSettings(serverID) {
 		if s.Set() != nil {
 			return openErr
 		}
@@ -205,7 +205,7 @@ func (s *Settings) Merge(t Settings) {
 
 // checkOptions checks if the given server ID exists in the servers table of the
 // database. Returns true if the server ID exists, false if it does not.
-func checkSettings(serverID string) bool {
+func CheckSettings(serverID string) bool {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		utils.LogError(" MAIN", "error opening database", "err", openErr)

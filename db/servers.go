@@ -55,7 +55,6 @@ func GetAllServerIDs() ([]string, error) {
 // CheckServerID checks if the given server ID exists in the servers table. Returns
 // true if the server ID exists, false if it does not.
 func CheckServerID(serverID string) (bool, error) {
-	println("CHECK SERVER IDS")
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
 		return false, openErr
@@ -87,7 +86,7 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 	defer db.Close()
 
 	platform = strings.ToLower(platform)
-	utils.Log.Info.WithPrefix(" DB").Info("getting server IDs for",
+	utils.Log.Info.WithPrefix("SERVR").Info("getting server IDs for",
 		"platform", platform)
 
 	rows, queryErr := db.Query(`SELECT server_id
@@ -119,7 +118,7 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 
 // RemoveServer removes the given server ID from the servers table.
 func RemoveServer(serverID string) error {
-	utils.LogInfo("OWNER", "removing server from servers table", false,
+	utils.LogInfo("SERVR", "removing server from servers table", false,
 		"serverID", serverID)
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -135,7 +134,7 @@ func RemoveServer(serverID string) error {
 
 // NewServer adds a new server to the servers table in the database.
 func NewServer(serverID string, serverName string, ownerID string) error {
-	utils.LogInfo("MAIN", "adding new server to servers table", false,
+	utils.LogInfo("SERVR", "adding new server to servers table", false,
 		"serverID", serverID)
 
 	s := Server{
@@ -158,7 +157,7 @@ func NewServer(serverID string, serverName string, ownerID string) error {
 // IncrementUsageCount increments the usage count for the given server ID in the servers
 // table.
 func IncrementUsageCount(serverID string) error {
-	utils.LogInfo("OWNER", "incrementing server usage count", false,
+	utils.LogInfo("SERVR", "incrementing server usage count", false,
 		"serverID", serverID)
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -188,26 +187,39 @@ func checkServers(servers []string) error {
 }
 
 // check for servers that have missing columns in the servers table
-func checkServerColumns() error {
+func CheckServerColumns() ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
-		return openErr
+		return nil, openErr
 	}
 	defer db.Close()
 
-	_, execErr := db.Query(`SELECT server_id,
-							FROM servers
-							WHERE owner_id IS NULL
-							OR date_joined IS NULL`)
+	rows, execErr := db.Query(`SELECT server_id
+								FROM servers
+								WHERE owner_id = ""
+								OR date_joined = ""
+								OR server_name = ""`)
 	if execErr != nil {
-		return execErr
+		return nil, execErr
 	}
-	return nil
+	defer rows.Close()
+
+	var servers []string
+	for rows.Next() {
+		var serverID string
+		scanErr := rows.Scan(&serverID)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+		servers = append(servers, serverID)
+	}
+
+	return servers, nil
 }
 
 // Set sets the settings for the given server ID in the servers table.
 func (s *Server) Set() error {
-	utils.LogInfo("OWNER", "setting server settings", false,
+	utils.LogInfo("SERVR", "setting server settings", false,
 		"serverID", s.ID)
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
@@ -215,20 +227,66 @@ func (s *Server) Set() error {
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(`INSERT INTO servers
-							(server_id,
-							server_name,
+	inServerTable, checkErr := CheckServerID(s.ID)
+	if checkErr != nil {
+		return checkErr
+	}
+	if !inServerTable {
+		db, openErr := sql.Open("sqlite3", utils.Files.DB)
+		if openErr != nil {
+			return openErr
+		}
+		defer db.Close()
+
+		_, execErr := db.Exec(`INSERT INTO servers (server_id, server_name, owner_id, date_joined, usage_count)
+								VALUES (?, ?, ?, ?, ?)`,
+			s.ID,
+			s.Name,
+			s.OwnerID,
+			s.DateJoined,
+			s.UsageCount)
+		return execErr
+	} else {
+		_, execErr := db.Exec(`UPDATE servers
+								SET server_name = ?,
+									owner_id = ?,
+									date_joined = ?,
+									usage_count = ?
+								WHERE server_id = ?`,
+			s.Name,
+			s.OwnerID,
+			s.DateJoined,
+			s.UsageCount,
+			s.ID)
+		return execErr
+	}
+}
+
+// Get returns the server information for the given server ID from the servers table.
+func (s *Server) Get() error {
+	utils.LogInfo("SERVR", "getting server settings", false,
+		"serverID", s.ID)
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+
+	row := db.QueryRow(`SELECT server_name,
 							owner_id,
 							date_joined,
-							usage_count)
-						VALUES (?,?, ?, ?, ?)`,
-		s.ID,
-		s.Name,
-		s.OwnerID,
-		s.DateJoined,
-		s.UsageCount)
-	if execErr != nil {
-		return execErr
+							usage_count
+						FROM servers
+						WHERE server_id = ?`,
+		s.ID)
+
+	scanErr := row.Scan(&s.Name, &s.OwnerID, &s.DateJoined, &s.UsageCount)
+	if scanErr != nil {
+		return scanErr
+	}
+
+	if getErr := s.Settings.Get(s.ID); getErr != nil {
+		return getErr
 	}
 	return nil
 }

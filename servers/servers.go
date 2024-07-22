@@ -2,6 +2,7 @@ package servers
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 
@@ -174,9 +175,85 @@ func GetServerOwner(serverID string) string {
 // them to the servers table. Then it checks for blacklisted servers and removes them
 // from the servers table. Then it checks for servers in the servers table with missing
 // columns and adds the missing columns.
-func ServerMaintenance(session *discordgo.Session) error {
-	// remove servers that are not in the discord list
+func ServerMaintenance(session *discordgo.Session) {
+	servers := session.State.Guilds
 	// add servers that are in the discord list but not in the servers table
 	// remove blacklisted servers
+	for _, server := range servers {
+		// check if server is blacklisted
+		if leaveErr := LeaveIfBlacklisted(session, server.ID, nil); leaveErr != nil {
+			utils.LogError("SERVR", "error leaving blacklisted server",
+				"server", server.Name,
+				"err", leaveErr)
+			return
+		}
+		// check if server ID is in the servers table
+		present, checkErr := db.CheckServerID(server.ID)
+		if checkErr != nil {
+			utils.LogError("SERVR", "error checking server ID",
+				"err", checkErr)
+			return
+		}
+		if !present {
+			utils.LogInfo("SERVR", "adding server to database", false,
+				"server", server.Name)
+
+			newErr := db.NewServer(server.ID, server.Name, server.OwnerID)
+			if newErr != nil {
+				utils.LogError("SERVR", "error adding server to database",
+					"server", server.Name,
+					"err", newErr)
+				return
+			}
+		}
+	}
+
+	// remove servers that are in the table but not in the discord list
+	if removeErr := RemoveOldServerIDs(session); removeErr != nil {
+		utils.LogError("SERVR", "error removing old server IDs",
+			"err", removeErr)
+		return
+	}
+
+	// check for servers that have missing columns in the servers table
+	serverIDs, checkErr := db.CheckServerColumns()
+	if checkErr != nil {
+		utils.LogError("SERVR", "error checking server columns",
+			"err", checkErr)
+		return
+	}
+
 	// add missing columns
+	if len(serverIDs) > 0 {
+		utils.LogInfo("SERVR", "adding missing columns to servers table", false,
+			"servers", serverIDs)
+
+		for _, serverID := range serverIDs {
+			s := db.Server{
+				ID: serverID,
+			}
+			s.Get()
+			if s.Name == "" {
+				s.Name = GetServerName(serverID)
+			} else if s.OwnerID == "" {
+				s.OwnerID = GetServerOwner(serverID)
+			} else if s.DateJoined == "" {
+				s.DateJoined = time.Now().UTC().Format("2006-01-02")
+			} else if !db.CheckSettings(serverID) {
+				s.Settings = db.NewSettings(serverID)
+				if setErr := s.Settings.Set(); setErr != nil {
+					utils.LogError("SERVR", "error setting server settings",
+						"err", setErr)
+					return
+				}
+			}
+			if setErr := s.Set(); setErr != nil {
+				utils.LogError("SERVR", "error setting server columns",
+					"err", setErr)
+				return
+			}
+
+		}
+	}
+	return
 }
