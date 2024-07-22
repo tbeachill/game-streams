@@ -44,16 +44,16 @@ type Logger struct {
 func (s *FilePaths) SetPaths() {
 	if runtime.GOOS == "windows" {
 		s.DotEnv = "config/.env"
-		s.DB = "config/gamestream.db"
-		s.Log = "config/gamestream.log"
+		s.DB = "config/game-streams.db"
+		s.Log = "config/game-streams.log"
 	} else {
 		home, err := os.UserHomeDir()
 		if err != nil {
 			LogError(" MAIN", "could not set filepaths", "err", err)
 		}
-		s.DotEnv = fmt.Sprintf("%s/config/gamestreambot/.env", home)
-		s.DB = fmt.Sprintf("%s/config/gamestreambot/gamestream.db", home)
-		s.Log = fmt.Sprintf("%s/config/gamestreambot/gamestream.log", home)
+		s.DotEnv = fmt.Sprintf("%s/config/game-streams/.env", home)
+		s.DB = fmt.Sprintf("%s/config/game-streams/game-streams.db", home)
+		s.Log = fmt.Sprintf("%s/config/game-streams/game-streams.log", home)
 	}
 }
 
