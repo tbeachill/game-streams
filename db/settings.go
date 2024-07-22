@@ -221,3 +221,19 @@ func CheckSettings(serverID string) bool {
 	getErr := rows.Scan(&serverID)
 	return getErr == nil
 }
+
+func RemoveServerSettings(serverID string) error {
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec(`DELETE FROM server_settings
+							WHERE server_id = ?`,
+		serverID)
+	if execErr != nil {
+		return execErr
+	}
+	return nil
+}
