@@ -69,7 +69,7 @@ func startUpdater() {
 // running the ScheduleNotifications method.
 func startScheduler(session *discordgo.Session) {
 	// timeToRun is the hour of the day in UTC to run the scheduler
-	timeToRun := 5
+	timeToRun := 6
 
 	for {
 		utils.LogInfo("SCHED", "running scheduler...", false)
@@ -91,12 +91,6 @@ func startScheduler(session *discordgo.Session) {
 		if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
 			utils.LogError("SCHED", "error scheduling today's streams",
 				"err", scheduleErr)
-		}
-		// remove old server IDs from the servers table
-		utils.LogInfo("SCHED", "removing old server IDs...", false)
-		if removeErr := servers.RemoveOldServerIDs(session); removeErr != nil {
-			utils.LogError("SCHED", "error removing old servers",
-				"err", removeErr)
 		}
 		utils.LogInfo("SCHED", "truncating logs...", false)
 		utils.TruncateLogs()
