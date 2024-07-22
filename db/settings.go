@@ -222,6 +222,8 @@ func CheckSettings(serverID string) bool {
 	return getErr == nil
 }
 
+// RemoveServerSettings removes the settings for the given server ID from the
+// server_settings table of the database.
 func RemoveServerSettings(serverID string) error {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
 	if openErr != nil {
