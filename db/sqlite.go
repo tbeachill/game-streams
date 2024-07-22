@@ -5,7 +5,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreambot/utils"
+	"gamestreams/utils"
 )
 
 // CreateDB creates the database if it does not exist. It creates the streams, config,

@@ -6,7 +6,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreambot/utils"
+	"gamestreams/utils"
 )
 
 // Settings is a struct that contains the options for a server. It contains the

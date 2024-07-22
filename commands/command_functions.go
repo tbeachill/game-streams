@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/bwmarrin/discordgo"
 
-	"gamestreambot/utils"
+	"gamestreams/utils"
 )
 
 // RegisterCommands registers all commands in the commands slice, which is defined in

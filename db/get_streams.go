@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreambot/utils"
+	"gamestreams/utils"
 )
 
 // Stream is a representation of a stream. It containes information about the stream,

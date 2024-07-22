@@ -1,4 +1,4 @@
-module gamestreambot
+module gamestreams
 
 go 1.21.6
 

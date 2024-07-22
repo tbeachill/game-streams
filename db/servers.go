@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreambot/utils"
+	"gamestreams/utils"
 )
 
 // Server is a struct that contains information about a server. It contains the server

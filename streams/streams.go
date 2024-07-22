@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"gamestreams/db"
+	"gamestreams/utils"
 
 	"github.com/bwmarrin/discordgo"
-
-	"gamestreambot/db"
-	"gamestreambot/utils"
 )
 
 // STREAM_T_MINUS is the time before a stream to send a notification

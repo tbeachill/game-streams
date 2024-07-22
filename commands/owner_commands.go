@@ -9,9 +9,9 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"gamestreambot/db"
-	"gamestreambot/servers"
-	"gamestreambot/utils"
+	"gamestreams/db"
+	"gamestreams/utils"
+	"gamestreams/servers"
 )
 
 // register event to deal with incoming messages

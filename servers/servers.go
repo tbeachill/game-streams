@@ -6,8 +6,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"gamestreambot/db"
-	"gamestreambot/utils"
+	"gamestreams/db"
+	"gamestreams/utils"
 )
 
 // GetGuildNumber returns the number of servers the bot is in.

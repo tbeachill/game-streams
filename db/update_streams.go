@@ -8,7 +8,7 @@ import (
 	"github.com/BurntSushi/toml"
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreambot/utils"
+	"gamestreams/utils"
 )
 
 // Update checks for new streams in the streams.toml file of the flat-files repository

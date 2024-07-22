@@ -5,9 +5,9 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"gamestreambot/bot"
-	"gamestreambot/db"
-	"gamestreambot/utils"
+	"gamestreams/bot"
+	"gamestreams/db"
+	"gamestreams/utils"
 )
 
 // main is the entry point for the bot. It sets the file paths, initializes the logger,

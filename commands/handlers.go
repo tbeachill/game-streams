@@ -5,9 +5,9 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"gamestreambot/db"
-	"gamestreambot/streams"
-	"gamestreambot/utils"
+	"gamestreams/db"
+	"gamestreams/streams"
+	"gamestreams/utils"
 )
 
 // commandHandlers is a map of command names to their respective handler functions.

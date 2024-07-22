@@ -10,7 +10,7 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"gamestreambot/utils"
+	"gamestreams/utils"
 )
 
 // Config is a struct that holds the configuration values for the bot.

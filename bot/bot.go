@@ -7,11 +7,11 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"gamestreambot/commands"
-	"gamestreambot/db"
-	"gamestreambot/servers"
-	"gamestreambot/streams"
-	"gamestreambot/utils"
+	"gamestreams/commands"
+	"gamestreams/db"
+	"gamestreams/servers"
+	"gamestreams/streams"
+	"gamestreams/utils"
 )
 
 // Run is the main function that runs the bot. It creates a new Discord session,
