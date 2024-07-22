@@ -43,8 +43,8 @@ type BoolSet struct {
 func NewSettings(serverID string) Settings {
 	return Settings{
 		ServerID:        serverID,
-		AnnounceChannel: StringSet{"0", false},
-		AnnounceRole:    StringSet{"0", false},
+		AnnounceChannel: StringSet{"", false},
+		AnnounceRole:    StringSet{"", false},
 		Playstation:     BoolSet{false, false},
 		Xbox:            BoolSet{false, false},
 		Nintendo:        BoolSet{false, false},

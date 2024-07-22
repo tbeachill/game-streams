@@ -59,8 +59,8 @@ func CreateDB() error {
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS server_settings
 								(server_id INTEGER NOT NULL PRIMARY KEY,
-								announce_channel TEXT,
-								announce_role TEXT,
+								announce_channel INTEGER,
+								announce_role INTEGER,
 								playstation BOOLEAN,
 								xbox BOOLEAN,
 								nintendo BOOLEAN,
