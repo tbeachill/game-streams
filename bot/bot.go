@@ -100,6 +100,8 @@ func startScheduler(session *discordgo.Session) {
 		servers.ServerMaintenance(session)
 		utils.LogInfo("SCHED", "performing stream maintenance...", false)
 		streams.StreamMaintenance()
+		utils.LogInfo("SCHED", "deleting expired blacklisted items...", false)
+		db.RemoveExpiredBlacklist()
 
 		hour, min, _ := time.Now().UTC().Clock()
 		hoursRemaining := (timeToRun + 24) - hour

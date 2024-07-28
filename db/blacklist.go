@@ -47,7 +47,7 @@ func IsBlacklisted(id string, idType string) (bool, string) {
 	return scanErr == nil, reason
 }
 
-// AddToBlacklist adds the given ID to the blacklist table in the database.
+// AddToBlacklist adds the given ID to the blacklist table of the database.
 func AddToBlacklist(id string, idType string, reason string, length_days int) error {
 	utils.LogInfo("OWNER", "adding to blacklist table", false,
 		"id", id,
@@ -74,7 +74,7 @@ func AddToBlacklist(id string, idType string, reason string, length_days int) er
 	return execErr
 }
 
-// RemoveFromBlacklist removes the given ID from the blacklist table in the database.
+// RemoveFromBlacklist removes the given ID from the blacklist table of the database.
 func RemoveFromBlacklist(id string) error {
 	utils.LogInfo("OWNER", "removing from blacklist table", false, "id", id)
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
@@ -89,7 +89,7 @@ func RemoveFromBlacklist(id string) error {
 	return execErr
 }
 
-// GetBlacklist returns a list of all blacklisted IDs from the blacklist table in the database.
+// GetBlacklist returns a list of all blacklisted IDs from the blacklist table of the database.
 func GetBlacklist() ([]Blacklist, error) {
 	utils.LogInfo("OWNER", "getting blacklist", false)
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
@@ -119,4 +119,18 @@ func GetBlacklist() ([]Blacklist, error) {
 		blacklist = append(blacklist, b)
 	}
 	return blacklist, nil
+}
+
+// RemoveExpiredBlacklist removes all blacklisted IDs that have expired from the blacklist table
+// of the database.
+func RemoveExpiredBlacklist() error {
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec(`DELETE FROM blacklist
+							WHERE date_expires <= date('now')`)
+	return execErr
 }
