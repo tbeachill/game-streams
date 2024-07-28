@@ -28,6 +28,10 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	db.IncrementUsageCount(i.GuildID)
+	userID := utils.GetUserID(i)
+	utils.LogInfo(" CMND", "list streams command", false,
+		"user", userID,
+		"server", i.GuildID)
 
 	embed, listErr := streams.StreamList()
 	if listErr != nil {
@@ -70,8 +74,13 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	db.IncrementUsageCount(i.GuildID)
-
 	streamName := i.ApplicationCommandData().Options[0].Value.(string)
+	userID := utils.GetUserID(i)
+	utils.LogInfo(" CMND", "stream info command", false,
+		"stream", streamName,
+		"user", userID,
+		"server", i.GuildID)
+
 	embed, infoErr := streams.StreamInfo(streamName)
 	if infoErr != nil {
 		if infoErr.Error() == "no streams found" {
@@ -109,7 +118,11 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	userID := utils.GetUserID(i)
 	db.IncrementUsageCount(i.GuildID)
+	utils.LogInfo(" CMND", "help command", false,
+		"user", userID,
+		"server", i.GuildID)
 
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -161,7 +174,11 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	userID := utils.GetUserID(i)
 	db.IncrementUsageCount(i.GuildID)
+	utils.LogInfo(" CMND", "settings command", false,
+		"user", userID,
+		"server", i.GuildID)
 
 	options := parseOptions(i.ApplicationCommandData().Options)
 
@@ -325,19 +342,14 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 }
 
 func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
-	var userID string
-	if i.GuildID == "" {
-		userID = i.User.ID
-	} else {
-		userID = i.Member.User.ID
-	}
+	userID := utils.GetUserID(i)
 	blacklisted, reason := db.IsBlacklisted(userID, "user")
 	if blacklisted {
 		utils.LogInfo(" CMND", "blacklisted user tried to use command", false,
-			"user", i.User.ID,
+			"user", userID,
 			"reason", reason,
 			"command", i.ApplicationCommandData().Name)
-		utils.DM(i.User.ID, fmt.Sprintf("You are blacklisted from using this bot. Reason: %s", reason))
+		utils.DM(userID, fmt.Sprintf("You are blacklisted from using this bot. Reason: %s", reason))
 		return true
 	}
 	return false

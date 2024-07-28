@@ -3,12 +3,13 @@ package streams
 import (
 	"errors"
 	"fmt"
-	"gamestreams/db"
-	"gamestreams/utils"
 	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+
+	"gamestreams/db"
+	"gamestreams/utils"
 )
 
 // STREAM_T_MINUS is the time before a stream to send a notification
@@ -52,9 +53,6 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 // creates a discordgo.MessageEmbed struct with the date, time, platforms, URL, and
 // description of the stream.
 func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
-	utils.LogInfo(" CMND", "getting stream info", false,
-		"name", streamName)
-
 	var streams db.Streams
 	if err := streams.GetInfo(streamName); err != nil {
 		return nil, err

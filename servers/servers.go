@@ -37,12 +37,14 @@ func MonitorGuilds(session *discordgo.Session) {
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildCreate) {
 		utils.LogInfo("SERVR", "joined server", true,
 			"server", e.Guild.Name,
+			"server_id", e.Guild.ID,
 			"owner", e.Guild.OwnerID)
 		logGuildNumber(s)
 		// check if server is blacklisted
 		if leaveErr := LeaveIfBlacklisted(s, e.Guild.ID, e); leaveErr != nil {
 			utils.LogError("SERVR", "error leaving blacklisted server",
 				"server", e.Guild.Name,
+				"server_id", e.Guild.ID,
 				"err", leaveErr)
 			return
 		}
@@ -73,6 +75,7 @@ func MonitorGuilds(session *discordgo.Session) {
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
 		utils.LogInfo("SERVR", "left server", true,
 			"server", e.Guild.Name,
+			"server_id", e.Guild.ID,
 			"owner", e.Guild.OwnerID)
 
 		logGuildNumber(s)
