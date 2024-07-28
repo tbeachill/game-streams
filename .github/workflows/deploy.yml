@@ -5,10 +5,9 @@ on:
     branches:
       - "main"
     paths-ignore:
-      - .github/**
-      - assets/**
-      - .gitignore
-      - README.md
+      - '.github/**'
+      - 'assets/**'
+      - '*'
 
 jobs:
   stopbot:
