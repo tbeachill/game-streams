@@ -1,4 +1,4 @@
 bin/
-media/
+*.kra
 config/
 .vscode/
