@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - "main"
+    paths-ignore:
+      - .github/**
+      - assets/**
+      - .gitignore
+      - README.md
 
 jobs:
   stopbot:
