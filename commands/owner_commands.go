@@ -169,7 +169,7 @@ func blacklistEdit(s *discordgo.Session, m *discordgo.MessageCreate) {
 	subCommand := splitString[1]
 	if subCommand == "add" {
 		blacklistAdd(s, m, splitString)
-	} else if subCommand == "rm" {
+	} else if subCommand == "rm" || subCommand == "remove" {
 		blacklistRemove(s, m, splitString)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist add"+
