@@ -3,10 +3,10 @@ package streams
 import (
 	"errors"
 	"fmt"
-	"strings"
-	"time"
 	"gamestreams/db"
 	"gamestreams/utils"
+	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )

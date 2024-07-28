@@ -69,7 +69,7 @@ func AddToBlacklist(id string, idType string, reason string, length_days int) er
 								date_added,
 								date_expires,
 								reason)
-							VALUES (?, ?, ?, ?)`,
+							VALUES (?, ?, ?, ?, ?)`,
 		id, idType, currentDate, expiryDate, reason)
 	return execErr
 }

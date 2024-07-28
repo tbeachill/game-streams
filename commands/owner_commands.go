@@ -10,8 +10,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 
 	"gamestreams/db"
-	"gamestreams/utils"
 	"gamestreams/servers"
+	"gamestreams/utils"
 )
 
 // register event to deal with incoming messages
@@ -29,7 +29,9 @@ func RegisterOwnerCommands(s *discordgo.Session) {
 
 // listCommands is a command that lists all the owner commands
 func listCommands(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID || m.Author.ID != os.Getenv("OWNER_ID") {
+	if m.Author.ID == s.State.User.ID ||
+		m.Author.ID != os.Getenv("OWNER_ID") ||
+		strings.Split(m.Content, " ")[0] != "!commands" {
 		return
 	}
 	if m.Content == "!commands" || m.Content == "!help" {
@@ -51,43 +53,37 @@ func uptime(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// check if the message author is the bot or not the owner
 	if m.Author.ID == s.State.User.ID ||
 		m.Author.ID != os.Getenv("OWNER_ID") ||
-		len(m.Content) < 8 {
+		strings.Split(m.Content, " ")[0] != "!uptime" {
 		return
 	}
-	if m.Content == "!uptime" {
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("uptime: %s",
-			time.Since(utils.StartTime).Round(time.Second).String()))
-	}
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("uptime: %s",
+		time.Since(utils.StartTime).Round(time.Second).String()))
 }
 
 // serverCount is a command that returns the number of servers the bot is in
 func serverCount(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
 		m.Author.ID != os.Getenv("OWNER_ID") ||
-		len(m.Content) < 12 {
+		strings.Split(m.Content, " ")[0] != "!servercount" {
 		return
 	}
-	if m.Content == "!servercount" {
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("server count: %d",
-			len(s.State.Guilds)))
-	}
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("server count: %d",
+		len(s.State.Guilds)))
 }
 
 // update forces an update of the streams from the streams.toml file
 func update(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
 		m.Author.ID != os.Getenv("OWNER_ID") ||
-		len(m.Content) < 8 {
+		strings.Split(m.Content, " ")[0] != "!update" {
 		return
 	}
-	if m.Content == "!update" {
-		var streams db.Streams
-		if updateErr := streams.Update(); updateErr != nil {
-			utils.LogError("OWNER", "error updating streams",
-				"err", updateErr)
-		} else {
-			s.ChannelMessageSend(m.ChannelID, "streams updated")
-		}
+	var streams db.Streams
+	if updateErr := streams.Update(); updateErr != nil {
+		utils.LogError("OWNER", "error updating streams",
+			"err", updateErr)
+	} else {
+		s.ChannelMessageSend(m.ChannelID, "streams updated")
 	}
 }
 
@@ -96,17 +92,16 @@ func update(s *discordgo.Session, m *discordgo.MessageCreate) {
 func removeOldServers(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
 		m.Author.ID != os.Getenv("OWNER_ID") ||
-		len(m.Content) < 15 {
+		strings.Split(m.Content, " ")[0] != "!removeoldservers" {
 		return
 	}
-	if m.Content == "!removeoldservers" {
-		if removeErr := servers.RemoveOldServerIDs(s); removeErr != nil {
-			utils.LogError("OWNER", "error removing old servers",
-				"err", removeErr)
-		} else {
-			s.ChannelMessageSend(m.ChannelID, "old servers removed")
-		}
+	if removeErr := servers.RemoveOldServerIDs(s); removeErr != nil {
+		utils.LogError("OWNER", "error removing old servers",
+			"err", removeErr)
+	} else {
+		s.ChannelMessageSend(m.ChannelID, "old servers removed")
 	}
+
 }
 
 // sqlExecute allows for the execution of SQL commands on the database via Discord
@@ -114,55 +109,51 @@ func removeOldServers(s *discordgo.Session, m *discordgo.MessageCreate) {
 func sqlExecute(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
 		m.Author.ID != os.Getenv("OWNER_ID") ||
-		len(m.Content) < 6 {
+		strings.Split(m.Content, " ")[0] != "!sqlx" {
 		return
 	}
-	command := m.Content[:5]
-	if command == "!sqlx" {
-		db, openErr := sql.Open("sqlite3", utils.Files.DB)
-		if openErr != nil {
-			utils.LogError("OWNER", "error opening database",
-				"err", openErr)
-		}
-		defer db.Close()
-		query := m.Content[6:]
-		_, execErr := db.Exec(query)
-		if execErr != nil {
-			utils.LogError("OWNER", "error executing database command",
-				"err", execErr)
-		}
-		s.ChannelMessageSend(m.ChannelID, "sql executed")
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	if openErr != nil {
+		utils.LogError("OWNER", "error opening database",
+			"err", openErr)
 	}
+	defer db.Close()
+	query := m.Content[6:]
+	_, execErr := db.Exec(query)
+	if execErr != nil {
+		utils.LogError("OWNER", "error executing database command",
+			"err", execErr)
+	}
+	s.ChannelMessageSend(m.ChannelID, "sql executed")
 }
 
 // ownerListStreams lists all upcoming streams in the streams table including their id
 func ownerListStreams(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
 		m.Author.ID != os.Getenv("OWNER_ID") ||
-		len(m.Content) < 9 {
+		strings.Split(m.Content, " ")[0] != "!streams" {
 		return
 	}
-	if m.Content == "!streams" {
-		var streams db.Streams
-		if getErr := streams.GetUpcoming(50); getErr != nil {
-			utils.LogError("OWNER", "error getting streams",
-				"err", getErr)
-		}
-		for _, stream := range streams.Streams {
-			stream.ProvideUnsetValues()
-			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("id: `%d`\nname: `%s`\nplatform: `%s`\ndate: `%s`\ntime: `%s`\ndescription: `%s`\nurl: `%s`",
-				stream.ID, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL))
+	var streams db.Streams
+	if getErr := streams.GetUpcoming(50); getErr != nil {
+		utils.LogError("OWNER", "error getting streams",
+			"err", getErr)
+	}
+	for _, stream := range streams.Streams {
+		stream.ProvideUnsetValues()
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("id: `%d`\nname: `%s`\nplatform: `%s`\ndate: `%s`\ntime: `%s`\ndescription: `%s`\nurl: `%s`",
+			stream.ID, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL))
 
-			s.ChannelMessageSend(m.ChannelID, "----------------")
-			time.Sleep(time.Second / 2)
-		}
+		s.ChannelMessageSend(m.ChannelID, "----------------")
+		time.Sleep(time.Second / 2)
 	}
 }
 
 // blacklistEdit allows the owner to add or remove users or servers from the blacklist
 func blacklistEdit(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") {
+		m.Author.ID != os.Getenv("OWNER_ID") ||
+		strings.Split(m.Content, " ")[0] != "!blacklist" {
 		return
 	}
 	splitString := strings.Split(m.Content, " ")
@@ -173,17 +164,15 @@ func blacklistEdit(s *discordgo.Session, m *discordgo.MessageCreate) {
 	} else if splitString[1] == "get" {
 		return
 	}
-	command := splitString[0]
+
 	subCommand := splitString[1]
-	if command == "!blacklist" {
-		if subCommand == "add" {
-			blacklistAdd(s, m, splitString)
-		} else if subCommand == "rm" {
-			blacklistRemove(s, m, splitString)
-		} else {
-			s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist add"+
-				" [type] [id] [reason]` or `!blacklist rm [id]` or `!blacklist get`")
-		}
+	if subCommand == "add" {
+		blacklistAdd(s, m, splitString)
+	} else if subCommand == "rm" {
+		blacklistRemove(s, m, splitString)
+	} else {
+		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist add"+
+			" [type] [id] [reason]` or `!blacklist rm [id]` or `!blacklist get`")
 	}
 }
 
@@ -198,12 +187,14 @@ func blacklistAdd(s *discordgo.Session, m *discordgo.MessageCreate, splitString 
 	idType := splitString[2]
 	id := splitString[3]
 	reason := strings.Join(splitString[4:], " ")
-	println(reason)
-	if db.AddToBlacklist(id, idType, reason, 1) != nil {
+
+	if dbErr := db.AddToBlacklist(id, idType, reason, 1); dbErr != nil {
 		utils.LogError("OWNER", "error adding to blacklist",
 			"id", id,
 			"id_type", idType,
-			"reason", reason)
+			"reason", reason,
+			"duration", 1,
+			"err", dbErr)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "added to blacklist")
 	}
@@ -222,9 +213,10 @@ func blacklistRemove(s *discordgo.Session, m *discordgo.MessageCreate, splitStri
 		s.ChannelMessageSend(m.ChannelID, "id not in blacklist")
 		return
 	}
-	if db.RemoveFromBlacklist(id) != nil {
+	if dbErr := db.RemoveFromBlacklist(id); dbErr != nil {
 		utils.LogError("OWNER", "error removing from blacklist",
-			"id", id)
+			"id", id,
+			"err", dbErr)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "removed from blacklist")
 	}
