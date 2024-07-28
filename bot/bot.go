@@ -45,7 +45,7 @@ func Run(botToken, appID string) {
 	<-c
 }
 
-// startUpdater creates a new Streams struct and updates the streams every hour by
+// startUpdater creates a new Streams struct and updates the streams every 6 hours by
 // running the Update method.
 func startUpdater() {
 	var s db.Streams
@@ -55,11 +55,11 @@ func startUpdater() {
 			utils.LogError("UPDAT", "error updating streams",
 				"err", updateErr)
 		}
-		minsRemaining := 60 - time.Now().UTC().Minute()
+		hoursRemaining := 6 - ((time.Now().UTC().Hour() + 1) % 6)
 		utils.LogInfo("UPDAT", "sleeping until next update", false,
-			"minutes", minsRemaining)
+			"hours", hoursRemaining)
 
-		time.Sleep(time.Duration(minsRemaining) * time.Minute)
+		time.Sleep(time.Duration(hoursRemaining) * time.Hour)
 	}
 }
 
