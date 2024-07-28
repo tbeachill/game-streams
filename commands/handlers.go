@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
@@ -336,7 +337,7 @@ func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
 			"user", i.User.ID,
 			"reason", reason,
 			"command", i.ApplicationCommandData().Name)
-		utils.DM(i.User.ID, "You are blacklisted from using this bot. Reason: "+reason)
+		utils.DM(i.User.ID, fmt.Sprintf("You are blacklisted from using this bot. Reason: %s", reason))
 		return true
 	}
 	return false

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -178,22 +179,32 @@ func blacklistEdit(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 // blacklistAdd adds a user or server to the blacklist
 func blacklistAdd(s *discordgo.Session, m *discordgo.MessageCreate, splitString []string) {
-	if len(splitString) < 5 || splitString[2] == "" || splitString[3] == "" ||
-		splitString[4] == "" {
+	if len(splitString) < 6 || splitString[2] == "" || splitString[3] == "" ||
+		splitString[4] == "" || splitString[5] == "" {
 		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist add"+
-			" [type] [id] [reason]`")
+			" [type] [id] [duration] [reason]`")
 		return
 	}
 	idType := splitString[2]
+	if idType != "user" && idType != "server" {
+		s.ChannelMessageSend(m.ChannelID, "invalid type. use `user` or `server`")
+		return
+	}
 	id := splitString[3]
-	reason := strings.Join(splitString[4:], " ")
+	duration, convErr := strconv.Atoi(splitString[4])
+	if convErr != nil {
+		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist add"+
+			" [type] [id] [duration] [reason]`")
+		return
+	}
+	reason := strings.Join(splitString[5:], " ")
 
-	if dbErr := db.AddToBlacklist(id, idType, reason, 1); dbErr != nil {
+	if dbErr := db.AddToBlacklist(id, idType, reason, duration); dbErr != nil {
 		utils.LogError("OWNER", "error adding to blacklist",
 			"id", id,
 			"id_type", idType,
 			"reason", reason,
-			"duration", 1,
+			"duration", duration,
 			"err", dbErr)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "added to blacklist")
