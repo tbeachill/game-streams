@@ -316,3 +316,12 @@ func DM(userID string, message string) {
 func DMOwner(session *discordgo.Session, message string) {
 	DM(os.Getenv("OWNER_ID"), message)
 }
+
+// GetUserID returns the user ID of the user who sent the interaction.
+func GetUserID(i *discordgo.InteractionCreate) string {
+	if i.GuildID == "" {
+		return i.User.ID
+	} else {
+		return i.Member.User.ID
+	}
+}
