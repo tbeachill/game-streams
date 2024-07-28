@@ -293,3 +293,17 @@ func (s *Streams) DeleteStreams() {
 		}
 	}
 }
+
+// RemoveOldStreams removes streams from the streams table of the database that are
+// older than 12 months
+func RemoveOldStreams() error {
+	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec(`DELETE FROM streams
+							WHERE stream_date < date('now', '-12 months')`)
+	return execErr
+}
