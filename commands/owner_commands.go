@@ -179,6 +179,10 @@ func blacklistEdit(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 // blacklistAdd adds a user or server to the blacklist
 func blacklistAdd(s *discordgo.Session, m *discordgo.MessageCreate, splitString []string) {
+	if m.Author.ID == s.State.User.ID ||
+		m.Author.ID != os.Getenv("OWNER_ID") {
+		return
+	}
 	if len(splitString) < 6 || splitString[2] == "" || splitString[3] == "" ||
 		splitString[4] == "" || splitString[5] == "" {
 		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist add"+
@@ -213,6 +217,10 @@ func blacklistAdd(s *discordgo.Session, m *discordgo.MessageCreate, splitString 
 
 // blacklistRemove removes a user or server from the blacklist
 func blacklistRemove(s *discordgo.Session, m *discordgo.MessageCreate, splitString []string) {
+	if m.Author.ID == s.State.User.ID ||
+		m.Author.ID != os.Getenv("OWNER_ID") {
+		return
+	}
 	if len(splitString) < 3 || splitString[2] == "" || len(splitString) > 3 {
 		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!blacklist rm [id]`")
 		return
