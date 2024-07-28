@@ -256,7 +256,6 @@ func ServerMaintenance(session *discordgo.Session) {
 					"err", setErr)
 				return
 			}
-
 		}
 	}
 	return
