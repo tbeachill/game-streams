@@ -7,11 +7,8 @@ on:
 
 jobs:
   upload:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: R2 upload
         uses: ryand56/r2-upload-action@v1.2
         with:
