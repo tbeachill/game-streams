@@ -55,7 +55,7 @@ func startUpdater() {
 			utils.LogError("UPDAT", "error updating streams",
 				"err", updateErr)
 		}
-		hoursRemaining := 6 - ((time.Now().UTC().Hour() + 1) % 6)
+		hoursRemaining := 6 - ((time.Now().UTC().Hour()) % 6)
 		utils.LogInfo("UPDAT", "sleeping until next update", false,
 			"hours", hoursRemaining)
 
