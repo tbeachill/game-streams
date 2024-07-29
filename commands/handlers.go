@@ -27,7 +27,6 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
-	db.IncrementUsageCount(i.GuildID)
 	userID := utils.GetUserID(i)
 	utils.LogInfo(" CMND", "list streams command", false,
 		"user", userID,
@@ -73,7 +72,6 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
-	db.IncrementUsageCount(i.GuildID)
 	streamName := i.ApplicationCommandData().Options[0].Value.(string)
 	userID := utils.GetUserID(i)
 	utils.LogInfo(" CMND", "stream info command", false,
@@ -119,7 +117,6 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	userID := utils.GetUserID(i)
-	db.IncrementUsageCount(i.GuildID)
 	utils.LogInfo(" CMND", "help command", false,
 		"user", userID,
 		"server", i.GuildID)
@@ -175,7 +172,6 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	userID := utils.GetUserID(i)
-	db.IncrementUsageCount(i.GuildID)
 	utils.LogInfo(" CMND", "settings command", false,
 		"user", userID,
 		"server", i.GuildID)

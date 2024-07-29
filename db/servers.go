@@ -20,7 +20,6 @@ type Server struct {
 	Name       string
 	OwnerID    string
 	DateJoined string
-	UsageCount int
 	Settings   Settings
 }
 
@@ -142,7 +141,6 @@ func NewServer(serverID string, serverName string, ownerID string) error {
 		Name:       serverName,
 		OwnerID:    ownerID,
 		DateJoined: time.Now().UTC().Format("2006-01-02"),
-		UsageCount: 0,
 		Settings:   NewSettings(serverID),
 	}
 	if s.Set() != nil {
@@ -152,24 +150,6 @@ func NewServer(serverID string, serverName string, ownerID string) error {
 		return s.Settings.Set()
 	}
 	return nil
-}
-
-// IncrementUsageCount increments the usage count for the given server ID in the servers
-// table.
-func IncrementUsageCount(serverID string) error {
-	utils.LogInfo("SERVR", "incrementing server usage count", false,
-		"serverID", serverID)
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
-	if openErr != nil {
-		return openErr
-	}
-	defer db.Close()
-
-	_, execErr := db.Exec(`UPDATE servers
-							SET usage_count = usage_count + 1
-							WHERE server_id = ?`,
-		serverID)
-	return execErr
 }
 
 // check for servers that are not in the servers table
@@ -238,25 +218,22 @@ func (s *Server) Set() error {
 		}
 		defer db.Close()
 
-		_, execErr := db.Exec(`INSERT INTO servers (server_id, server_name, owner_id, date_joined, usage_count)
+		_, execErr := db.Exec(`INSERT INTO servers (server_id, server_name, owner_id, date_joined)
 								VALUES (?, ?, ?, ?, ?)`,
 			s.ID,
 			s.Name,
 			s.OwnerID,
-			s.DateJoined,
-			s.UsageCount)
+			s.DateJoined)
 		return execErr
 	} else {
 		_, execErr := db.Exec(`UPDATE servers
 								SET server_name = ?,
 									owner_id = ?,
-									date_joined = ?,
-									usage_count = ?
+									date_joined = ?
 								WHERE server_id = ?`,
 			s.Name,
 			s.OwnerID,
 			s.DateJoined,
-			s.UsageCount,
 			s.ID)
 		return execErr
 	}
@@ -274,13 +251,12 @@ func (s *Server) Get() error {
 
 	row := db.QueryRow(`SELECT server_name,
 							owner_id,
-							date_joined,
-							usage_count
+							date_joined
 						FROM servers
 						WHERE server_id = ?`,
 		s.ID)
 
-	scanErr := row.Scan(&s.Name, &s.OwnerID, &s.DateJoined, &s.UsageCount)
+	scanErr := row.Scan(&s.Name, &s.OwnerID, &s.DateJoined)
 	if scanErr != nil {
 		return scanErr
 	}

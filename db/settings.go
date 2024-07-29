@@ -97,9 +97,8 @@ func (s *Settings) Set() error {
 									(server_id,
 									server_name,
 									owner_id,
-									date_joined,
-									usage_count)
-								VALUES (?, ?, ?, ?, ?)`,
+									date_joined)
+								VALUES (?, ?, ?, ?)`,
 				s.ServerID,
 				"",
 				"",
