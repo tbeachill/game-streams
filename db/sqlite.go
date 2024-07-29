@@ -50,8 +50,7 @@ func CreateDB() error {
 								(server_id INTEGER NOT NULL PRIMARY KEY,
 								server_name TEXT,
 								owner_id INTEGER,
-								date_joined TEXT,
-								usage_count INTEGER)`)
+								date_joined TEXT)`)
 
 	if tableErr != nil {
 		return tableErr
@@ -77,6 +76,15 @@ func CreateDB() error {
 								date_added TEXT,
 								date_expires TEXT,
 								reason TEXT)`)
+
+	if tableErr != nil {
+		return tableErr
+	}
+
+	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS analytics
+								(server_id INTEGER NOT NULL PRIMARY KEY,
+								date_time TEXT,
+								command TEXT)`)
 
 	if tableErr != nil {
 		return tableErr
