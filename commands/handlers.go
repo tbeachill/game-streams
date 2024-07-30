@@ -6,6 +6,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/analytics"
 	"gamestreams/db"
 	"gamestreams/streams"
 	"gamestreams/utils"
@@ -27,6 +28,10 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	a := analytics.Data{}
+	a.Start(i.ApplicationCommandData())
+	defer a.End()
+
 	userID := utils.GetUserID(i)
 	utils.LogInfo(" CMND", "list streams command", false,
 		"user", userID,
@@ -72,6 +77,10 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	a := analytics.Data{}
+	a.Start(i.ApplicationCommandData())
+	defer a.End()
+
 	streamName := i.ApplicationCommandData().Options[0].StringValue()
 	userID := utils.GetUserID(i)
 	utils.LogInfo(" CMND", "stream info command", false,
@@ -116,6 +125,10 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	a := analytics.Data{}
+	a.Start(i.ApplicationCommandData())
+	defer a.End()
+
 	userID := utils.GetUserID(i)
 	utils.LogInfo(" CMND", "help command", false,
 		"user", userID,
@@ -171,6 +184,10 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
+	a := analytics.Data{}
+	a.Start(i.ApplicationCommandData())
+	defer a.End()
+
 	userID := utils.GetUserID(i)
 	utils.LogInfo(" CMND", "settings command", false,
 		"user", userID,
