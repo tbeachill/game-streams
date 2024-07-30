@@ -154,20 +154,6 @@ func NewServer(serverID string, serverName string, ownerID string, memberCount i
 	return nil
 }
 
-// check for servers that are not in the servers table
-func checkServers(servers []string) error {
-	for _, serverID := range servers {
-		if exists, checkErr := CheckServerID(serverID); checkErr != nil {
-			return checkErr
-		} else if !exists {
-			if newErr := NewServer(serverID, "", ""); newErr != nil {
-				return newErr
-			}
-		}
-	}
-	return nil
-}
-
 // check for servers that have missing columns in the servers table
 func CheckServerColumns() ([]string, error) {
 	db, openErr := sql.Open("sqlite3", utils.Files.DB)
