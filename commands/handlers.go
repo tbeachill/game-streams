@@ -6,7 +6,6 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"gamestreams/analytics"
 	"gamestreams/db"
 	"gamestreams/streams"
 	"gamestreams/utils"
@@ -28,7 +27,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
-	a := analytics.Data{}
+	a := db.CommandData{}
 	a.Start(i.ApplicationCommandData())
 	defer a.End()
 
@@ -77,7 +76,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
-	a := analytics.Data{}
+	a := db.CommandData{}
 	a.Start(i.ApplicationCommandData())
 	defer a.End()
 
@@ -125,7 +124,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
-	a := analytics.Data{}
+	a := db.CommandData{}
 	a.Start(i.ApplicationCommandData())
 	defer a.End()
 
@@ -184,7 +183,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
-	a := analytics.Data{}
+	a := db.CommandData{}
 	a.Start(i.ApplicationCommandData())
 	defer a.End()
 

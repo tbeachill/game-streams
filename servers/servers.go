@@ -2,6 +2,7 @@ package servers
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -61,7 +62,7 @@ func MonitorGuilds(session *discordgo.Session) {
 
 			utils.IntroDM(e.OwnerID)
 
-			newErr := db.NewServer(e.Guild.ID, e.Guild.Name, e.Guild.OwnerID, e.Guild.MemberCount)
+			newErr := db.NewServer(e.Guild.ID, e.Guild.Name, e.Guild.OwnerID, e.Guild.MemberCount, e.Guild.PreferredLocale)
 			if newErr != nil {
 				utils.LogError("SERVR", "error adding server to database",
 					"server", e.Guild.Name,
@@ -124,6 +125,11 @@ func RemoveOldServerIDs(session *discordgo.Session) error {
 			utils.LogInfo("SERVR", "removing old server settings", false,
 				"server", dbID)
 			if removeErr := db.RemoveServerSettings(dbID); removeErr != nil {
+				return removeErr
+			}
+			utils.LogInfo("SERVR", "removing command data", false,
+				"server", dbID)
+			if removeErr := db.RemoveCommandData(dbID); removeErr != nil {
 				return removeErr
 			}
 		}
@@ -205,7 +211,7 @@ func ServerMaintenance(session *discordgo.Session) {
 			utils.LogInfo("SERVR", "adding server to database", false,
 				"server", server.Name)
 
-			newErr := db.NewServer(server.ID, server.Name, server.OwnerID, server.MemberCount)
+			newErr := db.NewServer(server.ID, server.Name, server.OwnerID, server.MemberCount, server.PreferredLocale)
 			if newErr != nil {
 				utils.LogError("SERVR", "error adding server to database",
 					"server", server.Name,
@@ -232,7 +238,7 @@ func ServerMaintenance(session *discordgo.Session) {
 
 	// add missing columns
 	if len(serverIDs) > 0 {
-		utils.LogInfo("SERVR", "adding missing columns to servers table", false,
+		utils.LogInfo("SERVR", "adding missing columns and updating member counts for servers", false,
 			"servers", serverIDs)
 
 		for _, serverID := range serverIDs {
@@ -242,24 +248,76 @@ func ServerMaintenance(session *discordgo.Session) {
 			s.Get()
 			if s.Name == "" {
 				s.Name = GetServerName(serverID)
-			} else if s.OwnerID == "" {
+			}
+			if s.OwnerID == "" {
 				s.OwnerID = GetServerOwner(serverID)
-			} else if s.DateJoined == "" {
-				s.DateJoined = time.Now().UTC().Format("2006-01-02")
-			} else if !db.CheckSettings(serverID) {
+			}
+			if s.DateJoined == "" {
+				dateJoined, dateErr := getDateJoined(serverID)
+				if dateErr != nil {
+					utils.LogError("SERVR", "error getting date joined",
+						"err", dateErr)
+				} else {
+					s.DateJoined = dateJoined
+				}
+			}
+			if !db.CheckSettings(serverID) {
 				s.Settings = db.NewSettings(serverID)
 				if setErr := s.Settings.Set(); setErr != nil {
 					utils.LogError("SERVR", "error setting server settings",
 						"err", setErr)
-					return
 				}
+			}
+			if s.Locale == "" {
+				locale, localeErr := getServerLocale(serverID)
+				if localeErr != nil {
+					utils.LogError("SERVR", "error getting server locale",
+						"err", localeErr)
+				} else {
+					s.Locale = locale
+				}
+			}
+			memberCount, countErr := updateMemberCount(serverID)
+			if countErr != nil {
+				utils.LogError("SERVR", "error getting member count",
+					"err", countErr)
+			} else {
+				s.MemberCount = memberCount
 			}
 			if setErr := s.Set(); setErr != nil {
 				utils.LogError("SERVR", "error setting server columns",
 					"err", setErr)
-				return
 			}
 		}
 	}
-	return
+}
+
+// updateMemberCount updates the member count of a server in the servers table.
+func updateMemberCount(serverID string) (int, error) {
+	server, err := utils.Session.Guild(serverID)
+	if err != nil {
+		utils.LogError("SERVR", "error getting server",
+			"err", err)
+		return 0, err
+	}
+	return server.MemberCount, nil
+}
+
+// getDateJoined returns the date a server was joined by the bot.
+func getDateJoined(serverID string) (string, error) {
+	server, err := utils.Session.Guild(serverID)
+	if err != nil {
+		return "", err
+	}
+	dateJoined := strings.Split(server.JoinedAt.Format(time.RFC3339), "T")[0]
+	return dateJoined, nil
+}
+
+// getServerLocale returns the locale of a server.
+func getServerLocale(serverID string) (string, error) {
+	server, err := utils.Session.Guild(serverID)
+	if err != nil {
+		return "", err
+	}
+	return server.PreferredLocale, nil
 }

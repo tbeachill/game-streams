@@ -21,6 +21,7 @@ type Server struct {
 	OwnerID     string
 	DateJoined  string
 	MemberCount int
+	Locale      string
 	Settings    Settings
 }
 
@@ -133,7 +134,7 @@ func RemoveServer(serverID string) error {
 }
 
 // NewServer adds a new server to the servers table in the database.
-func NewServer(serverID string, serverName string, ownerID string, memberCount int) error {
+func NewServer(serverID string, serverName string, ownerID string, memberCount int, locale string) error {
 	utils.LogInfo("SERVR", "adding new server to servers table", false,
 		"serverID", serverID)
 
@@ -143,6 +144,7 @@ func NewServer(serverID string, serverName string, ownerID string, memberCount i
 		OwnerID:     ownerID,
 		DateJoined:  time.Now().UTC().Format("2006-01-02"),
 		MemberCount: memberCount,
+		Locale:      locale,
 		Settings:    NewSettings(serverID),
 	}
 	if s.Set() != nil {
@@ -167,7 +169,8 @@ func CheckServerColumns() ([]string, error) {
 								WHERE owner_id = ""
 								OR date_joined = ""
 								OR server_name = ""
-								OR member_count = 0`)
+								OR member_count = 0
+								OR locale = ""`)
 	if execErr != nil {
 		return nil, execErr
 	}
@@ -207,25 +210,28 @@ func (s *Server) Set() error {
 		}
 		defer db.Close()
 
-		_, execErr := db.Exec(`INSERT INTO servers (server_id, server_name, owner_id, date_joined, member_count)
-								VALUES (?, ?, ?, ?, ?)`,
+		_, execErr := db.Exec(`INSERT INTO servers (server_id, server_name, owner_id, date_joined, member_count, locale)
+								VALUES (?, ?, ?, ?, ?, ?)`,
 			s.ID,
 			s.Name,
 			s.OwnerID,
 			s.DateJoined,
-			s.MemberCount)
+			s.MemberCount,
+			s.Locale)
 		return execErr
 	} else {
 		_, execErr := db.Exec(`UPDATE servers
 								SET server_name = ?,
 									owner_id = ?,
 									date_joined = ?,
-									member_count = ?
+									member_count = ?,
+									locale = ?
 								WHERE server_id = ?`,
 			s.Name,
 			s.OwnerID,
 			s.DateJoined,
 			s.MemberCount,
+			s.Locale,
 			s.ID)
 		return execErr
 	}
@@ -243,12 +249,14 @@ func (s *Server) Get() error {
 
 	row := db.QueryRow(`SELECT server_name,
 							owner_id,
-							date_joined
+							date_joined,
+							member_count,
+							locale
 						FROM servers
 						WHERE server_id = ?`,
 		s.ID)
 
-	scanErr := row.Scan(&s.Name, &s.OwnerID, &s.DateJoined)
+	scanErr := row.Scan(&s.Name, &s.OwnerID, &s.DateJoined, &s.MemberCount, &s.Locale)
 	if scanErr != nil {
 		return scanErr
 	}
