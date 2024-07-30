@@ -72,7 +72,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return
 	}
-	streamName := i.ApplicationCommandData().Options[0].Value.(string)
+	streamName := i.ApplicationCommandData().Options[0].StringValue()
 	userID := utils.GetUserID(i)
 	utils.LogInfo(" CMND", "stream info command", false,
 		"stream", streamName,
@@ -310,28 +310,28 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 	for _, option := range options {
 		switch option.Name {
 		case "channel":
-			s.AnnounceChannel.Value = option.Value.(string)
+			s.AnnounceChannel.Value = option.StringValue()
 			s.AnnounceChannel.Set = true
 		case "role":
-			s.AnnounceRole.Value = option.Value.(string)
+			s.AnnounceRole.Value = option.StringValue()
 			s.AnnounceRole.Set = true
 		case "playstation":
-			s.Playstation.Value = option.Value.(bool)
+			s.Playstation.Value = option.BoolValue()
 			s.Playstation.Set = true
 		case "xbox":
-			s.Xbox.Value = option.Value.(bool)
+			s.Xbox.Value = option.BoolValue()
 			s.Xbox.Set = true
 		case "nintendo":
-			s.Nintendo.Value = option.Value.(bool)
+			s.Nintendo.Value = option.BoolValue()
 			s.Nintendo.Set = true
 		case "pc":
-			s.PC.Value = option.Value.(bool)
+			s.PC.Value = option.BoolValue()
 			s.PC.Set = true
 		case "vr":
-			s.VR.Value = option.Value.(bool)
+			s.VR.Value = option.BoolValue()
 			s.VR.Set = true
 		case "reset":
-			s.Reset = option.Value.(bool)
+			s.Reset = option.BoolValue()
 		}
 	}
 	return &s
