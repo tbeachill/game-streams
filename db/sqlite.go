@@ -51,7 +51,8 @@ func CreateDB() error {
 								server_name TEXT,
 								owner_id INTEGER,
 								date_joined TEXT,
-								member_count INTEGER)`)
+								member_count INTEGER,
+								locale TEXT)`)
 
 	if tableErr != nil {
 		return tableErr
@@ -82,7 +83,7 @@ func CreateDB() error {
 		return tableErr
 	}
 
-	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS analytics
+	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS commands
 								(id INTEGER NOT NULL PRIMARY KEY,
 								server_id INTEGER,
 								date_time TEXT,
