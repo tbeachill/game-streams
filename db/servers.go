@@ -16,11 +16,12 @@ import (
 // server, the number of times the bot has been used in the server, and the settings for
 // the server.
 type Server struct {
-	ID         string
-	Name       string
-	OwnerID    string
-	DateJoined string
-	Settings   Settings
+	ID          string
+	Name        string
+	OwnerID     string
+	DateJoined  string
+	MemberCount int
+	Settings    Settings
 }
 
 // GetAllServerIDs returns a list of all server IDs from the servers table
@@ -132,16 +133,17 @@ func RemoveServer(serverID string) error {
 }
 
 // NewServer adds a new server to the servers table in the database.
-func NewServer(serverID string, serverName string, ownerID string) error {
+func NewServer(serverID string, serverName string, ownerID string, memberCount int) error {
 	utils.LogInfo("SERVR", "adding new server to servers table", false,
 		"serverID", serverID)
 
 	s := Server{
-		ID:         serverID,
-		Name:       serverName,
-		OwnerID:    ownerID,
-		DateJoined: time.Now().UTC().Format("2006-01-02"),
-		Settings:   NewSettings(serverID),
+		ID:          serverID,
+		Name:        serverName,
+		OwnerID:     ownerID,
+		DateJoined:  time.Now().UTC().Format("2006-01-02"),
+		MemberCount: memberCount,
+		Settings:    NewSettings(serverID),
 	}
 	if s.Set() != nil {
 		return s.Set()
@@ -178,7 +180,8 @@ func CheckServerColumns() ([]string, error) {
 								FROM servers
 								WHERE owner_id = ""
 								OR date_joined = ""
-								OR server_name = ""`)
+								OR server_name = ""
+								OR member_count = 0`)
 	if execErr != nil {
 		return nil, execErr
 	}
@@ -218,22 +221,25 @@ func (s *Server) Set() error {
 		}
 		defer db.Close()
 
-		_, execErr := db.Exec(`INSERT INTO servers (server_id, server_name, owner_id, date_joined)
+		_, execErr := db.Exec(`INSERT INTO servers (server_id, server_name, owner_id, date_joined, member_count)
 								VALUES (?, ?, ?, ?, ?)`,
 			s.ID,
 			s.Name,
 			s.OwnerID,
-			s.DateJoined)
+			s.DateJoined,
+			s.MemberCount)
 		return execErr
 	} else {
 		_, execErr := db.Exec(`UPDATE servers
 								SET server_name = ?,
 									owner_id = ?,
-									date_joined = ?
+									date_joined = ?,
+									member_count = ?
 								WHERE server_id = ?`,
 			s.Name,
 			s.OwnerID,
 			s.DateJoined,
+			s.MemberCount,
 			s.ID)
 		return execErr
 	}
