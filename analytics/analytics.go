@@ -43,7 +43,7 @@ func (d *Data) DBInsert() error {
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(`INSERT INTO analytics
+	_, execErr := db.Exec(`INSERT INTO commands
 							(server_id,
 							date_time,
 							command,
