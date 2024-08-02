@@ -326,10 +326,10 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 	for _, option := range options {
 		switch option.Name {
 		case "channel":
-			s.AnnounceChannel.Value = option.StringValue()
+			s.AnnounceChannel.Value = option.Value.(string)
 			s.AnnounceChannel.Set = true
 		case "role":
-			s.AnnounceRole.Value = option.StringValue()
+			s.AnnounceRole.Value = option.Value.(string)
 			s.AnnounceRole.Set = true
 		case "playstation":
 			s.Playstation.Value = option.BoolValue()
