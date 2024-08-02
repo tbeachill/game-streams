@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Get new commits
         id: get-commits
-        run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '1 week ago' | wc -l)" >> $GITHUB_ENV
+        run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '1 week ago' | wc -l)" >> $GITHUB_OUTPUT
 
   stop-bot:
     needs: check-commits
