@@ -5,9 +5,6 @@ on:
   schedule:
     - cron: '12 8 * * 1' # 09:12 every monday
 
-env:
-  NEW_COMMIT_COUNT: 0
-
 jobs:
   checkout:
     runs-on: self-hosted
@@ -19,16 +16,16 @@ jobs:
     needs: checkout
     runs-on: self-hosted
     outputs:
-          new_commits: ${{ steps.get-commits.outputs.NEW_COMMIT_COUNT }}
+          new_commits: ${{ steps.get-commits.outputs.week_commit_count }}
     steps:
       - name: Get new commits
         id: get-commits
-        run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '1 week ago' | wc -l)" >> $GITHUB_OUTPUT
+        run: echo "week_commit_count=$(git log --oneline --since '1 week ago' | wc -l)" >> $GITHUB_OUTPUT
 
   stop-bot:
     needs: check-commits
     runs-on: self-hosted
-    if: ${{ needs.outputs.new_commits > 0 }}
+    if: ${{ needs.check-commits.outputs.new_commits > 0 }}
     steps:
       - name: Stop bot service
         run: sudo systemctl stop game-streams
