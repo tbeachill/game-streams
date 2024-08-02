@@ -1,24 +1,30 @@
 name: deploy
 
 on:
-  push:
-    branches:
-      - "main"
-    paths-ignore:
-      - '.github/**'
-      - 'assets/**'
-      - '*'
+  workflow_dispatch: # allows manual triggering
+  schedule:
+    - cron: '12 8 * * 1' # 09:12 every monday
+
+
 
 jobs:
-  stopbot:
+  check-commits:
     runs-on: self-hosted
+    steps:
+      - name: Get new commits
+        run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '24 hours ago' | wc -l)" >> $GITHUB_ENV
+
+  stop-bot:
+    runs-on: self-hosted
+    if: ${{ vars.NEW_COMMIT_COUNT > 0 }}
     steps:
       - name: Stop bot service
         run: sudo systemctl stop game-streams
 
   build:
-    needs: stopbot
+    needs: stop-bot
     runs-on: self-hosted
+    if: ${{ vars.NEW_COMMIT_COUNT > 0 }}
 
     steps:
       - name: Checkout code
@@ -44,9 +50,10 @@ jobs:
       - name: Build
         run: go build -v -o bin/game-streams game-streams/main.go
 
-  startbot:
+  start-bot:
     needs: build
     runs-on: self-hosted
+    if: ${{ vars.NEW_COMMIT_COUNT > 0 }}
     steps:
       - name: Start bot service
         run: |
