@@ -15,6 +15,7 @@ jobs:
         run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '24 hours ago' | wc -l)" >> $GITHUB_ENV
 
   stop-bot:
+    needs: check-commits
     runs-on: self-hosted
     if: ${{ vars.NEW_COMMIT_COUNT > 0 }}
     steps:
