@@ -5,19 +5,30 @@ on:
   schedule:
     - cron: '12 8 * * 1' # 09:12 every monday
 
-
+env:
+  NEW_COMMIT_COUNT: 0
 
 jobs:
-  check-commits:
+  checkout:
     runs-on: self-hosted
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+  check-commits:
+    needs: checkout
+    runs-on: self-hosted
+    outputs:
+          new_commits: ${{ steps.get-commits.outputs.NEW_COMMIT_COUNT }}
+    steps:
       - name: Get new commits
-        run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '24 hours ago' | wc -l)" >> $GITHUB_ENV
+        id: get-commits
+        run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '1 week ago' | wc -l)" >> $GITHUB_ENV
 
   stop-bot:
     needs: check-commits
     runs-on: self-hosted
-    if: ${{ vars.NEW_COMMIT_COUNT > 0 }}
+    if: ${{ needs.outputs.new_commits > 0 }}
     steps:
       - name: Stop bot service
         run: sudo systemctl stop game-streams
@@ -25,12 +36,8 @@ jobs:
   build:
     needs: stop-bot
     runs-on: self-hosted
-    if: ${{ vars.NEW_COMMIT_COUNT > 0 }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -54,7 +61,6 @@ jobs:
   start-bot:
     needs: build
     runs-on: self-hosted
-    if: ${{ vars.NEW_COMMIT_COUNT > 0 }}
     steps:
       - name: Start bot service
         run: |
