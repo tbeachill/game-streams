@@ -1,4 +1,4 @@
 bin/
 *.kra
-config/
+config_files/
 .vscode/
