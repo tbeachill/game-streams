@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	"gamestreams/utils"
+	"gamestreams/config"
+	"gamestreams/logs"
 )
 
 // Blacklist is a struct that holds the blacklist values for the bot.
@@ -19,10 +20,10 @@ type Blacklist struct {
 // IsBlacklisted checks if the given ID is blacklisted. Returns true if the ID is blacklisted,
 // false if it is not.
 func IsBlacklisted(id string, idType string) (bool, string) {
-	utils.LogInfo(" MAIN", "checking if blacklisted", false,
+	logs.LogInfo(" MAIN", "checking if blacklisted", false,
 		"id", id,
 		"idType", idType)
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return false, ""
 	}
@@ -49,13 +50,13 @@ func IsBlacklisted(id string, idType string) (bool, string) {
 
 // AddToBlacklist adds the given ID to the blacklist table of the database.
 func AddToBlacklist(id string, idType string, reason string, length_days int) error {
-	utils.LogInfo("OWNER", "adding to blacklist table", false,
+	logs.LogInfo("OWNER", "adding to blacklist table", false,
 		"id", id,
 		"idType", idType,
 		"days", length_days,
 		"reason", reason)
 
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
@@ -76,8 +77,8 @@ func AddToBlacklist(id string, idType string, reason string, length_days int) er
 
 // RemoveFromBlacklist removes the given ID from the blacklist table of the database.
 func RemoveFromBlacklist(id string) error {
-	utils.LogInfo("OWNER", "removing from blacklist table", false, "id", id)
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	logs.LogInfo("OWNER", "removing from blacklist table", false, "id", id)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
@@ -91,8 +92,8 @@ func RemoveFromBlacklist(id string) error {
 
 // GetBlacklist returns a list of all blacklisted IDs from the blacklist table of the database.
 func GetBlacklist() ([]Blacklist, error) {
-	utils.LogInfo("OWNER", "getting blacklist", false)
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	logs.LogInfo("OWNER", "getting blacklist", false)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return nil, openErr
 	}
@@ -124,7 +125,7 @@ func GetBlacklist() ([]Blacklist, error) {
 // RemoveExpiredBlacklist removes all blacklisted IDs that have expired from the blacklist table
 // of the database.
 func RemoveExpiredBlacklist() error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}

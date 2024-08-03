@@ -3,14 +3,15 @@ package commands
 import (
 	"database/sql"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/config"
 	"gamestreams/db"
+	"gamestreams/logs"
 	"gamestreams/servers"
 	"gamestreams/utils"
 )
@@ -31,7 +32,7 @@ func RegisterOwnerCommands(s *discordgo.Session) {
 // listCommands is a command that lists all the owner commands
 func listCommands(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!commands" {
 		return
 	}
@@ -53,7 +54,7 @@ func listCommands(s *discordgo.Session, m *discordgo.MessageCreate) {
 func uptime(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// check if the message author is the bot or not the owner
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!uptime" {
 		return
 	}
@@ -64,7 +65,7 @@ func uptime(s *discordgo.Session, m *discordgo.MessageCreate) {
 // serverCount is a command that returns the number of servers the bot is in
 func serverCount(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!servercount" {
 		return
 	}
@@ -75,13 +76,13 @@ func serverCount(s *discordgo.Session, m *discordgo.MessageCreate) {
 // update forces an update of the streams from the streams.toml file
 func update(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!update" {
 		return
 	}
 	var streams db.Streams
 	if updateErr := streams.Update(); updateErr != nil {
-		utils.LogError("OWNER", "error updating streams",
+		logs.LogError("OWNER", "error updating streams",
 			"err", updateErr)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "streams updated")
@@ -92,12 +93,12 @@ func update(s *discordgo.Session, m *discordgo.MessageCreate) {
 // servers list
 func removeOldServers(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!removeoldservers" {
 		return
 	}
 	if removeErr := servers.RemoveOldServerIDs(s); removeErr != nil {
-		utils.LogError("OWNER", "error removing old servers",
+		logs.LogError("OWNER", "error removing old servers",
 			"err", removeErr)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "old servers removed")
@@ -109,20 +110,20 @@ func removeOldServers(s *discordgo.Session, m *discordgo.MessageCreate) {
 // message
 func sqlExecute(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!sqlx" {
 		return
 	}
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
-		utils.LogError("OWNER", "error opening database",
+		logs.LogError("OWNER", "error opening database",
 			"err", openErr)
 	}
 	defer db.Close()
 	query := m.Content[6:]
 	_, execErr := db.Exec(query)
 	if execErr != nil {
-		utils.LogError("OWNER", "error executing database command",
+		logs.LogError("OWNER", "error executing database command",
 			"err", execErr)
 	}
 	s.ChannelMessageSend(m.ChannelID, "sql executed")
@@ -131,13 +132,13 @@ func sqlExecute(s *discordgo.Session, m *discordgo.MessageCreate) {
 // ownerListStreams lists all upcoming streams in the streams table including their id
 func ownerListStreams(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!streams" {
 		return
 	}
 	var streams db.Streams
 	if getErr := streams.GetUpcoming(50); getErr != nil {
-		utils.LogError("OWNER", "error getting streams",
+		logs.LogError("OWNER", "error getting streams",
 			"err", getErr)
 	}
 	for _, stream := range streams.Streams {
@@ -153,7 +154,7 @@ func ownerListStreams(s *discordgo.Session, m *discordgo.MessageCreate) {
 // blacklistEdit allows the owner to add or remove users or servers from the blacklist
 func blacklistEdit(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!blacklist" {
 		return
 	}
@@ -180,7 +181,7 @@ func blacklistEdit(s *discordgo.Session, m *discordgo.MessageCreate) {
 // blacklistAdd adds a user or server to the blacklist
 func blacklistAdd(s *discordgo.Session, m *discordgo.MessageCreate, splitString []string) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") {
+		m.Author.ID != config.Values.Discord.OwnerID {
 		return
 	}
 	if len(splitString) < 6 || splitString[2] == "" || splitString[3] == "" ||
@@ -204,7 +205,7 @@ func blacklistAdd(s *discordgo.Session, m *discordgo.MessageCreate, splitString 
 	reason := strings.Join(splitString[5:], " ")
 
 	if dbErr := db.AddToBlacklist(id, idType, reason, duration); dbErr != nil {
-		utils.LogError("OWNER", "error adding to blacklist",
+		logs.LogError("OWNER", "error adding to blacklist",
 			"id", id,
 			"id_type", idType,
 			"reason", reason,
@@ -218,7 +219,7 @@ func blacklistAdd(s *discordgo.Session, m *discordgo.MessageCreate, splitString 
 // blacklistRemove removes a user or server from the blacklist
 func blacklistRemove(s *discordgo.Session, m *discordgo.MessageCreate, splitString []string) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") {
+		m.Author.ID != config.Values.Discord.OwnerID {
 		return
 	}
 	if len(splitString) < 3 || splitString[2] == "" || len(splitString) > 3 {
@@ -233,7 +234,7 @@ func blacklistRemove(s *discordgo.Session, m *discordgo.MessageCreate, splitStri
 		return
 	}
 	if dbErr := db.RemoveFromBlacklist(id); dbErr != nil {
-		utils.LogError("OWNER", "error removing from blacklist",
+		logs.LogError("OWNER", "error removing from blacklist",
 			"id", id,
 			"err", dbErr)
 	} else {
@@ -244,14 +245,14 @@ func blacklistRemove(s *discordgo.Session, m *discordgo.MessageCreate, splitStri
 // blacklistGet lists all blacklisted users and servers
 func blacklistGet(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
-		m.Author.ID != os.Getenv("OWNER_ID") ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
 		len(m.Content) < 14 {
 		return
 	}
 	if m.Content == "!blacklist get" {
 		blacklist, err := db.GetBlacklist()
 		if err != nil {
-			utils.LogError("OWNER", "error getting blacklist",
+			logs.LogError("OWNER", "error getting blacklist",
 				"err", err)
 		}
 		if len(blacklist) == 0 {

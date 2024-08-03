@@ -5,7 +5,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreams/utils"
+	"gamestreams/config"
+	"gamestreams/logs"
 )
 
 // CreateDB creates the database if it does not exist. It creates the streams, config,
@@ -16,8 +17,8 @@ import (
 // blacklist contains information about users and servers that are blacklisted from
 // using the bot.
 func CreateDB() error {
-	utils.LogInfo(" MAIN", "loading/creating database", false)
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	logs.LogInfo(" MAIN", "loading/creating database", false)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}

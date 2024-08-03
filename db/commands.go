@@ -6,7 +6,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"gamestreams/utils"
+	"gamestreams/config"
+	"gamestreams/logs"
 )
 
 type CommandData struct {
@@ -32,12 +33,12 @@ func (d *CommandData) End() {
 	d.EndTime = time.Now().UnixMilli()
 	d.ResponseTime = d.EndTime - d.StartTime
 	if err := d.DBInsert(); err != nil {
-		utils.LogError("ANALYTICS", "error inserting analytics data", "err", err)
+		logs.LogError("ANALYTICS", "error inserting analytics data", "err", err)
 	}
 }
 
 func (d *CommandData) DBInsert() error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
@@ -55,7 +56,7 @@ func (d *CommandData) DBInsert() error {
 }
 
 func RemoveCommandData(serverID string) error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}

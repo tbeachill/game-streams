@@ -4,28 +4,30 @@ import (
 	"database/sql"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/tidwall/gjson"
 
-	"gamestreams/utils"
+	"gamestreams/config"
+	"gamestreams/logs"
 )
+
+var Conf Config
 
 // Config is a struct that holds the configuration values for the bot.
 type Config struct {
-	ID         int
-	TomlURL    string
-	APIURL     string
-	LastUpdate string
-	CommitTime time.Time
+	ID            int
+	StreamDataURL string
+	APIURL        string
+	LastUpdate    string
+	CommitTime    time.Time
 }
 
 // Get gets the configuration values from the database and sets them in the Config
 // struct.
 func (c *Config) Get() error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
@@ -35,9 +37,9 @@ func (c *Config) Get() error {
 						FROM config
 						WHERE id = 1`)
 
-	scanErr := row.Scan(&c.ID, &c.TomlURL, &c.APIURL, &c.LastUpdate)
+	scanErr := row.Scan(&c.ID, &c.StreamDataURL, &c.APIURL, &c.LastUpdate)
 	if scanErr == sql.ErrNoRows {
-		utils.LogInfo(" MAIN", "No config found, setting default", false)
+		logs.LogInfo(" MAIN", "No config found, setting default", false)
 		if defaultErr := c.SetDefault(); defaultErr != nil {
 			return defaultErr
 		}
@@ -50,12 +52,12 @@ func (c *Config) Get() error {
 // SetDefault sets the default values for the config struct from the environment
 // variables and writes them to the database.
 func (c *Config) SetDefault() error {
-	utils.LogInfo(" MAIN", "Setting default config", false)
-	c.TomlURL = os.Getenv("TOML_URL")
-	c.APIURL = os.Getenv("API_URL")
+	logs.LogInfo(" MAIN", "Setting default config", false)
+	c.StreamDataURL = config.Values.Github.StreamDataURL
+	c.APIURL = config.Values.Github.APIURL
 	c.LastUpdate = ""
 
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
@@ -67,7 +69,7 @@ func (c *Config) SetDefault() error {
 								api_url,
 								last_updated)
 							VALUES (1, ?, ?, ?)`,
-		c.TomlURL,
+		c.StreamDataURL,
 		c.APIURL,
 		"")
 
@@ -80,9 +82,9 @@ func (c *Config) SetDefault() error {
 
 // Set writes the current values of the Config struct to the database.
 func (c *Config) Set() error {
-	utils.LogInfo(" MAIN", "Updating config", false)
+	logs.LogInfo(" MAIN", "Updating config", false)
 
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
@@ -94,7 +96,7 @@ func (c *Config) Set() error {
 								api_url = ?,
 								last_updated = ?
 							WHERE id = 1`,
-		c.TomlURL,
+		c.StreamDataURL,
 		c.APIURL,
 		c.LastUpdate)
 

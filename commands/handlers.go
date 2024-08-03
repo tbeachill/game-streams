@@ -7,6 +7,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 
 	"gamestreams/db"
+	"gamestreams/discord"
+	"gamestreams/logs"
 	"gamestreams/streams"
 	"gamestreams/utils"
 )
@@ -32,7 +34,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	defer a.End()
 
 	userID := utils.GetUserID(i)
-	utils.LogInfo(" CMND", "list streams command", false,
+	logs.LogInfo(" CMND", "list streams command", false,
 		"user", userID,
 		"server", i.GuildID)
 
@@ -45,7 +47,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Color:       0xc3d23e,
 			}
 		} else {
-			utils.LogError(" CMND", "error creating embeds",
+			logs.LogError(" CMND", "error creating embeds",
 				"err", listErr)
 			embed = &discordgo.MessageEmbed{
 				Title:       "Upcoming Streams",
@@ -61,7 +63,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.LogError(" CMND", "error responding to interaction",
+		logs.LogError(" CMND", "error responding to interaction",
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
 	}
@@ -82,7 +84,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	streamName := i.ApplicationCommandData().Options[0].StringValue()
 	userID := utils.GetUserID(i)
-	utils.LogInfo(" CMND", "stream info command", false,
+	logs.LogInfo(" CMND", "stream info command", false,
 		"stream", streamName,
 		"user", userID,
 		"server", i.GuildID)
@@ -96,7 +98,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Color:       0xc3d23e,
 			}
 		} else {
-			utils.LogError(" CMND", "error creating embeds",
+			logs.LogError(" CMND", "error creating embeds",
 				"err", infoErr)
 			embed = &discordgo.MessageEmbed{
 				Title:       "Stream Info",
@@ -112,7 +114,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.LogError(" CMND", "error responding to interaction",
+		logs.LogError(" CMND", "error responding to interaction",
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
 	}
@@ -129,7 +131,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	defer a.End()
 
 	userID := utils.GetUserID(i)
-	utils.LogInfo(" CMND", "help command", false,
+	logs.LogInfo(" CMND", "help command", false,
 		"user", userID,
 		"server", i.GuildID)
 
@@ -166,7 +168,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.LogError(" CMND", "error responding to interaction",
+		logs.LogError(" CMND", "error responding to interaction",
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
 	}
@@ -188,7 +190,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	defer a.End()
 
 	userID := utils.GetUserID(i)
-	utils.LogInfo(" CMND", "settings command", false,
+	logs.LogInfo(" CMND", "settings command", false,
 		"user", userID,
 		"server", i.GuildID)
 
@@ -203,7 +205,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if options.Reset {
 		*options = db.NewSettings(i.GuildID)
 		if optErr := options.Set(); optErr != nil {
-			utils.LogError(" CMND", "error resetting options",
+			logs.LogError(" CMND", "error resetting options",
 				"server", i.GuildID,
 				"err", optErr)
 
@@ -213,7 +215,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var currentOptions = db.NewSettings(i.GuildID)
 
 	if getOptErr := currentOptions.Get(i.GuildID); getOptErr != nil {
-		utils.LogError(" CMND", "error getting options",
+		logs.LogError(" CMND", "error getting options",
 			"server", i.GuildID,
 			"err", getOptErr)
 
@@ -227,7 +229,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		channel, cErr := s.Channel(currentOptions.AnnounceChannel.Value)
 		if cErr != nil {
 
-			utils.LogError(" CMND", "error getting channel name",
+			logs.LogError(" CMND", "error getting channel name",
 				"channel", currentOptions.AnnounceChannel,
 				"err", cErr)
 
@@ -239,7 +241,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if currentOptions.AnnounceRole.Value != "" {
 		role, rErr := s.State.Role(i.GuildID, currentOptions.AnnounceRole.Value)
 		if rErr != nil {
-			utils.LogError(" CMND", "error getting role name",
+			logs.LogError(" CMND", "error getting role name",
 				"role", currentOptions.AnnounceRole,
 				"err", rErr)
 
@@ -295,7 +297,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	settingsErr := currentOptions.Set()
 	if settingsErr != nil {
-		utils.LogError(" CMND", "error setting options",
+		logs.LogError(" CMND", "error setting options",
 			"server", i.GuildID,
 			"err", settingsErr)
 
@@ -314,7 +316,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if respondErr != nil {
-		utils.LogError(" CMND", "error responding to interaction",
+		logs.LogError(" CMND", "error responding to interaction",
 			"cmd", i.ApplicationCommandData().Name,
 			"err", respondErr)
 	}
@@ -357,11 +359,11 @@ func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
 	userID := utils.GetUserID(i)
 	blacklisted, reason := db.IsBlacklisted(userID, "user")
 	if blacklisted {
-		utils.LogInfo(" CMND", "blacklisted user tried to use command", false,
+		logs.LogInfo(" CMND", "blacklisted user tried to use command", false,
 			"user", userID,
 			"reason", reason,
 			"command", i.ApplicationCommandData().Name)
-		utils.DM(userID, fmt.Sprintf("You are blacklisted from using this bot. Reason: %s", reason))
+		discord.DM(userID, fmt.Sprintf("You are blacklisted from using this bot. Reason: %s", reason))
 		return true
 	}
 	return false

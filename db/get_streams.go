@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreams/utils"
+	"gamestreams/config"
 )
 
 // Stream is a representation of a stream. It containes information about the stream,
@@ -33,7 +33,7 @@ type Streams struct {
 // and optional parameters. It will scan the results of the query into a Stream struct,
 // appending each stream to the Streams slice of the struct.
 func (s *Streams) Query(q string, params ...string) error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}

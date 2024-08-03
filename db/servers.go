@@ -8,7 +8,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreams/utils"
+	"gamestreams/config"
+	"gamestreams/logs"
 )
 
 // Server is a struct that contains information about a server. It contains the server
@@ -27,7 +28,7 @@ type Server struct {
 
 // GetAllServerIDs returns a list of all server IDs from the servers table
 func GetAllServerIDs() ([]string, error) {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return nil, openErr
 	}
@@ -56,7 +57,7 @@ func GetAllServerIDs() ([]string, error) {
 // CheckServerID checks if the given server ID exists in the servers table. Returns
 // true if the server ID exists, false if it does not.
 func CheckServerID(serverID string) (bool, error) {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return false, openErr
 	}
@@ -80,14 +81,14 @@ func CheckServerID(serverID string) (bool, error) {
 // GetPlatformServerIDs returns a list of server IDs that have the given platform set
 // to true in the servers table.
 func GetPlatformServerIDs(platform string) ([]string, error) {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return nil, openErr
 	}
 	defer db.Close()
 
 	platform = strings.ToLower(platform)
-	utils.Log.Info.WithPrefix("SERVR").Info("getting server IDs for",
+	logs.Log.Info.WithPrefix("SERVR").Info("getting server IDs for",
 		"platform", platform)
 
 	rows, queryErr := db.Query(`SELECT server_id
@@ -112,16 +113,16 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 	}
 	err := rows.Err()
 	if err != nil {
-		utils.Log.Info.Error(err)
+		logs.Log.Info.Error(err)
 	}
 	return serverIDs, nil
 }
 
 // RemoveServer removes the given server ID from the servers table.
 func RemoveServer(serverID string) error {
-	utils.LogInfo("SERVR", "removing server from servers table", false,
+	logs.LogInfo("SERVR", "removing server from servers table", false,
 		"serverID", serverID)
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
@@ -135,7 +136,7 @@ func RemoveServer(serverID string) error {
 
 // NewServer adds a new server to the servers table in the database.
 func NewServer(serverID string, serverName string, ownerID string, memberCount int, locale string) error {
-	utils.LogInfo("SERVR", "adding new server to servers table", false,
+	logs.LogInfo("SERVR", "adding new server to servers table", false,
 		"serverID", serverID)
 
 	s := Server{
@@ -158,7 +159,7 @@ func NewServer(serverID string, serverName string, ownerID string, memberCount i
 
 // check for servers that have missing columns in the servers table
 func CheckServerColumns() ([]string, error) {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return nil, openErr
 	}
@@ -191,9 +192,9 @@ func CheckServerColumns() ([]string, error) {
 
 // Set sets the settings for the given server ID in the servers table.
 func (s *Server) Set() error {
-	utils.LogInfo("SERVR", "setting server settings", false,
+	logs.LogInfo("SERVR", "setting server settings", false,
 		"serverID", s.ID)
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
@@ -204,7 +205,7 @@ func (s *Server) Set() error {
 		return checkErr
 	}
 	if !inServerTable {
-		db, openErr := sql.Open("sqlite3", utils.Files.DB)
+		db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 		if openErr != nil {
 			return openErr
 		}
@@ -239,9 +240,9 @@ func (s *Server) Set() error {
 
 // Get returns the server information for the given server ID from the servers table.
 func (s *Server) Get() error {
-	utils.LogInfo("SERVR", "getting server settings", false,
+	logs.LogInfo("SERVR", "getting server settings", false,
 		"serverID", s.ID)
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}

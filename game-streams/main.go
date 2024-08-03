@@ -3,11 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/joho/godotenv"
-
 	"gamestreams/bot"
+	"gamestreams/config"
 	"gamestreams/db"
-	"gamestreams/utils"
+	"gamestreams/logs"
 )
 
 // main is the entry point for the bot. It sets the file paths, initializes the logger,
@@ -21,22 +20,15 @@ import (
 //	STREAM_URL - the Github URL for the streams.toml file.
 //	API_URL - the Github API URL for the repository that contains the streams.toml file.
 func main() {
-	utils.Files.SetPaths()
-	utils.Log.Init()
-	utils.Log.Info.WithPrefix(" MAIN").Info("starting bot")
+	config.Values.Load()
+	logs.Log.Init()
+	logs.Log.Info.WithPrefix(" MAIN").Info("starting bot")
 
-	if envErr := godotenv.Load(utils.Files.DotEnv); envErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error loading .env file",
-			"err", envErr)
-		os.Exit(1)
-	}
 	createErr := db.CreateDB()
 	if createErr != nil {
-		utils.Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating database",
+		logs.Log.ErrorWarn.WithPrefix(" MAIN").Error("error creating database",
 			"err", createErr)
 		os.Exit(1)
 	}
-	botToken := os.Getenv("DISCORD_TOKEN")
-	appID := os.Getenv("APPLICATION_ID")
-	bot.Run(botToken, appID)
+	bot.Run(config.Values.Discord.Token, config.Values.Discord.ApplicationID)
 }

@@ -8,7 +8,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 
 	"gamestreams/db"
-	"gamestreams/utils"
+	"gamestreams/discord"
+	"gamestreams/logs"
 )
 
 // GetGuildNumber returns the number of servers the bot is in.
@@ -21,7 +22,7 @@ func GetGuildNumber(session *discordgo.Session) int {
 // bot owner via DM.
 func logGuildNumber(session *discordgo.Session) {
 	guildNum := GetGuildNumber(session)
-	utils.LogInfo("SERVR", "connected", true,
+	logs.LogInfo("SERVR", "connected", true,
 		"server_count", guildNum)
 }
 
@@ -32,18 +33,18 @@ func logGuildNumber(session *discordgo.Session) {
 // removes the server from the servers table.
 func MonitorGuilds(session *discordgo.Session) {
 	logGuildNumber(session)
-	utils.LogInfo("SERVR", "adding server join handler", false)
+	logs.LogInfo("SERVR", "adding server join handler", false)
 
 	// join handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildCreate) {
-		utils.LogInfo("SERVR", "joined server", true,
+		logs.LogInfo("SERVR", "joined server", true,
 			"server", e.Guild.Name,
 			"server_id", e.Guild.ID,
 			"owner", e.Guild.OwnerID)
 		logGuildNumber(s)
 		// check if server is blacklisted
 		if leaveErr := LeaveIfBlacklisted(s, e.Guild.ID, e); leaveErr != nil {
-			utils.LogError("SERVR", "error leaving blacklisted server",
+			logs.LogError("SERVR", "error leaving blacklisted server",
 				"server", e.Guild.Name,
 				"server_id", e.Guild.ID,
 				"err", leaveErr)
@@ -52,36 +53,36 @@ func MonitorGuilds(session *discordgo.Session) {
 		// check if server ID is in the servers table
 		present, checkErr := db.CheckServerID(e.Guild.ID)
 		if checkErr != nil {
-			utils.LogError("SERVR", "error checking server ID",
+			logs.LogError("SERVR", "error checking server ID",
 				"err", checkErr)
 			return
 		}
 		if !present {
-			utils.LogInfo("SERVR", "adding server to database", false,
+			logs.LogInfo("SERVR", "adding server to database", false,
 				"server", e.Guild.Name)
 
-			utils.IntroDM(e.OwnerID)
+			discord.IntroDM(e.OwnerID)
 
 			newErr := db.NewServer(e.Guild.ID, e.Guild.Name, e.Guild.OwnerID, e.Guild.MemberCount, e.Guild.PreferredLocale)
 			if newErr != nil {
-				utils.LogError("SERVR", "error adding server to database",
+				logs.LogError("SERVR", "error adding server to database",
 					"server", e.Guild.Name,
 					"err", newErr)
 			}
 		}
 	})
-	utils.LogInfo("SERVR", "adding server leave handler", false)
+	logs.LogInfo("SERVR", "adding server leave handler", false)
 
 	// leave handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
-		utils.LogInfo("SERVR", "left server", true,
+		logs.LogInfo("SERVR", "left server", true,
 			"server", e.Guild.Name,
 			"server_id", e.Guild.ID,
 			"owner", e.Guild.OwnerID)
 
 		logGuildNumber(s)
 		if removeErr := db.RemoveServer(e.Guild.ID); removeErr != nil {
-			utils.LogError("SERVR", "error removing server",
+			logs.LogError("SERVR", "error removing server",
 				"server", e.Guild.Name,
 				"err", removeErr)
 		}
@@ -117,17 +118,17 @@ func RemoveOldServerIDs(session *discordgo.Session) error {
 			}
 		}
 		if !found {
-			utils.LogInfo("SERVR", "removing old server ID", false,
+			logs.LogInfo("SERVR", "removing old server ID", false,
 				"server", dbID)
 			if removeErr := db.RemoveServer(dbID); removeErr != nil {
 				return removeErr
 			}
-			utils.LogInfo("SERVR", "removing old server settings", false,
+			logs.LogInfo("SERVR", "removing old server settings", false,
 				"server", dbID)
 			if removeErr := db.RemoveServerSettings(dbID); removeErr != nil {
 				return removeErr
 			}
-			utils.LogInfo("SERVR", "removing command data", false,
+			logs.LogInfo("SERVR", "removing command data", false,
 				"server", dbID)
 			if removeErr := db.RemoveCommandData(dbID); removeErr != nil {
 				return removeErr
@@ -140,11 +141,11 @@ func RemoveOldServerIDs(session *discordgo.Session) error {
 // leaveServer leaves the server with the given server ID. It sends a DM to the server
 // owner with the reason the bot left the server.
 func leaveServer(session *discordgo.Session, serverID string, reason string, e *discordgo.GuildCreate) error {
-	utils.LogInfo("SERVR", "leaving server", true,
+	logs.LogInfo("SERVR", "leaving server", true,
 		"server", serverID,
 		"reason", reason)
 
-	utils.DM(e.OwnerID, fmt.Sprintf("I am leaving your server because %s", reason))
+	discord.DM(e.OwnerID, fmt.Sprintf("I am leaving your server because %s", reason))
 	if removeErr := session.GuildLeave(serverID); removeErr != nil {
 		return removeErr
 	}
@@ -164,9 +165,9 @@ func LeaveIfBlacklisted(session *discordgo.Session, serverID string, e *discordg
 
 // GetServerName returns the name of a server from a server ID.
 func GetServerName(serverID string) string {
-	server, err := utils.Session.Guild(serverID)
+	server, err := discord.Session.Guild(serverID)
 	if err != nil {
-		utils.LogError(" MAIN", "error getting server name", "err", err)
+		logs.LogError(" MAIN", "error getting server name", "err", err)
 		return ""
 	}
 	return server.Name
@@ -174,9 +175,9 @@ func GetServerName(serverID string) string {
 
 // GetServerOwner returns the owner of a server from a server ID.
 func GetServerOwner(serverID string) string {
-	server, err := utils.Session.Guild(serverID)
+	server, err := discord.Session.Guild(serverID)
 	if err != nil {
-		utils.LogError(" MAIN", "error getting server owner", "err", err)
+		logs.LogError(" MAIN", "error getting server owner", "err", err)
 		return ""
 	}
 	return server.OwnerID
@@ -195,7 +196,7 @@ func ServerMaintenance(session *discordgo.Session) {
 	for _, server := range servers {
 		// check if server is blacklisted
 		if leaveErr := LeaveIfBlacklisted(session, server.ID, nil); leaveErr != nil {
-			utils.LogError("SERVR", "error leaving blacklisted server",
+			logs.LogError("SERVR", "error leaving blacklisted server",
 				"server", server.Name,
 				"err", leaveErr)
 			return
@@ -203,17 +204,17 @@ func ServerMaintenance(session *discordgo.Session) {
 		// check if server ID is in the servers table
 		present, checkErr := db.CheckServerID(server.ID)
 		if checkErr != nil {
-			utils.LogError("SERVR", "error checking server ID",
+			logs.LogError("SERVR", "error checking server ID",
 				"err", checkErr)
 			return
 		}
 		if !present {
-			utils.LogInfo("SERVR", "adding server to database", false,
+			logs.LogInfo("SERVR", "adding server to database", false,
 				"server", server.Name)
 
 			newErr := db.NewServer(server.ID, server.Name, server.OwnerID, server.MemberCount, server.PreferredLocale)
 			if newErr != nil {
-				utils.LogError("SERVR", "error adding server to database",
+				logs.LogError("SERVR", "error adding server to database",
 					"server", server.Name,
 					"err", newErr)
 				return
@@ -223,7 +224,7 @@ func ServerMaintenance(session *discordgo.Session) {
 
 	// remove servers that are in the table but not in the discord list
 	if removeErr := RemoveOldServerIDs(session); removeErr != nil {
-		utils.LogError("SERVR", "error removing old server IDs",
+		logs.LogError("SERVR", "error removing old server IDs",
 			"err", removeErr)
 		return
 	}
@@ -231,14 +232,14 @@ func ServerMaintenance(session *discordgo.Session) {
 	// check for servers that have missing columns in the servers table
 	serverIDs, checkErr := db.CheckServerColumns()
 	if checkErr != nil {
-		utils.LogError("SERVR", "error checking server columns",
+		logs.LogError("SERVR", "error checking server columns",
 			"err", checkErr)
 		return
 	}
 
 	// add missing columns
 	if len(serverIDs) > 0 {
-		utils.LogInfo("SERVR", "adding missing columns and updating member counts for servers", false,
+		logs.LogInfo("SERVR", "adding missing columns and updating member counts for servers", false,
 			"servers", serverIDs)
 
 		for _, serverID := range serverIDs {
@@ -255,7 +256,7 @@ func ServerMaintenance(session *discordgo.Session) {
 			if s.DateJoined == "" {
 				dateJoined, dateErr := getDateJoined(serverID)
 				if dateErr != nil {
-					utils.LogError("SERVR", "error getting date joined",
+					logs.LogError("SERVR", "error getting date joined",
 						"err", dateErr)
 				} else {
 					s.DateJoined = dateJoined
@@ -264,14 +265,14 @@ func ServerMaintenance(session *discordgo.Session) {
 			if !db.CheckSettings(serverID) {
 				s.Settings = db.NewSettings(serverID)
 				if setErr := s.Settings.Set(); setErr != nil {
-					utils.LogError("SERVR", "error setting server settings",
+					logs.LogError("SERVR", "error setting server settings",
 						"err", setErr)
 				}
 			}
 			if s.Locale == "" {
 				locale, localeErr := getServerLocale(serverID)
 				if localeErr != nil {
-					utils.LogError("SERVR", "error getting server locale",
+					logs.LogError("SERVR", "error getting server locale",
 						"err", localeErr)
 				} else {
 					s.Locale = locale
@@ -279,13 +280,13 @@ func ServerMaintenance(session *discordgo.Session) {
 			}
 			memberCount, countErr := updateMemberCount(serverID)
 			if countErr != nil {
-				utils.LogError("SERVR", "error getting member count",
+				logs.LogError("SERVR", "error getting member count",
 					"err", countErr)
 			} else {
 				s.MemberCount = memberCount
 			}
 			if setErr := s.Set(); setErr != nil {
-				utils.LogError("SERVR", "error setting server columns",
+				logs.LogError("SERVR", "error setting server columns",
 					"err", setErr)
 			}
 		}
@@ -294,9 +295,9 @@ func ServerMaintenance(session *discordgo.Session) {
 
 // updateMemberCount updates the member count of a server in the servers table.
 func updateMemberCount(serverID string) (int, error) {
-	server, err := utils.Session.Guild(serverID)
+	server, err := discord.Session.Guild(serverID)
 	if err != nil {
-		utils.LogError("SERVR", "error getting server",
+		logs.LogError("SERVR", "error getting server",
 			"err", err)
 		return 0, err
 	}
@@ -305,7 +306,7 @@ func updateMemberCount(serverID string) (int, error) {
 
 // getDateJoined returns the date a server was joined by the bot.
 func getDateJoined(serverID string) (string, error) {
-	server, err := utils.Session.Guild(serverID)
+	server, err := discord.Session.Guild(serverID)
 	if err != nil {
 		return "", err
 	}
@@ -315,7 +316,7 @@ func getDateJoined(serverID string) (string, error) {
 
 // getServerLocale returns the locale of a server.
 func getServerLocale(serverID string) (string, error) {
-	server, err := utils.Session.Guild(serverID)
+	server, err := discord.Session.Guild(serverID)
 	if err != nil {
 		return "", err
 	}

@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
+	awsconf "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/joho/godotenv"
+
+	"gamestreams/config"
+	"gamestreams/logs"
 )
 
 type Bucket struct {
@@ -31,7 +33,7 @@ func (bucket Bucket) UploadFile(filePath string) {
 	objectKey := fmt.Sprintf("%s_%s", fileName, currentDate)
 
 	if err != nil {
-		LogError("SCHED", "could not open database file", "err", err)
+		logs.LogError("SCHED", "could not open database file", "err", err)
 	} else {
 		defer file.Close()
 		_, err = bucket.Client.PutObject(context.TODO(), &s3.PutObjectInput{
@@ -40,9 +42,9 @@ func (bucket Bucket) UploadFile(filePath string) {
 			Body:   file,
 		})
 		if err != nil {
-			LogError("SCHED", "could not upload database file", "err", err)
+			logs.LogError("SCHED", "could not upload database file", "err", err)
 		} else {
-			LogInfo("SCHED", "database file uploaded successfully", false)
+			logs.LogInfo("SCHED", "database file uploaded successfully", false)
 		}
 	}
 }
@@ -53,7 +55,7 @@ func (bucket Bucket) CleanUp() {
 		Bucket: aws.String(bucket.Name),
 	})
 	if err != nil {
-		LogError("SCHED", "could not list objects in bucket", "err", err)
+		logs.LogError("SCHED", "could not list objects in bucket", "err", err)
 		return
 	}
 	for _, object := range objects.Contents {
@@ -63,11 +65,11 @@ func (bucket Bucket) CleanUp() {
 				Key:    object.Key,
 			})
 			if err != nil {
-				LogError("SCHED", "could not delete object",
+				logs.LogError("SCHED", "could not delete object",
 					"obj", *object.Key,
 					"err", err)
 			} else {
-				LogInfo("SCHED", "deleted object", false, "key", *object.Key)
+				logs.LogInfo("SCHED", "deleted object", false, "key", *object.Key)
 			}
 		}
 	}
@@ -79,7 +81,7 @@ func (bucket Bucket) TodaysBackupExists() bool {
 		Bucket: aws.String(bucket.Name),
 	})
 	if err != nil {
-		LogError("SCHED", "could not list objects in bucket", "err", err)
+		logs.LogError("SCHED", "could not list objects in bucket", "err", err)
 		return false
 	}
 	currentDate := time.Now().UTC().Format("2006-01-02")
@@ -94,40 +96,35 @@ func (bucket Bucket) TodaysBackupExists() bool {
 // BackupDB uploads the database file to the Cloudflare bucket.
 func BackupDB() {
 	if runtime.GOOS == "windows" {
-		LogInfo("SCHED", "backup not supported on windows", false)
+		logs.LogInfo("SCHED", "backup not supported on windows", false)
 		return
 	}
-	godotenv.Load(".env")
-	var bucketName = os.Getenv("CF_BUCKET_NAME")
-	var accountId = os.Getenv("CF_ACCOUNT_ID")
-	var accessKeyId = os.Getenv("CF_ACCESS_KEY_ID")
-	var accessKeySecret = os.Getenv("CF_ACCESS_KEY_SECRET")
 
 	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 		return aws.Endpoint{
-			URL: fmt.Sprintf("https://%s.eu.r2.cloudflarestorage.com", accountId),
+			URL: fmt.Sprintf("https://%s.eu.r2.cloudflarestorage.com", config.Values.Cloudflare.AccountID),
 		}, nil
 	})
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithEndpointResolverWithOptions(r2Resolver),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyId, accessKeySecret, "")),
-		config.WithRegion("auto"),
+	cfg, err := awsconf.LoadDefaultConfig(context.TODO(),
+		awsconf.WithEndpointResolverWithOptions(r2Resolver),
+		awsconf.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(config.Values.Cloudflare.AccessKeyID, config.Values.Cloudflare.AccessKeySecret, "")),
+		awsconf.WithRegion("auto"),
 	)
 	if err != nil {
-		LogError("SCHED", "backup failed: could not load default config", "err", err)
+		logs.LogError("SCHED", "backup failed: could not load default config", "err", err)
 		return
 	}
 	bucket := Bucket{
-		Name:      bucketName,
-		AccountID: accountId,
-		KeyID:     accessKeyId,
-		KeySecret: accessKeySecret,
+		Name:      config.Values.Cloudflare.BucketName,
+		AccountID: config.Values.Cloudflare.AccountID,
+		KeyID:     config.Values.Cloudflare.AccessKeyID,
+		KeySecret: config.Values.Cloudflare.AccessKeySecret,
 		Client:    s3.NewFromConfig(cfg),
 	}
 	if bucket.TodaysBackupExists() {
-		LogInfo("SCHED", "backup already exists for today", false)
+		logs.LogInfo("SCHED", "backup already exists for today", false)
 		return
 	}
-	bucket.UploadFile(Files.DB)
+	bucket.UploadFile(config.Values.Files.Database)
 	bucket.CleanUp()
 }

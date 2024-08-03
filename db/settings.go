@@ -6,7 +6,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"gamestreams/utils"
+	"gamestreams/config"
+	"gamestreams/logs"
 )
 
 // Settings is a struct that contains the options for a server. It contains the
@@ -58,12 +59,12 @@ func NewSettings(serverID string) Settings {
 // database. If the server is not in the table, it will insert a new row. If the server
 // is in the table, it will update the row.
 func (s *Settings) Set() error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
-	utils.LogInfo(" CMND", "applying settings", false, "server", s.ServerID, "settings", s)
+	logs.LogInfo(" CMND", "applying settings", false, "server", s.ServerID, "settings", s)
 
 	if !CheckSettings(s.ServerID) {
 		_, execErr := db.Exec(`INSERT INTO server_settings
@@ -138,7 +139,7 @@ func (s *Settings) Set() error {
 // write them to the options struct. If the server is not in the table, it will set the
 // default values for the options struct and write them to the database.
 func (s *Settings) Get(serverID string) error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
@@ -205,9 +206,9 @@ func (s *Settings) Merge(t Settings) {
 // checkOptions checks if the given server ID exists in the servers table of the
 // database. Returns true if the server ID exists, false if it does not.
 func CheckSettings(serverID string) bool {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
-		utils.LogError(" MAIN", "error opening database", "err", openErr)
+		logs.LogError(" MAIN", "error opening database", "err", openErr)
 		return false
 	}
 	defer db.Close()
@@ -224,7 +225,7 @@ func CheckSettings(serverID string) bool {
 // RemoveServerSettings removes the settings for the given server ID from the
 // server_settings table of the database.
 func RemoveServerSettings(serverID string) error {
-	db, openErr := sql.Open("sqlite3", utils.Files.DB)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}

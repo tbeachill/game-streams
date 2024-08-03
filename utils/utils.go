@@ -3,118 +3,20 @@ package utils
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
-	"runtime"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bwmarrin/discordgo"
-	"github.com/charmbracelet/log"
+
+	"gamestreams/config"
+	"gamestreams/logs"
 )
-
-// Files is a struct that holds the file paths of important files for the bot.
-var Files FilePaths
-
-// Log is a struct that holds the loggers for the bot.
-var Log Logger
-
-// Session is a pointer to the discord session.
-var Session *discordgo.Session
 
 // StartTime is the time the bot started.
 var StartTime time.Time
-
-// FilePaths is a struct that holds the file paths of important files for the bot.
-type FilePaths struct {
-	DotEnv string
-	DB     string
-	Log    string
-}
-
-// Logger is a struct that holds the loggers for the bot.
-type Logger struct {
-	ErrorWarn *log.Logger
-	Info      *log.Logger
-}
-
-// SetPaths sets the file paths for the bot depending on the operating system.
-func (s *FilePaths) SetPaths() {
-	if runtime.GOOS == "windows" {
-		s.DotEnv = "config/.env"
-		s.DB = "config/game-streams.db"
-		s.Log = "config/game-streams.log"
-	} else {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			LogError(" MAIN", "could not set filepaths", "err", err)
-		}
-		s.DotEnv = fmt.Sprintf("%s/config/game-streams/.env", home)
-		s.DB = fmt.Sprintf("%s/config/game-streams/game-streams.db", home)
-		s.Log = fmt.Sprintf("%s/config/game-streams/game-streams.log", home)
-	}
-}
-
-// Init initializes the loggers for the bot.
-func (l *Logger) Init() {
-	l.Info = log.NewWithOptions(os.Stderr, log.Options{
-		ReportTimestamp: true,
-	})
-	l.ErrorWarn = log.NewWithOptions(os.Stderr, log.Options{
-		ReportCaller:    true,
-		ReportTimestamp: true,
-	})
-
-	logFile, err := os.OpenFile(Files.Log, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		l.ErrorWarn.WithPrefix(" MAIN").Fatal("Error opening log file",
-			"err", err)
-	}
-	mw := io.MultiWriter(os.Stdout, logFile)
-	l.Info.SetOutput(mw)
-	l.ErrorWarn.SetOutput(mw)
-}
-
-// LogInfo logs an info message with a prefix.
-func LogInfo(prefix string, msg string, dm bool, keyvals ...interface{}) {
-	Log.Info.Helper()
-	Log.Info.WithPrefix(prefix).Info(msg, keyvals...)
-	if dm {
-		if len(keyvals) == 0 {
-			dmMsg := fmt.Sprintf("**info:**\n\tmsg=%s\n",
-				msg)
-			DMOwner(Session, dmMsg)
-		} else {
-			dmMsg := fmt.Sprintf("**info:**\n\tmsg=%s\n\tkeyvals:\n", msg)
-			// create a string from keyvals with key=val
-			for i := 0; i < len(keyvals); i += 2 {
-				dmMsg += fmt.Sprintf("\t\t%s=%v\n", keyvals[i], keyvals[i+1])
-			}
-			DMOwner(Session, dmMsg)
-		}
-	}
-}
-
-// LogError logs an error message with a prefix and sends a DM to the bot owner.
-func LogError(prefix string, msg string, keyvals ...interface{}) {
-	Log.ErrorWarn.Helper()
-	Log.ErrorWarn.WithPrefix(prefix).Error(msg, keyvals...)
-
-	if len(keyvals) == 0 {
-		dmMsg := fmt.Sprintf("**error:**\n\tmsg=%s\n",
-			msg)
-		DMOwner(Session, dmMsg)
-	} else {
-		dmMsg := fmt.Sprintf("**error:**\n\tmsg=%s\n\tkeyvals:\n", msg)
-		// create a string from keyvals with key=val
-		for i := 0; i < len(keyvals); i += 2 {
-			dmMsg += fmt.Sprintf("\t\t%s=%v\n", keyvals[i], keyvals[i+1])
-		}
-		DMOwner(Session, dmMsg)
-	}
-}
 
 // CreateTimestamp creates absolute Discord timestamps from date and time strings.
 func CreateTimestamp(d string, t string) (string, string, error) {
@@ -221,7 +123,7 @@ func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
 
 	doc, err := GetHtmlBody(streamUrl)
 	if err != nil {
-		LogError(" MAIN", "error getting youtube html", "err", err)
+		logs.LogError(" MAIN", "error getting youtube html", "err", err)
 		return "", false
 	}
 	doc.Find("link").Each(func(i int, s *goquery.Selection) {
@@ -251,17 +153,12 @@ func GetHtmlBody(url string) (*goquery.Document, error) {
 	return doc, err
 }
 
-// RegisterSession sets the global Session variable.
-func RegisterSession(s *discordgo.Session) {
-	Session = s
-}
-
 // TruncateLogs deletes log file entries older than 14 days by looking at
 // the timestamp at the start of each line
 func TruncateLogs() {
-	logFile, err := os.OpenFile(Files.Log, os.O_RDWR|os.O_CREATE, 0666)
+	logFile, err := os.OpenFile(config.Values.Files.Log, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		LogError(" MAIN", "error opening log file", "err", err)
+		logs.LogError(" MAIN", "error opening log file", "err", err)
 		return
 	}
 	defer logFile.Close()
@@ -286,35 +183,6 @@ func TruncateLogs() {
 	for _, line := range lines {
 		fmt.Fprintln(logFile, line)
 	}
-}
-
-// IntroDM sends an introductory DM to a user when they add the bot to their server.
-func IntroDM(userID string) {
-	message := "🕹 Hello! Thank you for adding me to your server! 🕹\n\n" +
-		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings` in the server you added me to.\n\n" +
-		"For more information, type `/help`."
-	LogInfo(" MAIN", "sending intro DM", false, "user", userID)
-
-	DM(userID, message)
-}
-
-// DM sends a direct message to a user.
-func DM(userID string, message string) {
-	st, err := Session.UserChannelCreate(userID)
-	if err != nil {
-		LogError(" MAIN", "error creating DM channel", "err", err)
-		return
-	}
-	_, err = Session.ChannelMessageSend(st.ID, message)
-	if err != nil {
-		LogError(" MAIN", "error sending DM", "err", err)
-	}
-}
-
-// DM sends a direct message to the bot owner. The owner's Discord ID is stored in
-// the OWNER_ID environment variable.
-func DMOwner(session *discordgo.Session, message string) {
-	DM(os.Getenv("OWNER_ID"), message)
 }
 
 // GetUserID returns the user ID of the user who sent the interaction.

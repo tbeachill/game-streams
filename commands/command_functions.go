@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/bwmarrin/discordgo"
 
-	"gamestreams/utils"
+	"gamestreams/logs"
 )
 
 // RegisterCommands registers all commands in the commands slice, which is defined in
@@ -12,11 +12,11 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 	for _, c := range commands {
 		_, err := s.ApplicationCommandCreate(appID, "", c)
 		if err != nil {
-			utils.LogError(" MAIN", "error creating command",
+			logs.LogError(" MAIN", "error creating command",
 				"cmd", c.Name,
 				"err", err)
 		}
-		utils.LogInfo(" MAIN", "registered command", false,
+		logs.LogInfo(" MAIN", "registered command", false,
 			"cmd", c.Name)
 	}
 }
@@ -26,17 +26,17 @@ func RegisterCommands(appID string, s *discordgo.Session) {
 func RemoveAllCommands(appID string, s *discordgo.Session) {
 	commands, err := s.ApplicationCommands(appID, "")
 	if err != nil {
-		utils.LogError(" MAIN", "error removing commands",
+		logs.LogError(" MAIN", "error removing commands",
 			"err", err)
 	}
 	for _, command := range commands {
 		if delErr := s.ApplicationCommandDelete(appID, "", command.ID); delErr != nil {
-			utils.LogError(" MAIN", "error removing command",
+			logs.LogError(" MAIN", "error removing command",
 				"cmd", command.Name,
 				"err", delErr)
 			continue
 		}
-		utils.LogInfo(" MAIN", "removed command", false,
+		logs.LogInfo(" MAIN", "removed command", false,
 			"cmd", command.Name)
 	}
 }

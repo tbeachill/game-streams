@@ -9,6 +9,8 @@ import (
 
 	"gamestreams/commands"
 	"gamestreams/db"
+	"gamestreams/discord"
+	"gamestreams/logs"
 	"gamestreams/servers"
 	"gamestreams/streams"
 	"gamestreams/utils"
@@ -20,17 +22,19 @@ import (
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)
 	if sessionErr != nil {
-		utils.LogError(" MAIN", "error creating Discord session",
+		logs.LogError(" MAIN", "error creating Discord session",
 			"err", sessionErr)
 		return
 	}
 	if openErr := session.Open(); openErr != nil {
-		utils.LogError(" MAIN", "error connecting to Discord",
+		logs.LogError(" MAIN", "error connecting to Discord",
 			"err", openErr)
 		return
 	}
 	defer session.Close()
-	utils.RegisterSession(session)
+	// register the session with the logs and discord packages
+	logs.RegisterSession(session)
+	discord.RegisterSession(session)
 	//commands.RemoveAllCommands(appID, session)
 	commands.RegisterCommands(appID, session)
 	commands.RegisterHandler(session, &discordgo.InteractionCreate{})
@@ -39,7 +43,7 @@ func Run(botToken, appID string) {
 	go startScheduler(session)
 	servers.MonitorGuilds(session)
 	utils.StartTime = time.Now().UTC()
-	utils.LogInfo(" MAIN", "bot started", true)
+	logs.LogInfo(" MAIN", "bot started", true)
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
@@ -50,13 +54,13 @@ func Run(botToken, appID string) {
 func startUpdater() {
 	var s db.Streams
 	for {
-		utils.LogInfo("UPDAT", "checking for stream updates...", false)
+		logs.LogInfo("UPDAT", "checking for stream updates...", false)
 		if updateErr := s.Update(); updateErr != nil {
-			utils.LogError("UPDAT", "error updating streams",
+			logs.LogError("UPDAT", "error updating streams",
 				"err", updateErr)
 		}
 		hoursRemaining := 6 - ((time.Now().UTC().Hour()) % 6)
-		utils.LogInfo("UPDAT", "sleeping until next update", false,
+		logs.LogInfo("UPDAT", "sleeping until next update", false,
 			"hours", hoursRemaining)
 
 		time.Sleep(time.Duration(hoursRemaining) * time.Hour)
@@ -72,11 +76,11 @@ func startScheduler(session *discordgo.Session) {
 	timeToRun := 6
 
 	for {
-		utils.LogInfo("SCHED", "running scheduler...", false)
+		logs.LogInfo("SCHED", "running scheduler...", false)
 		// check for streams tomorrow that have no time so I can add a time
 		var s db.Streams
 		if tomorrowErr := s.CheckTomorrow(); tomorrowErr != nil {
-			utils.LogError("SCHED", "error checking tomorrow's streams",
+			logs.LogError("SCHED", "error checking tomorrow's streams",
 				"err", tomorrowErr)
 		}
 		if len(s.Streams) > 0 {
@@ -84,29 +88,29 @@ func startScheduler(session *discordgo.Session) {
 			for _, stream := range s.Streams {
 				cleanStreams[stream.ID] = stream.Name
 			}
-			utils.LogInfo("SCHED", "streams tomorrow with no time", true,
+			logs.LogInfo("SCHED", "streams tomorrow with no time", true,
 				"streams", cleanStreams)
 		}
 		// schedule notifications for today's streams
 		if scheduleErr := streams.ScheduleNotifications(session); scheduleErr != nil {
-			utils.LogError("SCHED", "error scheduling today's streams",
+			logs.LogError("SCHED", "error scheduling today's streams",
 				"err", scheduleErr)
 		}
-		utils.LogInfo("SCHED", "truncating logs...", false)
+		logs.LogInfo("SCHED", "truncating logs...", false)
 		utils.TruncateLogs()
-		utils.LogInfo("SCHED", "backing up database...", false)
+		logs.LogInfo("SCHED", "backing up database...", false)
 		utils.BackupDB()
-		utils.LogInfo("SCHED", "performing server maintenance...", false)
+		logs.LogInfo("SCHED", "performing server maintenance...", false)
 		servers.ServerMaintenance(session)
-		utils.LogInfo("SCHED", "performing stream maintenance...", false)
+		logs.LogInfo("SCHED", "performing stream maintenance...", false)
 		streams.StreamMaintenance()
-		utils.LogInfo("SCHED", "deleting expired blacklisted items...", false)
+		logs.LogInfo("SCHED", "deleting expired blacklisted items...", false)
 		db.RemoveExpiredBlacklist()
 
 		hour, min, _ := time.Now().UTC().Clock()
 		hoursRemaining := (timeToRun + 24) - hour
 		minsRemaining := 60 - min
-		utils.LogInfo("SCHED", "sleeping until next day", false,
+		logs.LogInfo("SCHED", "sleeping until next day", false,
 			"hours", hoursRemaining,
 			"minutes", minsRemaining)
 		time.Sleep(time.Duration(hoursRemaining*60+minsRemaining) * time.Minute)
