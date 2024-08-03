@@ -11,7 +11,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.3
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/charmbracelet/log v0.4.0
-	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/tidwall/gjson v1.17.3
 )
