@@ -1,6 +1,8 @@
 package bot
 
 import (
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/robfig/cron/v3"
 
@@ -11,7 +13,7 @@ import (
 // It uses the cron package to schedule the functions at the intervals specified
 // in the configuration file.
 func ScheduleFunctions(session *discordgo.Session) {
-	c := cron.New()
+	c := cron.New(cron.WithLocation(time.UTC))
 
 	if config.Values.Schedule.StreamUpdate.Enabled {
 		c.AddFunc(config.Values.Schedule.StreamUpdate.Cron, func() {
