@@ -7,6 +7,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/backup"
 	"gamestreams/commands"
 	"gamestreams/db"
 	"gamestreams/discord"
@@ -99,7 +100,7 @@ func startScheduler(session *discordgo.Session) {
 		logs.LogInfo("SCHED", "truncating logs...", false)
 		utils.TruncateLogs()
 		logs.LogInfo("SCHED", "backing up database...", false)
-		utils.BackupDB()
+		backup.BackupDB()
 		logs.LogInfo("SCHED", "performing server maintenance...", false)
 		servers.ServerMaintenance(session)
 		logs.LogInfo("SCHED", "performing stream maintenance...", false)
