@@ -3,7 +3,6 @@ package streams
 import (
 	"gamestreams/db"
 	"gamestreams/logs"
-
 )
 
 // StreamMaintenance checks for streams in the streams table of the database that are

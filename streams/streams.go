@@ -8,13 +8,11 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/config"
 	"gamestreams/db"
 	"gamestreams/logs"
 	"gamestreams/utils"
 )
-
-// STREAM_T_MINUS is the time before a stream to send a notification
-var STREAM_T_MINUS = time.Minute * 10
 
 // StreamList populates a Streams struct with upcoming streams from the streams table
 // of the database. It then creates a discordgo.MessageEmbed struct with the date, time
@@ -103,8 +101,9 @@ func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 // ScheduleNotifications gets all streams for today that have not yet started from the
 // streams table of the database. It then schedules notifications for each stream by
 // creating a goroutine for each stream that sleeps until the streams start time -
-// STREAM_T_MINUS, then posts a message to the servers that are following one or more
-// of the platforms of the stream by calling the PostStreamLink function.
+// the configured notification_t_minus. It then posts a message to the servers that are
+// following one or more of the platforms of the stream by calling the PostStreamLink
+// function.
 func ScheduleNotifications(session *discordgo.Session) error {
 	var streamList db.Streams
 	if todayErr := streamList.GetToday(); todayErr != nil {
@@ -123,7 +122,8 @@ func ScheduleNotifications(session *discordgo.Session) error {
 					"err", parseErr)
 				return
 			}
-			timeToStream := streamTime.Sub(time.Now().UTC()) - STREAM_T_MINUS
+			minsBefore := time.Minute * time.Duration(config.Values.Schedule.NotificationTMinus)
+			timeToStream := streamTime.Sub(time.Now().UTC()) - minsBefore
 			time.Sleep(timeToStream)
 			PostStreamLink(*currentStream, session)
 		}(&stream)
@@ -202,12 +202,12 @@ func MakeStreamUrlDirect(stream *db.Stream) {
 
 // EditAnnouncementEmbed edits the description of an announcement embed to show that
 // the stream has started. It does this by changing the "starting" to "started" in the
-// description. This is achieved by creating a new goroutine that sleeps for
-// STREAM_T_MINUS then edits the message.
+// description. This is achieved by creating a new goroutine that sleeps until the
+// stream start time, then edits the message.
 func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed, session *discordgo.Session) {
 	embed.Description = embed.Description[0:14] + "ed" + embed.Description[17:]
 	medit := discordgo.NewMessageEdit(msg.ChannelID, msg.ID).SetEmbed(embed)
-	time.Sleep(STREAM_T_MINUS)
+	time.Sleep(time.Duration(config.Values.Schedule.NotificationTMinus))
 	_, editErr := session.ChannelMessageEditComplex(medit)
 	if editErr != nil {
 		logs.LogError("SCHED", "error editing message",
