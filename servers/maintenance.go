@@ -9,7 +9,6 @@ import (
 	"gamestreams/db"
 	"gamestreams/discord"
 	"gamestreams/logs"
-
 )
 
 // ServerMaintenance checks the servers table for servers that are no longer in the

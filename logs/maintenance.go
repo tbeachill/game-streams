@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"gamestreams/config"
-
 )
 
 // TruncateLogs deletes log file entries older than 14 days by looking at
