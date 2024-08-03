@@ -15,7 +15,7 @@ import (
 )
 
 // Run is the main function that runs the bot. It creates a new Discord session,
-// registers the commands, and starts the updater and scheduler goroutines.
+// registers the commands, and registers the scheduled functions.
 // The bot runs until it receives a termination signal (ctrl + c).
 func Run(botToken, appID string) {
 	session, sessionErr := discordgo.New("Bot " + botToken)
@@ -31,17 +31,14 @@ func Run(botToken, appID string) {
 	}
 	defer session.Close()
 
+	ScheduleFunctions(session)
+
 	logs.RegisterSession(session)
 	discord.RegisterSession(session)
 	//commands.RemoveAllCommands(appID, session)
 	commands.RegisterCommands(appID, session)
 	commands.RegisterHandler(session, &discordgo.InteractionCreate{})
 	commands.RegisterOwnerCommands(session)
-
-	go streamUpdater()
-	go streamNotifications(session)
-	go performMaintenance(session)
-	go checkTomorrowsStreams()
 
 	servers.MonitorGuilds(session)
 	utils.StartTime = time.Now().UTC()

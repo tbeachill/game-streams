@@ -16,7 +16,7 @@ type Config struct {
 	Discord    Discord    `toml:"discord"`
 	Github     Github     `toml:"github"`
 	Cloudflare Cloudflare `toml:"cloudflare"`
-	Schedule   Schedules  `toml:"schedules"`
+	Schedule   Schedules  `toml:"schedule"`
 }
 
 // LoadConfig loads the configuration values from the TOML file.
