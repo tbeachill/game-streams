@@ -3,7 +3,7 @@ name: deploy
 on:
   workflow_dispatch: # allows manual triggering
   schedule:
-    - cron: '12 5 * * 1' # 05:12 every monday
+    - cron: '18 5 * * 1' # 05:18 every monday
 
 jobs:
   checkout:
