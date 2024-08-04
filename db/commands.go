@@ -34,11 +34,16 @@ func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 }
 
 func (d *CommandData) End() {
-	println("\n\n  {}  \n\n", d.ServerID)
 	d.EndTime = time.Now().UnixMilli()
 	d.ResponseTime = d.EndTime - d.StartTime
 	if err := d.DBInsert(); err != nil {
 		logs.LogError("ANALYTICS", "error inserting analytics data", "err", err)
+	}
+	// update last entry in suggestions table to include command id
+	if d.Command == "suggest" {
+		if err := UpdateSuggestion(); err != nil {
+			logs.LogError("ANALYTICS", "error updating last suggestion", "err", err)
+		}
 	}
 }
 

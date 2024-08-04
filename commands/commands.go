@@ -36,6 +36,31 @@ var commands = []*discordgo.ApplicationCommand{
 		DefaultMemberPermissions: &admin,
 	},
 	{
+		Name:                     "suggest",
+		Description:              "Suggest a stream to add to the bots database",
+		DefaultMemberPermissions: &admin,
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "name",
+				Description: "The name of the stream",
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "The date of the stream",
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "url",
+				Description: "The URL of the stream or information about the stream",
+				Required:    true,
+			},
+		},
+	},
+	{
 		Name:                     "settings",
 		Description:              "Change bot settings",
 		DefaultMemberPermissions: &admin,

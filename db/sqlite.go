@@ -87,7 +87,7 @@ func CreateDB() error {
 	}
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS commands
-								(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+								(id INTEGER PRIMARY KEY AUTOINCREMENT,
 								server_id TEXT,
 								user_id TEXT,
 								date_time TEXT,
@@ -96,6 +96,21 @@ func CreateDB() error {
 								response_time_ms INTEGER,
 								FOREIGN KEY (server_id) REFERENCES servers (server_id)
 								ON DELETE CASCADE)`)
+
+	if tableErr != nil {
+		return tableErr
+	}
+
+	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS suggestions
+								(id INTEGER PRIMARY KEY AUTOINCREMENT,
+								command_id INTEGER,
+								date_added TEXT,
+								stream_name TEXT,
+								stream_date TEXT,
+								stream_url TEXT,
+								FOREIGN KEY (command_id) REFERENCES commands (id)
+								ON DELETE CASCADE
+								ON UPDATE CASCADE)`)
 
 	if tableErr != nil {
 		return tableErr

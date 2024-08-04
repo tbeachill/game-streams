@@ -27,6 +27,7 @@ func RegisterOwnerCommands(s *discordgo.Session) {
 	s.AddHandler(ownerListStreams)
 	s.AddHandler(blacklistEdit)
 	s.AddHandler(blacklistGet)
+	s.AddHandler(suggestions)
 }
 
 // listCommands is a command that lists all the owner commands
@@ -46,7 +47,8 @@ func listCommands(s *discordgo.Session, m *discordgo.MessageCreate) {
 			"!log\n"+
 			"!blacklist add <type> <id> <reason>\n"+
 			"!blacklist rm <id>\n"+
-			"!blacklist get```")
+			"!blacklist get\n"+
+			"!suggestions <limit>```")
 	}
 }
 
@@ -266,4 +268,37 @@ func blacklistGet(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		s.ChannelMessageSend(m.ChannelID, msg)
 	}
+}
+
+// suggestions lists the 5 most recent suggestions
+func suggestions(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID ||
+		m.Author.ID != config.Values.Discord.OwnerID ||
+		strings.Split(m.Content, " ")[0] != "!suggestions" {
+		return
+	}
+	if len(strings.Split(m.Content, " ")) < 2 {
+		s.ChannelMessageSend(m.ChannelID, "invalid command. use `!suggestions [limit]`")
+		return
+	}
+	limit, convErr := strconv.Atoi(strings.Split(m.Content, " ")[1])
+	if convErr != nil {
+		s.ChannelMessageSend(m.ChannelID, "invalid command. `limit` shoult be an int")
+		return
+	}
+	suggestions, err := db.GetSuggestions(limit)
+	if err != nil {
+		logs.LogError("OWNER", "error getting suggestions",
+			"err", err)
+	}
+	if len(suggestions) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "no suggestions")
+		return
+	}
+	var msg string
+	for _, suggestion := range suggestions {
+		msg += fmt.Sprintf("added: `%s` name: `%s` date: `%s` url: `%s`\n",
+			suggestion.DateAdded, suggestion.Name, suggestion.Date, suggestion.URL)
+	}
+	s.ChannelMessageSend(m.ChannelID, msg)
 }
