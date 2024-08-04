@@ -16,6 +16,8 @@ import (
 // servers contains information about the servers that the bot is in and their settings.
 // blacklist contains information about users and servers that are blacklisted from
 // using the bot.
+// commands contains information about commands that are run by users.
+// suggestions contains information about stream suggestions that are made by users.
 func CreateDB() error {
 	logs.LogInfo(" MAIN", "loading/creating database", false)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database+"?_fk=1&_cache_size=10000")
