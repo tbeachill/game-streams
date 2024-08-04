@@ -30,7 +30,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	a := db.CommandData{}
-	a.Start(i.ApplicationCommandData())
+	a.Start(i)
 	defer a.End()
 
 	userID := utils.GetUserID(i)
@@ -79,7 +79,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	a := db.CommandData{}
-	a.Start(i.ApplicationCommandData())
+	a.Start(i)
 	defer a.End()
 
 	streamName := i.ApplicationCommandData().Options[0].StringValue()
@@ -127,7 +127,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	a := db.CommandData{}
-	a.Start(i.ApplicationCommandData())
+	a.Start(i)
 	defer a.End()
 
 	userID := utils.GetUserID(i)
@@ -186,7 +186,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	a := db.CommandData{}
-	a.Start(i.ApplicationCommandData())
+	a.Start(i)
 	defer a.End()
 
 	userID := utils.GetUserID(i)

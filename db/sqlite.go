@@ -18,14 +18,14 @@ import (
 // using the bot.
 func CreateDB() error {
 	logs.LogInfo(" MAIN", "loading/creating database", false)
-	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database+"?_fk=1&_cache_size=10000")
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
 
 	_, tableErr := db.Exec(`CREATE TABLE IF NOT EXISTS streams
-								(id INTEGER NOT NULL PRIMARY KEY,
+								(id INTEGER PRIMARY KEY AUTOINCREMENT,
 								stream_name TEXT,
 								platform TEXT,
 								stream_date TEXT,
@@ -38,7 +38,7 @@ func CreateDB() error {
 	}
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS config
-								(id INTEGER NOT NULL PRIMARY KEY,
+								(id INTEGER PRIMARY KEY AUTOINCREMENT,
 								toml_url TEXT,
 								api_url TEXT,
 								last_updated TEXT)`)
@@ -67,7 +67,9 @@ func CreateDB() error {
 								xbox BOOLEAN,
 								nintendo BOOLEAN,
 								pc BOOLEAN,
-								vr BOOLEAN)`)
+								vr BOOLEAN,
+								FOREIGN KEY (server_id) REFERENCES servers (server_id)
+								ON DELETE CASCADE)`)
 
 	if tableErr != nil {
 		return tableErr
@@ -87,10 +89,13 @@ func CreateDB() error {
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS commands
 								(id INTEGER NOT NULL PRIMARY KEY,
 								server_id INTEGER,
+								user_id INTEGER,
 								date_time TEXT,
 								command TEXT,
 								options TEXT,
-								response_time_ms INTEGER)`)
+								response_time_ms INTEGER,
+								FOREIGN KEY (server_id) REFERENCES servers (server_id)
+								ON DELETE CASCADE)`)
 
 	if tableErr != nil {
 		return tableErr
