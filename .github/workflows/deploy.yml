@@ -53,7 +53,7 @@ jobs:
         run: go vet game-streams/main.go
 
       - name: Build
-        run: go build -v -o bin/game-streams game-streams/main.go
+        run: go build -tags "sqlite_foreign_keys sqlite_secure_delete" -v -o bin/game-streams game-streams/main.go
 
   start-bot:
     needs: build
