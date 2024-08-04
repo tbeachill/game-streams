@@ -69,7 +69,7 @@ func CreateDB() error {
 								pc BOOLEAN,
 								vr BOOLEAN,
 								FOREIGN KEY (server_id) REFERENCES servers (server_id)
-								ON DELETE CASCADE)`)
+									ON DELETE CASCADE)`)
 
 	if tableErr != nil {
 		return tableErr
@@ -95,7 +95,7 @@ func CreateDB() error {
 								options TEXT,
 								response_time_ms INTEGER,
 								FOREIGN KEY (server_id) REFERENCES servers (server_id)
-								ON DELETE CASCADE)`)
+									ON DELETE CASCADE)`)
 
 	if tableErr != nil {
 		return tableErr
@@ -109,8 +109,8 @@ func CreateDB() error {
 								stream_date TEXT,
 								stream_url TEXT,
 								FOREIGN KEY (command_id) REFERENCES commands (id)
-								ON DELETE CASCADE
-								ON UPDATE CASCADE)`)
+									ON DELETE CASCADE
+									ON UPDATE CASCADE)`)
 
 	if tableErr != nil {
 		return tableErr
