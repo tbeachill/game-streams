@@ -148,6 +148,7 @@ func NewServer(serverID string, serverName string, ownerID string, memberCount i
 		Locale:      locale,
 		Settings:    NewSettings(serverID),
 	}
+	println("\n\n  {}  \n\n", s.ID)
 	if s.Set() != nil {
 		return s.Set()
 	}

@@ -8,6 +8,7 @@ import (
 
 	"gamestreams/config"
 	"gamestreams/logs"
+	"gamestreams/utils"
 )
 
 type CommandData struct {
@@ -22,8 +23,8 @@ type CommandData struct {
 }
 
 func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
-	d.ServerID = interaction.Member.User.ID
-	d.UserID = interaction.GuildID
+	d.ServerID = interaction.GuildID
+	d.UserID = utils.GetUserID(interaction)
 	d.StartTime = time.Now().UnixMilli()
 	d.DateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
 	d.Command = interaction.ApplicationCommandData().Name
@@ -33,6 +34,7 @@ func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 }
 
 func (d *CommandData) End() {
+	println("\n\n  {}  \n\n", d.ServerID)
 	d.EndTime = time.Now().UnixMilli()
 	d.ResponseTime = d.EndTime - d.StartTime
 	if err := d.DBInsert(); err != nil {

@@ -67,6 +67,27 @@ func (s *Settings) Set() error {
 	logs.LogInfo(" CMND", "applying settings", false, "server", s.ServerID, "settings", s)
 
 	if !CheckSettings(s.ServerID) {
+		inServerTable, err := CheckServerID(s.ServerID)
+		if err != nil {
+			return err
+		}
+		if !inServerTable {
+			_, execErr := db.Exec(`INSERT INTO servers
+									(server_id,
+									server_name,
+									owner_id,
+									date_joined)
+								VALUES (?, ?, ?, ?)`,
+				s.ServerID,
+				"",
+				"",
+				time.Now().UTC().Format("2006-01-02"),
+				0)
+			if execErr != nil {
+				return execErr
+			}
+		}
+
 		_, execErr := db.Exec(`INSERT INTO server_settings
 									(server_id,
 									announce_channel,
@@ -89,26 +110,7 @@ func (s *Settings) Set() error {
 		if execErr != nil {
 			return execErr
 		}
-		inServerTable, err := CheckServerID(s.ServerID)
-		if err != nil {
-			return err
-		}
-		if !inServerTable {
-			_, execErr = db.Exec(`INSERT INTO servers
-									(server_id,
-									server_name,
-									owner_id,
-									date_joined)
-								VALUES (?, ?, ?, ?)`,
-				s.ServerID,
-				"",
-				"",
-				time.Now().UTC().Format("2006-01-02"),
-				0)
-			if execErr != nil {
-				return execErr
-			}
-		}
+
 	} else {
 		_, execErr := db.Exec(`UPDATE server_settings
 								SET announce_channel = ?,

@@ -48,9 +48,9 @@ func CreateDB() error {
 	}
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS servers
-								(server_id INTEGER NOT NULL PRIMARY KEY,
+								(server_id TEXT NOT NULL PRIMARY KEY,
 								server_name TEXT,
-								owner_id INTEGER,
+								owner_id TEXT,
 								date_joined TEXT,
 								member_count INTEGER,
 								locale TEXT)`)
@@ -60,9 +60,9 @@ func CreateDB() error {
 	}
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS server_settings
-								(server_id INTEGER NOT NULL PRIMARY KEY,
-								announce_channel INTEGER,
-								announce_role INTEGER,
+								(server_id TEXT NOT NULL PRIMARY KEY,
+								announce_channel TEXT,
+								announce_role TEXT,
 								playstation BOOLEAN,
 								xbox BOOLEAN,
 								nintendo BOOLEAN,
@@ -76,7 +76,7 @@ func CreateDB() error {
 	}
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS blacklist
-								(discord_id INTEGER NOT NULL PRIMARY KEY,
+								(discord_id TEXT NOT NULL PRIMARY KEY,
 								id_type TEXT,
 								date_added TEXT,
 								date_expires TEXT,
@@ -87,9 +87,9 @@ func CreateDB() error {
 	}
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS commands
-								(id INTEGER NOT NULL PRIMARY KEY,
-								server_id INTEGER,
-								user_id INTEGER,
+								(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+								server_id TEXT,
+								user_id TEXT,
 								date_time TEXT,
 								command TEXT,
 								options TEXT,
