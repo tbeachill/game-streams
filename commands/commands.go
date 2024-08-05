@@ -15,12 +15,14 @@ var boolFalse bool = false
 // command has a name and description, and some commands have options and permissions.
 var commands = []*discordgo.ApplicationCommand{
 	{
-		Name:        "streams",
-		Description: "List upcoming streams for all platforms",
+		Name:         "streams",
+		Description:  "List upcoming streams for all platforms",
+		DMPermission: &boolFalse,
 	},
 	{
-		Name:        "streaminfo",
-		Description: "Get more information about a specific stream by name",
+		Name:         "streaminfo",
+		Description:  "Get more information about a specific stream by name",
+		DMPermission: &boolFalse,
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
@@ -33,11 +35,13 @@ var commands = []*discordgo.ApplicationCommand{
 	{
 		Name:                     "help",
 		Description:              "Get help with the bot",
+		DMPermission:             &boolFalse,
 		DefaultMemberPermissions: &admin,
 	},
 	{
 		Name:                     "suggest",
 		Description:              "Suggest a stream to add to the bots database",
+		DMPermission:             &boolFalse,
 		DefaultMemberPermissions: &admin,
 		Options: []*discordgo.ApplicationCommandOption{
 			{
