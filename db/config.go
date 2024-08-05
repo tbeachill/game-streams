@@ -17,11 +17,11 @@ var Conf Config
 
 // Config is a struct that holds the configuration values for the bot.
 type Config struct {
-	ID            int
-	StreamDataURL string
-	APIURL        string
-	LastUpdate    string
-	CommitTime    time.Time
+	ID             int
+	StreamsTOMLURL string
+	APIURL         string
+	LastUpdate     string
+	CommitTime     time.Time
 }
 
 // Get gets the configuration values from the database and sets them in the Config
@@ -37,7 +37,7 @@ func (c *Config) Get() error {
 						FROM config
 						WHERE id = 1`)
 
-	scanErr := row.Scan(&c.ID, &c.StreamDataURL, &c.APIURL, &c.LastUpdate)
+	scanErr := row.Scan(&c.ID, &c.StreamsTOMLURL, &c.APIURL, &c.LastUpdate)
 	if scanErr == sql.ErrNoRows {
 		logs.LogInfo(" MAIN", "No config found, setting default", false)
 		if defaultErr := c.SetDefault(); defaultErr != nil {
@@ -53,7 +53,7 @@ func (c *Config) Get() error {
 // variables and writes them to the database.
 func (c *Config) SetDefault() error {
 	logs.LogInfo(" MAIN", "Setting default config", false)
-	c.StreamDataURL = config.Values.Github.StreamDataURL
+	c.StreamsTOMLURL = config.Values.Github.StreamsTOMLURL
 	c.APIURL = config.Values.Github.APIURL
 	c.LastUpdate = ""
 
@@ -69,7 +69,7 @@ func (c *Config) SetDefault() error {
 								api_url,
 								last_updated)
 							VALUES (1, ?, ?, ?)`,
-		c.StreamDataURL,
+		c.StreamsTOMLURL,
 		c.APIURL,
 		"")
 
@@ -96,7 +96,7 @@ func (c *Config) Set() error {
 								api_url = ?,
 								last_updated = ?
 							WHERE id = 1`,
-		c.StreamDataURL,
+		c.StreamsTOMLURL,
 		c.APIURL,
 		c.LastUpdate)
 
