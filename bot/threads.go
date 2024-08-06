@@ -49,8 +49,8 @@ func checkTomorrowsStreams() {
 	}
 }
 
-// performMaintenance performs database maintenance, clean up of logs and
-// blacklisted items
+// performMaintenance performs database maintenance, clean up of logs
+// blacklisted items and suggestions
 func performMaintenance(session *discordgo.Session) {
 	logs.LogInfo("MNTNC", "truncating logs...", false)
 	logs.TruncateLogs()
@@ -58,6 +58,8 @@ func performMaintenance(session *discordgo.Session) {
 	servers.ServerMaintenance(session)
 	logs.LogInfo("MNTNC", "performing stream maintenance...", false)
 	streams.StreamMaintenance()
+	logs.LogInfo("MNTNC", "performing suggestion maintenance...", false)
+	db.RemoveOldSuggestions()
 	logs.LogInfo("MNTNC", "deleting expired blacklisted items...", false)
 	db.RemoveExpiredBlacklist()
 }

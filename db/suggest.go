@@ -77,3 +77,19 @@ func UpdateSuggestion() error {
 	}
 	return nil
 }
+
+// RemoveOldSuggestions removes suggestions that are older than 30 days
+func RemoveOldSuggestions() error {
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec(`DELETE FROM suggestions
+							WHERE date_added < datetime('now', '-30 days')`)
+	if execErr != nil {
+		return execErr
+	}
+	return nil
+}
