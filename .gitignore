@@ -2,3 +2,4 @@ bin/
 *.kra
 config_files/
 .vscode/
+.VSCodeCounter/
