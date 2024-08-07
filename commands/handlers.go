@@ -6,6 +6,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/config"
 	"gamestreams/db"
 	"gamestreams/discord"
 	"gamestreams/logs"
@@ -201,7 +202,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Fields: []*discordgo.MessageEmbedField{
 						{
 							Name:   "Commands",
-							Value:  "`/streams` - List all upcoming streams\n`/streaminfo` - Get information on a specific stream by title\n`/help` [admin] - Get help with the bot\n`/settings` [admin] - Change bot settings **(server only - can't use in DMs)**",
+							Value:  "`/streams` - List all upcoming streams\n`/streaminfo` - Get information on a specific stream by title\n`/suggest` - Suggest a stream to be added to the database\n`/help` [admin] - Get help with the bot\n`/settings` [admin] - Change bot settings **(server only - can't use in DMs)**",
 							Inline: false,
 						},
 						{
@@ -213,6 +214,12 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 								"- The platform settings only control which streams are announced, not which streams are listed by the `/streams` command.\n\n" +
 								"Use the `/settings` command with no options to view the current settings.\n\n" +
 								"Use the `/settings` command with the `reset` option as `True` to reset all settings to default.",
+							Inline: false,
+						},
+						{
+							Name: "Documents",
+							Value: fmt.Sprintf("Privacy Policy: %s\n", config.Values.Documents.PrivacyPolicy) +
+								fmt.Sprintf("Terms of Service: %s\n", config.Values.Documents.TermsOfService),
 							Inline: false,
 						},
 					},

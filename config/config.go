@@ -16,6 +16,7 @@ type Config struct {
 	Discord    Discord    `toml:"discord"`
 	Github     Github     `toml:"github"`
 	Cloudflare Cloudflare `toml:"cloudflare"`
+	Documents  Documents  `toml:"documents"`
 	Schedule   Schedules  `toml:"schedule"`
 }
 
