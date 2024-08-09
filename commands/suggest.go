@@ -25,27 +25,41 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"user", userID,
 		"server", i.GuildID)
 
-	streamName := i.ApplicationCommandData().Options[0].StringValue()
-	streamDate := i.ApplicationCommandData().Options[1].StringValue()
-	streamURL := i.ApplicationCommandData().Options[2].StringValue()
-
-	suggestion := db.Suggestion{
-		Name: streamName,
-		Date: streamDate,
-		URL:  streamURL,
-	}
-
-	suggestErr := suggestion.Insert()
-	if suggestErr != nil {
-		logs.LogError(" CMND", "error inserting suggestion",
-			"err", suggestErr)
-	}
-
 	embed := &discordgo.MessageEmbed{
 		Title:       "Thank you",
 		Description: "Your suggestion has been received",
 		Color:       0xc3d23e,
 	}
+	streamName := i.ApplicationCommandData().Options[0].StringValue()
+	streamDate := i.ApplicationCommandData().Options[1].StringValue()
+	streamURL := i.ApplicationCommandData().Options[2].StringValue()
+
+	suggestion, suggestErr := db.NewSuggestion(streamName, streamDate, streamURL)
+	if suggestErr != nil {
+		embed = &discordgo.MessageEmbed{
+			Title:       "Error",
+			Description: suggestErr.Error(),
+			Color:       0xc3d23e,
+		}
+		respond(s, i, embed)
+		return
+	}
+
+	insertErr := suggestion.Insert()
+	if insertErr != nil {
+		logs.LogError(" CMND", "error inserting suggestion",
+			"err", suggestErr)
+		embed = &discordgo.MessageEmbed{
+			Title:       "Error",
+			Description: "**An error occurred.** Your suggestion may not have been recieved.",
+		}
+	}
+	respond(s, i, embed)
+}
+
+// respond sends a response to the interaction with the provided embed. If an error
+// occurs, it logs the error.
+func respond(s *discordgo.Session, i *discordgo.InteractionCreate, embed *discordgo.MessageEmbed) {
 	respondErr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

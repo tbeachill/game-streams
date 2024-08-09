@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -157,4 +158,13 @@ func GetUserID(i *discordgo.InteractionCreate) string {
 	} else {
 		return i.Member.User.ID
 	}
+}
+
+// PatternValidator checks if a string matches a given pattern.
+func PatternValidator(s string, pattern string) (bool, error) {
+	match, err := regexp.MatchString(pattern, s)
+	if err != nil {
+		return false, err
+	}
+	return match, nil
 }
