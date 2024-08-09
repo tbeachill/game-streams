@@ -17,6 +17,7 @@ type Config struct {
 	Github     Github     `toml:"github"`
 	Cloudflare Cloudflare `toml:"cloudflare"`
 	Documents  Documents  `toml:"documents"`
+	Streams    Streams    `toml:"streams"`
 	Schedule   Schedules  `toml:"schedule"`
 }
 

@@ -76,7 +76,7 @@ func (s *Streams) Query(q string, params ...string) error {
 func (s *Streams) GetUpcoming(params ...int) error {
 	var limit int
 	if len(params) == 0 {
-		limit = 10
+		limit = config.Values.Streams.Limit
 	} else {
 		limit = params[0]
 	}
