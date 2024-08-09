@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -11,6 +12,7 @@ import (
 	"gamestreams/utils"
 )
 
+// CommandData is a struct that holds data about a command interaction.
 type CommandData struct {
 	ServerID     string
 	UserID       string
@@ -22,17 +24,24 @@ type CommandData struct {
 	ResponseTime int64
 }
 
+// Start initializes the CommandData struct with the necessary data from the interaction.
 func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 	d.ServerID = interaction.GuildID
 	d.UserID = utils.GetUserID(interaction)
 	d.StartTime = time.Now().UnixMilli()
 	d.DateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
 	d.Command = interaction.ApplicationCommandData().Name
-	if d.Command == "streaminfo" {
+	if d.Command == "streaminfo" || d.Command == "help" {
 		d.Options = interaction.ApplicationCommandData().Options[0].StringValue()
+	} else if d.Command == "suggest" {
+		d.Options = fmt.Sprintf("name: %s, date: %s, url: %s",
+			interaction.ApplicationCommandData().Options[0].StringValue(),
+			interaction.ApplicationCommandData().Options[1].StringValue(),
+			interaction.ApplicationCommandData().Options[2].StringValue())
 	}
 }
 
+// End finalizes the CommandData struct by calculating the response time and inserting the data into the database.
 func (d *CommandData) End() {
 	d.EndTime = time.Now().UnixMilli()
 	d.ResponseTime = d.EndTime - d.StartTime
@@ -47,6 +56,7 @@ func (d *CommandData) End() {
 	}
 }
 
+// DBInsert inserts the CommandData struct into the commands table of the database.
 func (d *CommandData) DBInsert() error {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -66,6 +76,7 @@ func (d *CommandData) DBInsert() error {
 	return execErr
 }
 
+// UpdateSuggestion updates the last entry in the suggestions table to include the command ID.
 func RemoveCommandData(serverID string) error {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {

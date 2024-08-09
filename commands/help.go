@@ -31,7 +31,6 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if i.ApplicationCommandData().Options == nil {
 		content = helpGeneral()
 	} else {
-		a.Options = i.ApplicationCommandData().Options[0].StringValue()
 		switch i.ApplicationCommandData().Options[0].Value {
 		case "streams":
 			content = helpStreams()
