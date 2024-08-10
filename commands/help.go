@@ -62,7 +62,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // helpGeneral returns a general help message for the bot.
 func helpGeneral() []*discordgo.MessageEmbed {
 	return []*discordgo.MessageEmbed{
-		&discordgo.MessageEmbed{
+		{
 			Title: "Game Streams",
 			Description: "Game Streams is a bot that keeps track of game announcement streams " +
 				"and can announce when streams are beginning. \n\nUse the `/settings` command in your server " +
@@ -92,7 +92,7 @@ func helpGeneral() []*discordgo.MessageEmbed {
 // helpStreams returns a help message for the /streams command.
 func helpStreams() []*discordgo.MessageEmbed {
 	return []*discordgo.MessageEmbed{
-		&discordgo.MessageEmbed{
+		{
 			Title: "/streams",
 			Description: "List all upcoming streams. Streams are sorted by date and time." +
 				"\n\nStreams that have already started will not be listed. " +
@@ -105,7 +105,7 @@ func helpStreams() []*discordgo.MessageEmbed {
 // helpStreamInfo returns a help message for the /streaminfo command.
 func helpStreamInfo() []*discordgo.MessageEmbed {
 	return []*discordgo.MessageEmbed{
-		&discordgo.MessageEmbed{
+		{
 			Title: "/streaminfo",
 			Description: "Get information on a specific stream by title." +
 				"\n\nThe name field is required.",
@@ -124,7 +124,7 @@ func helpStreamInfo() []*discordgo.MessageEmbed {
 // helpSuggest returns a help message for the /suggest command.
 func helpSuggest() []*discordgo.MessageEmbed {
 	return []*discordgo.MessageEmbed{
-		&discordgo.MessageEmbed{
+		{
 			Title: "/suggest",
 			Description: "Suggest a stream to be added to the database. Suggestions will be reviewed by " +
 				"the bot owner and added to the database if they are valid.\n\nAll fields are required.",
@@ -153,7 +153,7 @@ func helpSuggest() []*discordgo.MessageEmbed {
 // helpSettings returns a help message for the /settings command.
 func helpSettings() []*discordgo.MessageEmbed {
 	return []*discordgo.MessageEmbed{
-		&discordgo.MessageEmbed{
+		{
 			Title: "/settings",
 			Description: "Settings for the Game Streams bot. These need to be set in your server to " +
 				"enable the bot to announce streams.\n\nOnly server administrators can use this command." +

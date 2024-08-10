@@ -87,7 +87,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 	content := []*discordgo.MessageEmbed{
-		&discordgo.MessageEmbed{
+		{
 			Title:       "Settings",
 			Description: status,
 			Color:       0xc3d23e,
@@ -138,7 +138,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"err", settingsErr)
 
 		content = []*discordgo.MessageEmbed{
-			&discordgo.MessageEmbed{
+			{
 				Title:       "Settings",
 				Description: "An error occurred. Settings have not been updated.",
 			},
