@@ -55,14 +55,30 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 
 func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
 	userID := utils.GetUserID(i)
-	blacklisted, reason := db.IsBlacklisted(userID, "user")
+	blacklisted, reason, expiryDate := db.IsBlacklisted(userID, "user")
 	if blacklisted {
 		logs.LogInfo(" CMND", "blacklisted user tried to use command", false,
 			"user", userID,
 			"reason", reason,
 			"command", i.ApplicationCommandData().Name)
-		discord.DM(userID, fmt.Sprintf("You are blacklisted from using this bot. Reason: %s", reason))
+		discord.DM(userID, fmt.Sprintf("You are blacklisted from using this bot.\n\nReason: %s"+
+			"\nExpires: %s ", reason, expiryDate))
 		return true
 	}
 	return false
+}
+
+func BlacklistIfSpamming(i *discordgo.InteractionCreate) {
+	userID := utils.GetUserID(i)
+
+	count, err := db.CheckUsageByUser(userID)
+	if err != nil {
+		logs.LogError(" CMND", "error checking command usage",
+			"user", userID,
+			"err", err)
+		return
+	}
+	if count > 30 {
+		db.AddToBlacklist(userID, "user", "spamming commands", 1)
+	}
 }

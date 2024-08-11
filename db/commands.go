@@ -91,3 +91,22 @@ func RemoveCommandData(serverID string) error {
 	_, execErr := db.Exec(`DELETE FROM commands WHERE server_id = ?`, serverID)
 	return execErr
 }
+
+// CheckUsageByUser checks the number of commands used by a user in the last hour.
+func CheckUsageByUser(userID string) (int, error) {
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	if openErr != nil {
+		return 0, openErr
+	}
+	defer db.Close()
+
+	row := db.QueryRow(`SELECT COUNT(*)
+						FROM commands
+						WHERE user_id = ?
+						AND used_date=DATE('now')
+						AND used_time BETWEEN TIME('now', '-1 hour') AND TIME('now')`, userID)
+
+	var count int
+	scanErr := row.Scan(&count)
+	return count, scanErr
+}

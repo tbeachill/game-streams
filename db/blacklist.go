@@ -19,23 +19,25 @@ type Blacklist struct {
 
 // IsBlacklisted checks if the given ID is blacklisted. Returns true if the ID is blacklisted,
 // false if it is not.
-func IsBlacklisted(id string, idType string) (bool, string) {
+func IsBlacklisted(id string, idType string) (bool, string, string) {
 	logs.LogInfo(" MAIN", "checking if blacklisted", false,
 		"id", id,
 		"idType", idType)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
-		return false, ""
+		return false, "", ""
 	}
 	defer db.Close()
 
 	var query string
 	if idType == "" {
-		query = `SELECT id_type
+		query = `SELECT reason,
+						date_expires
 				FROM blacklist
 				WHERE discord_id = ?`
 	} else {
-		query = `SELECT id_type
+		query = `SELECT reason,
+						date_expires
 				FROM blacklist
 				WHERE discord_id = ?
 				AND id_type = ?`
@@ -43,9 +45,9 @@ func IsBlacklisted(id string, idType string) (bool, string) {
 	row := db.QueryRow(query,
 		id, idType)
 
-	var reason string
-	scanErr := row.Scan(&reason)
-	return scanErr == nil, reason
+	var reason, expiryDate string
+	scanErr := row.Scan(&reason, &expiryDate)
+	return scanErr == nil, reason, expiryDate
 }
 
 // AddToBlacklist adds the given ID to the blacklist table of the database.
