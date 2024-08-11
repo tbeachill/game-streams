@@ -80,22 +80,20 @@ func parseToml(c Config) Streams {
 		logs.LogError("UPDAT", "error getting toml", "err", httpErr)
 		return Streams{}
 	}
+
 	defer response.Body.Close()
-	println("2")
 	body, readErr := io.ReadAll(response.Body)
 	if readErr != nil {
 		logs.LogError("UPDAT", "error reading toml", "err", readErr)
 		return Streams{}
 	}
-	println("3")
-	println(string(body))
+
 	var streamList Streams
 	_, tomlErr := toml.Decode(string(body), &streamList)
 	if tomlErr != nil {
 		logs.LogError("UPDAT", "error decoding toml", "err", tomlErr)
 		return Streams{}
 	}
-	println(streamList.Streams[0].Name)
 	return streamList
 }
 
