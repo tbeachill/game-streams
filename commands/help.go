@@ -81,8 +81,14 @@ func helpGeneral() []*discordgo.MessageEmbed {
 				{
 					Name: "Documents",
 					Value: fmt.Sprintf("Privacy Policy: %s\n", config.Values.Documents.PrivacyPolicy) +
-						fmt.Sprintf("Terms of Service: %s\n", config.Values.Documents.TermsOfService),
+						fmt.Sprintf("Terms of Service: %s\n", config.Values.Documents.TermsOfService) +
+						fmt.Sprintf("Changelog: %s\n", config.Values.Documents.Changelog),
 					Inline: false,
+				},
+				{
+					Name: "Information",
+					Value: fmt.Sprintf("Version: %s\n", config.Values.Bot.Version) +
+						fmt.Sprintf("Release Date: %s\n", config.Values.Bot.ReleaseDate),
 				},
 			},
 		},

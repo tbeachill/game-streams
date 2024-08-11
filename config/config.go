@@ -12,6 +12,7 @@ import (
 var Values Config
 
 type Config struct {
+	Bot        Bot        `toml:"bot"`
 	Files      FilePaths  `toml:"files"`
 	Discord    Discord    `toml:"discord"`
 	Github     Github     `toml:"github"`
