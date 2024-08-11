@@ -18,6 +18,7 @@ type Config struct {
 	Cloudflare Cloudflare `toml:"cloudflare"`
 	Documents  Documents  `toml:"documents"`
 	Streams    Streams    `toml:"streams"`
+	Blacklist  Blacklist  `toml:"blacklist"`
 	Schedule   Schedules  `toml:"schedule"`
 }
 

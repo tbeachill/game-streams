@@ -93,8 +93,9 @@ func RemoveCommandData(serverID string) error {
 	return execErr
 }
 
-// CheckUsageByUser checks the number of commands used by a user in the last hour.
-func CheckUsageByUser(userID string) (int, error) {
+// CheckUsageByUser checks the number of commands used by a user in a given period.
+// Period example: "-1 day".
+func CheckUsageByUser(userID string, period string) (int, error) {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return 0, openErr
@@ -105,8 +106,8 @@ func CheckUsageByUser(userID string) (int, error) {
 						FROM commands
 						WHERE user_id = ?
 						AND used_date=DATE('now')
-						AND used_time BETWEEN TIME('now', '-1 hour')
-							AND TIME('now')`, userID)
+						AND used_time BETWEEN TIME('now', ?)
+							AND TIME('now')`, userID, period)
 
 	var count int
 	scanErr := row.Scan(&count)

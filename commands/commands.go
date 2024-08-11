@@ -5,6 +5,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/config"
 	"gamestreams/db"
 	"gamestreams/discord"
 	"gamestreams/logs"
@@ -68,17 +69,26 @@ func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
 	return false
 }
 
+// BlacklistIfSpamming checks if a user is spamming commands and blacklists them if they are.
 func BlacklistIfSpamming(i *discordgo.InteractionCreate) {
 	userID := utils.GetUserID(i)
 
-	count, err := db.CheckUsageByUser(userID)
+	dCount, err := db.CheckUsageByUser(userID, "-1 day")
 	if err != nil {
 		logs.LogError(" CMND", "error checking command usage",
 			"user", userID,
 			"err", err)
 		return
 	}
-	if count > 30 {
-		db.AddToBlacklist(userID, "user", "spamming commands", 1)
+	hCount, err := db.CheckUsageByUser(userID, "-1 hour")
+	if err != nil {
+		logs.LogError(" CMND", "error checking command usage",
+			"user", userID,
+			"err", err)
+		return
+	}
+	if dCount >= config.Values.Blacklist.DailyCommandLimit ||
+		hCount >= config.Values.Blacklist.HourlyCommandLimit {
+		db.AddToBlacklist(userID, "user", "spamming commands", 2)
 	}
 }
