@@ -82,12 +82,12 @@ func (s *Streams) GetUpcoming(params ...int) error {
 	}
 	if err := s.Query(`SELECT *
 						FROM streams
-						WHERE stream_date > date('now')
+						WHERE stream_date > DATE('now')
 					UNION
 						SELECT *
 						FROM streams
-						WHERE stream_date = date('now')
-						AND start_time >= time('now')
+						WHERE stream_date = DATE('now')
+						AND start_time >= TIME('now')
 						ORDER BY stream_date, start_time
 						LIMIT ?`,
 		fmt.Sprint(limit)); err != nil {
@@ -101,8 +101,8 @@ func (s *Streams) GetUpcoming(params ...int) error {
 func (s *Streams) GetToday() error {
 	if err := s.Query(` SELECT *
 						FROM streams
-						WHERE stream_date = date('now')
-						AND start_time >= time('now')
+						WHERE stream_date = DATE('now')
+						AND start_time >= TIME('now')
 						ORDER BY start_time`); err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (s *Streams) GetToday() error {
 func (s *Streams) CheckTomorrow() error {
 	if err := s.Query(`SELECT *
 						FROM streams
-						WHERE stream_date = date('now', '+1 day')
+						WHERE stream_date = DATE('now', '+1 day')
 						AND start_time = ''`); err != nil {
 		return err
 	}
@@ -132,12 +132,12 @@ func (s *Streams) GetInfo(name string) error {
 						FROM (
 							SELECT *
 							FROM streams
-							WHERE stream_date = date('now')
-							AND start_time >= time('now')
+							WHERE stream_date = DATE('now')
+							AND start_time >= TIME('now')
 						UNION
 							SELECT *
 							FROM streams
-							WHERE stream_date > date('now')
+							WHERE stream_date > DATE('now')
 						)
 						WHERE stream_name LIKE ? COLLATE NOCASE
 						LIMIT 1`,

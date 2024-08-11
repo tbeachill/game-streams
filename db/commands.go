@@ -88,7 +88,8 @@ func RemoveCommandData(serverID string) error {
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(`DELETE FROM commands WHERE server_id = ?`, serverID)
+	_, execErr := db.Exec(`DELETE FROM commands
+							WHERE server_id = ?`, serverID)
 	return execErr
 }
 
@@ -104,7 +105,8 @@ func CheckUsageByUser(userID string) (int, error) {
 						FROM commands
 						WHERE user_id = ?
 						AND used_date=DATE('now')
-						AND used_time BETWEEN TIME('now', '-1 hour') AND TIME('now')`, userID)
+						AND used_time BETWEEN TIME('now', '-1 hour')
+							AND TIME('now')`, userID)
 
 	var count int
 	scanErr := row.Scan(&count)

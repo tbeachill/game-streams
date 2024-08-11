@@ -134,6 +134,6 @@ func RemoveExpiredBlacklist() error {
 	defer db.Close()
 
 	_, execErr := db.Exec(`DELETE FROM blacklist
-							WHERE date_expires <= date('now')`)
+							WHERE date_expires <= DATE('now')`)
 	return execErr
 }
