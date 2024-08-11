@@ -40,6 +40,11 @@ func Run(botToken, appID string) {
 	commands.RegisterHandler(session, &discordgo.InteractionCreate{})
 	commands.RegisterOwnerCommands(session)
 
+	streamUpdater()
+	performMaintenance(session)
+	streamNotifications(session)
+	checkTomorrowsStreams()
+
 	servers.MonitorGuilds(session)
 	utils.StartTime = time.Now().UTC()
 	logs.LogInfo(" MAIN", "bot started", true)
