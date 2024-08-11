@@ -21,7 +21,7 @@ type Blacklist struct {
 // IsBlacklisted checks if the given ID is blacklisted. Returns true if the ID is blacklisted,
 // false if it is not.
 func IsBlacklisted(id string, idType string) (bool, Blacklist) {
-	logs.LogInfo(" MAIN", "checking if blacklisted", false,
+	logs.LogInfo("   DB", "checking if blacklisted", false,
 		"id", id,
 		"idType", idType)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
@@ -53,7 +53,7 @@ func IsBlacklisted(id string, idType string) (bool, Blacklist) {
 
 // AddToBlacklist adds the given ID to the blacklist table of the database.
 func AddToBlacklist(id string, idType string, reason string, length_days int) error {
-	logs.LogInfo("OWNER", "adding to blacklist table", false,
+	logs.LogInfo("   DB", "adding to blacklist table", false,
 		"id", id,
 		"idType", idType,
 		"days", length_days,
@@ -80,7 +80,7 @@ func AddToBlacklist(id string, idType string, reason string, length_days int) er
 
 // RemoveFromBlacklist removes the given ID from the blacklist table of the database.
 func RemoveFromBlacklist(id string) error {
-	logs.LogInfo("OWNER", "removing from blacklist table", false, "id", id)
+	logs.LogInfo("   DB", "removing from blacklist table", false, "id", id)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
@@ -95,7 +95,7 @@ func RemoveFromBlacklist(id string) error {
 
 // GetBlacklist returns a list of all blacklisted IDs from the blacklist table of the database.
 func GetBlacklist() ([]Blacklist, error) {
-	logs.LogInfo("OWNER", "getting blacklist", false)
+	logs.LogInfo("   DB", "getting blacklist", false)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return nil, openErr
@@ -142,7 +142,7 @@ func RemoveExpiredBlacklist() error {
 // UpdateLastMessaged updates the last_messaged field of the given ID in the blacklist table of
 // the database.
 func UpdateLastMessaged(id string) error {
-	logs.LogInfo("OWNER", "updating last messaged", false, "id", id)
+	logs.LogInfo("   DB", "updating last messaged", false, "id", id)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr

@@ -39,7 +39,7 @@ func (c *Config) Get() error {
 
 	scanErr := row.Scan(&c.ID, &c.StreamsTOMLURL, &c.APIURL, &c.LastUpdate)
 	if scanErr == sql.ErrNoRows {
-		logs.LogInfo(" MAIN", "No config found, setting default", false)
+		logs.LogInfo("   DB", "No config found, setting default", false)
 		if defaultErr := c.SetDefault(); defaultErr != nil {
 			return defaultErr
 		}
@@ -52,7 +52,7 @@ func (c *Config) Get() error {
 // SetDefault sets the default values for the config struct from the environment
 // variables and writes them to the database.
 func (c *Config) SetDefault() error {
-	logs.LogInfo(" MAIN", "Setting default config", false)
+	logs.LogInfo("   DB", "Setting default config", false)
 	c.StreamsTOMLURL = config.Values.Github.StreamsTOMLURL
 	c.APIURL = config.Values.Github.APIURL
 	c.LastUpdate = ""
@@ -82,7 +82,7 @@ func (c *Config) SetDefault() error {
 
 // Set writes the current values of the Config struct to the database.
 func (c *Config) Set() error {
-	logs.LogInfo(" MAIN", "Updating config", false)
+	logs.LogInfo("   DB", "Updating config", false)
 
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {

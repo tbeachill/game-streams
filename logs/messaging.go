@@ -8,12 +8,12 @@ import (
 func DM(userID string, message string) {
 	st, err := Session.UserChannelCreate(userID)
 	if err != nil {
-		LogError(" MAIN", "error creating DM channel", "err", err)
+		LogError(" LOGS", "error creating DM channel", "err", err)
 		return
 	}
 	_, err = Session.ChannelMessageSend(st.ID, message)
 	if err != nil {
-		LogError(" MAIN", "error sending DM", "err", err)
+		LogError(" LOGS", "error sending DM", "err", err)
 	}
 }
 

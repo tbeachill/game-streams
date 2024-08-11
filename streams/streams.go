@@ -31,7 +31,7 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 		return embed, errors.New("no streams found")
 	}
 	for i, stream := range streamList.Streams {
-		logs.LogInfo(" CMND", "creating embed field", false,
+		logs.LogInfo("STRMS", "creating embed field", false,
 			"name", stream.Name,
 			"time", stream.Time)
 
@@ -110,7 +110,7 @@ func ScheduleNotifications(session *discordgo.Session) error {
 		return todayErr
 	}
 	if len(streamList.Streams) == 0 {
-		logs.LogInfo("SCHED", "no streams today", false)
+		logs.LogInfo("STRMS", "no streams today", false)
 		return nil
 	}
 	for i, stream := range streamList.Streams {
@@ -118,7 +118,7 @@ func ScheduleNotifications(session *discordgo.Session) error {
 			dateTime := fmt.Sprintf("%s %s", currentStream.Date, currentStream.Time)
 			streamTime, parseErr := time.Parse("2006-01-02 15:04", dateTime)
 			if parseErr != nil {
-				logs.LogError("SCHED", "error parsing time",
+				logs.LogError("STRMS", "error parsing time",
 					"err", parseErr)
 				return
 			}
@@ -127,13 +127,13 @@ func ScheduleNotifications(session *discordgo.Session) error {
 			time.Sleep(timeToStream)
 			PostStreamLink(*currentStream, session)
 		}(&stream)
-		logs.LogInfo("SCHED", "scheduled stream", false,
+		logs.LogInfo("STRMS", "scheduled stream", false,
 			"goroutine", i+1,
 			"name", stream.Name,
 			"time", stream.Time)
 	}
 	streamLen := len(streamList.Streams)
-	logs.LogInfo("SCHED", "scheduled todays streams", false,
+	logs.LogInfo("STRMS", "scheduled todays streams", false,
 		"count", streamLen)
 	return nil
 }
@@ -142,13 +142,13 @@ func ScheduleNotifications(session *discordgo.Session) error {
 // that are following one or more of the platforms of the stream and has an announcement
 // channel set.
 func PostStreamLink(stream db.Stream, session *discordgo.Session) {
-	logs.LogInfo("SCHED", "posting stream link", false,
+	logs.LogInfo("STRMS", "posting stream link", false,
 		"stream", stream.Name,
 		"platforms", stream.Platform)
 
 	allServerPlatforms, platErr := getAllPlatforms(stream)
 	if platErr != nil {
-		logs.LogError("SCHED", "error getting server platforms",
+		logs.LogError("STRMS", "error getting server platforms",
 			"err", platErr)
 		return
 	}
@@ -171,14 +171,14 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		}
 		embed, embedErr := createStreamEmbed(stream, settings.AnnounceRole.Value)
 		if embedErr != nil {
-			logs.LogError("SCHED", "error creating embed",
+			logs.LogError("STRMS", "error creating embed",
 				"server", server,
 				"err", embedErr)
 			continue
 		}
 		msg, postErr := session.ChannelMessageSendEmbed(settings.AnnounceChannel.Value, embed)
 		if postErr != nil {
-			logs.LogError("SCHED", "error posting message",
+			logs.LogError("STRMS", "error posting message",
 				"server", server,
 				"channel", settings.AnnounceChannel,
 				"role", settings.AnnounceRole,
@@ -210,7 +210,7 @@ func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed
 	time.Sleep(time.Duration(config.Values.Schedule.NotificationTMinus))
 	_, editErr := session.ChannelMessageEditComplex(medit)
 	if editErr != nil {
-		logs.LogError("SCHED", "error editing message",
+		logs.LogError("STRMS", "error editing message",
 			"channel", msg.ChannelID,
 			"message", msg.ID,
 			"err", editErr)
@@ -259,7 +259,7 @@ func getAllPlatforms(stream db.Stream) ([]string, error) {
 		if platErr != nil {
 			return nil, platErr
 		}
-		logs.LogInfo("SCHED", "found servers for platform", false,
+		logs.LogInfo("STRMS", "found servers for platform", false,
 			"platform", platform)
 
 		allServerPlatforms = append(allServerPlatforms, server_list...)

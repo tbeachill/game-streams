@@ -13,7 +13,7 @@ import (
 
 // Encrypt encrypts the database.
 func Encrypt() error {
-	logs.LogInfo("SCHED", "encrypting database...", false)
+	logs.LogInfo("BCKUP", "encrypting database...", false)
 	dbFile, err := os.ReadFile(config.Values.Files.Database)
 	if err != nil {
 		return err
@@ -41,7 +41,7 @@ func Encrypt() error {
 	if err != nil {
 		return err
 	}
-	logs.LogInfo("SCHED", "database encrypted", false)
+	logs.LogInfo("BCKUP", "database encrypted", false)
 	return nil
 }
 

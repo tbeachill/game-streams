@@ -22,7 +22,7 @@ type FilePaths struct {
 func (f *FilePaths) SetPaths() {
 	file, err := os.ReadFile(f.Config)
 	if err != nil {
-		log.Output(5, fmt.Sprintf("MAIN: could not read config file err=%s", err))
+		log.Output(5, fmt.Sprintf("CONFG: could not read config file err=%s", err))
 	}
 	toml.Unmarshal(file, &f)
 }

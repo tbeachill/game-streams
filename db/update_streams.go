@@ -28,16 +28,16 @@ func (s *Streams) Update() error {
 		return checkErr
 	}
 	if !updated {
-		logs.LogInfo("UPDAT", "no new streams found", false)
+		logs.LogInfo("   DB", "no new streams found", false)
 		return nil
 	}
-	logs.LogInfo("UPDAT", "found new version of toml", false)
+	logs.LogInfo("   DB", "found new version of toml", false)
 
 	*s = parseToml(c)
 
 	// if new version of toml is empty, update the last update time and return
 	if len(s.Streams) == 0 {
-		logs.LogInfo("UPDAT", "toml is empty", false)
+		logs.LogInfo("   DB", "toml is empty", false)
 		if setErr := c.Set(); setErr != nil {
 			return setErr
 		}
@@ -55,7 +55,7 @@ func (s *Streams) Update() error {
 		return dupErr
 	}
 	if len(s.Streams) == 0 {
-		logs.LogInfo("UPDAT", "no new streams found", false)
+		logs.LogInfo("   DB", "no new streams found", false)
 		if setErr := c.Set(); setErr != nil {
 			return setErr
 		}
@@ -77,21 +77,21 @@ func (s *Streams) Update() error {
 func parseToml(c Config) Streams {
 	response, httpErr := http.Get(c.StreamsTOMLURL)
 	if httpErr != nil {
-		logs.LogError("UPDAT", "error getting toml", "err", httpErr)
+		logs.LogError("   DB", "error getting toml", "err", httpErr)
 		return Streams{}
 	}
 
 	defer response.Body.Close()
 	body, readErr := io.ReadAll(response.Body)
 	if readErr != nil {
-		logs.LogError("UPDAT", "error reading toml", "err", readErr)
+		logs.LogError("   DB", "error reading toml", "err", readErr)
 		return Streams{}
 	}
 
 	var streamList Streams
 	_, tomlErr := toml.Decode(string(body), &streamList)
 	if tomlErr != nil {
-		logs.LogError("UPDAT", "error decoding toml", "err", tomlErr)
+		logs.LogError("   DB", "error decoding toml", "err", tomlErr)
 		return Streams{}
 	}
 	return streamList
@@ -123,7 +123,7 @@ func (s *Streams) UpdateRow() error {
 	var updateCount int
 	for i, stream := range s.Streams {
 		if stream.ID != 0 {
-			logs.LogInfo("UPDAT", "updating stream", false,
+			logs.LogInfo("   DB", "updating stream", false,
 				"id", stream.ID,
 				"name", stream.Name)
 
@@ -232,7 +232,7 @@ func countRows() (int, error) {
 func (s *Streams) InsertStreams() {
 	db, sqlErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if sqlErr != nil {
-		logs.LogError("UPDAT", "error opening db", "err", sqlErr)
+		logs.LogError("   DB", "error opening db", "err", sqlErr)
 		return
 	}
 	defer db.Close()
@@ -260,7 +260,7 @@ func (s *Streams) InsertStreams() {
 			stream.URL)
 
 		if insertErr != nil {
-			logs.LogError("UPDAT", "error inserting stream",
+			logs.LogError("   DB", "error inserting stream",
 				"stream", stream.Name,
 				"err", insertErr)
 
@@ -275,14 +275,14 @@ func (s *Streams) InsertStreams() {
 func (s *Streams) DeleteStreams() {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
-		logs.LogError("UPDAT", "error opening db", "err", openErr)
+		logs.LogError("   DB", "error opening db", "err", openErr)
 		return
 	}
 	defer db.Close()
 
 	for _, x := range s.Streams {
 		if x.Delete {
-			logs.LogInfo("UPDAT", "deleting stream", false,
+			logs.LogInfo("   DB", "deleting stream", false,
 				"id", x.ID,
 				"name", x.Name)
 
@@ -291,7 +291,7 @@ func (s *Streams) DeleteStreams() {
 				x.ID)
 
 			if deleteErr != nil {
-				logs.LogError("UPDAT", "error deleting stream",
+				logs.LogError("   DB", "error deleting stream",
 					"stream", x.Name,
 					"err", deleteErr)
 				continue

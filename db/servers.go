@@ -88,7 +88,7 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 	defer db.Close()
 
 	platform = strings.ToLower(platform)
-	logs.Log.Info.WithPrefix("SERVR").Info("getting server IDs for",
+	logs.Log.Info.WithPrefix("   DB").Info("getting server IDs for",
 		"platform", platform)
 
 	rows, queryErr := db.Query(`SELECT server_id
@@ -120,7 +120,7 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 
 // RemoveServer removes the given server ID from the servers table.
 func RemoveServer(serverID string) error {
-	logs.LogInfo("SERVR", "removing server from servers table", false,
+	logs.LogInfo("   DB", "removing server from servers table", false,
 		"serverID", serverID)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -136,7 +136,7 @@ func RemoveServer(serverID string) error {
 
 // NewServer adds a new server to the servers table in the database.
 func NewServer(serverID string, serverName string, ownerID string, memberCount int, locale string) error {
-	logs.LogInfo("SERVR", "adding new server to servers table", false,
+	logs.LogInfo("   DB", "adding new server to servers table", false,
 		"serverID", serverID)
 
 	s := Server{
@@ -192,7 +192,7 @@ func CheckServerColumns() ([]string, error) {
 
 // Set sets the settings for the given server ID in the servers table.
 func (s *Server) Set() error {
-	logs.LogInfo("SERVR", "setting server settings", false,
+	logs.LogInfo("   DB", "setting server settings", false,
 		"serverID", s.ID)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -240,7 +240,7 @@ func (s *Server) Set() error {
 
 // Get returns the server information for the given server ID from the servers table.
 func (s *Server) Get() error {
-	logs.LogInfo("SERVR", "getting server settings", false,
+	logs.LogInfo("   DB", "getting server settings", false,
 		"serverID", s.ID)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {

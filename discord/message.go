@@ -10,7 +10,7 @@ func IntroDM(userID string) {
 	message := "🕹 Hello! Thank you for adding me to your server! 🕹\n\n" +
 		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings` in the server you added me to.\n\n" +
 		"For more information, type `/help`."
-	logs.LogInfo(" MAIN", "sending intro DM", false, "user", userID)
+	logs.LogInfo("DSCRD", "sending intro DM", false, "user", userID)
 
 	DM(userID, message)
 }
@@ -19,12 +19,12 @@ func IntroDM(userID string) {
 func DM(userID string, message string) {
 	st, err := Session.UserChannelCreate(userID)
 	if err != nil {
-		logs.LogError(" MAIN", "error creating DM channel", "err", err)
+		logs.LogError("DSCRD", "error creating DM channel", "err", err)
 		return
 	}
 	_, err = Session.ChannelMessageSend(st.ID, message)
 	if err != nil {
-		logs.LogError(" MAIN", "error sending DM", "err", err)
+		logs.LogError("DSCRD", "error sending DM", "err", err)
 	}
 }
 

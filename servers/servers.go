@@ -166,7 +166,7 @@ func LeaveIfBlacklisted(session *discordgo.Session, serverID string, e *discordg
 func GetServerName(serverID string) string {
 	server, err := discord.Session.Guild(serverID)
 	if err != nil {
-		logs.LogError(" MAIN", "error getting server name", "err", err)
+		logs.LogError("SERVR", "error getting server name", "err", err)
 		return ""
 	}
 	return server.Name
@@ -176,7 +176,7 @@ func GetServerName(serverID string) string {
 func GetServerOwner(serverID string) string {
 	server, err := discord.Session.Guild(serverID)
 	if err != nil {
-		logs.LogError(" MAIN", "error getting server owner", "err", err)
+		logs.LogError("SERVR", "error getting server owner", "err", err)
 		return ""
 	}
 	return server.OwnerID

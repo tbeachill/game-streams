@@ -16,7 +16,7 @@ import (
 func TruncateLogs() {
 	logFile, err := os.OpenFile(config.Values.Files.Log, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		LogError(" SCHED", "error opening log file", "err", err)
+		LogError(" LOGS", "error opening log file", "err", err)
 		return
 	}
 	defer logFile.Close()
@@ -26,12 +26,12 @@ func TruncateLogs() {
 		cmd := exec.Command("sudo journalctl --rotate")
 		err := cmd.Run()
 		if err != nil {
-			LogError("MNTNC", "error rotating journalctl logs", "err", err)
+			LogError(" LOGS", "error rotating journalctl logs", "err", err)
 		}
 		cmd = exec.Command("sudo journalctl --vacuum-time=14d")
 		err = cmd.Run()
 		if err != nil {
-			LogError("MNTNC", "error vacuuming journalctl logs", "err", err)
+			LogError(" LOGS", "error vacuuming journalctl logs", "err", err)
 		}
 	}
 

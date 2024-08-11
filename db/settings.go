@@ -64,7 +64,7 @@ func (s *Settings) Set() error {
 		return openErr
 	}
 	defer db.Close()
-	logs.LogInfo(" CMND", "applying settings", false, "server", s.ServerID, "settings", s)
+	logs.LogInfo("   DB", "applying settings", false, "server", s.ServerID, "settings", s)
 
 	if !CheckSettings(s.ServerID) {
 		inServerTable, err := CheckServerID(s.ServerID)
@@ -210,7 +210,7 @@ func (s *Settings) Merge(t Settings) {
 func CheckSettings(serverID string) bool {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
-		logs.LogError(" MAIN", "error opening database", "err", openErr)
+		logs.LogError("   DB", "error opening database", "err", openErr)
 		return false
 	}
 	defer db.Close()

@@ -31,7 +31,7 @@ func (l *Logger) Init() {
 	})
 	logFile, err := os.OpenFile(config.Values.Files.Log, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		l.ErrorWarn.WithPrefix(" MAIN").Fatal("Error opening log file",
+		l.ErrorWarn.WithPrefix(" LOGS").Fatal("Error opening log file",
 			"err", err)
 	}
 	mw := io.MultiWriter(os.Stdout, logFile)

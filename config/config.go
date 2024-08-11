@@ -31,7 +31,7 @@ func (c *Config) Load() {
 	} else {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			log.Output(5, fmt.Sprintf("MAIN: could not set filepaths err=%s", err))
+			log.Output(5, fmt.Sprintf("CONFG: could not set filepaths err=%s", err))
 		}
 		configFile = fmt.Sprintf("%s/.config/game-streams/config.toml", home)
 	}

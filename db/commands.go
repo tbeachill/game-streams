@@ -49,12 +49,12 @@ func (d *CommandData) End() {
 	d.EndTime = time.Now().UnixMilli()
 	d.ResponseTime = d.EndTime - d.StartTime
 	if err := d.DBInsert(); err != nil {
-		logs.LogError("ANALYTICS", "error inserting analytics data", "err", err)
+		logs.LogError("   DB", "error inserting analytics data", "err", err)
 	}
 	// update last entry in suggestions table to include command id
 	if d.Command == "suggest" {
 		if err := UpdateSuggestion(); err != nil {
-			logs.LogError("ANALYTICS", "error updating last suggestion", "err", err)
+			logs.LogError("   DB", "error updating last suggestion", "err", err)
 		}
 	}
 }

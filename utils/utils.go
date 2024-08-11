@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -45,7 +46,7 @@ func CreateTimestampRelative(d string, t string) (string, error) {
 func ParseTomlDate(d string) (string, error) {
 	splitStr := strings.Split(d, "/")
 	if len(splitStr) != 3 {
-		return "", fmt.Errorf("invalid date format")
+		return "", errors.New("invalid date format")
 	}
 	return fmt.Sprintf("%s-%s-%s", splitStr[2], splitStr[1], splitStr[0]), nil
 }
@@ -121,7 +122,7 @@ func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
 
 	doc, err := GetHtmlBody(streamUrl)
 	if err != nil {
-		logs.LogError(" MAIN", "error getting youtube html", "err", err)
+		logs.LogError("UTILS", "error getting youtube html", "err", err)
 		return "", false
 	}
 	doc.Find("link").Each(func(i int, s *goquery.Selection) {
