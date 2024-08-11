@@ -230,7 +230,7 @@ func blacklistRemove(s *discordgo.Session, m *discordgo.MessageCreate, splitStri
 	}
 
 	id := splitString[2]
-	exists, _, _ := db.IsBlacklisted(id, "")
+	exists, _ := db.IsBlacklisted(id, "")
 	if !exists {
 		s.ChannelMessageSend(m.ChannelID, "id not in blacklist")
 		return

@@ -10,44 +10,45 @@ import (
 
 // Blacklist is a struct that holds the blacklist values for the bot.
 type Blacklist struct {
-	ID          int
-	IDType      string
-	DateAdded   string
-	DateExpires string
-	Reason      string
+	ID           int
+	IDType       string
+	DateAdded    string
+	DateExpires  string
+	Reason       string
+	LastMessaged string
 }
 
 // IsBlacklisted checks if the given ID is blacklisted. Returns true if the ID is blacklisted,
 // false if it is not.
-func IsBlacklisted(id string, idType string) (bool, string, string) {
+func IsBlacklisted(id string, idType string) (bool, Blacklist) {
 	logs.LogInfo(" MAIN", "checking if blacklisted", false,
 		"id", id,
 		"idType", idType)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
-		return false, "", ""
+		return false, Blacklist{}
 	}
 	defer db.Close()
 
 	var query string
 	if idType == "" {
-		query = `SELECT reason,
-						date_expires
+		query = `SELECT *
 				FROM blacklist
 				WHERE discord_id = ?`
 	} else {
-		query = `SELECT reason,
-						date_expires
+		query = `SELECT *
 				FROM blacklist
 				WHERE discord_id = ?
 				AND id_type = ?`
 	}
-	row := db.QueryRow(query,
-		id, idType)
 
-	var reason, expiryDate string
-	scanErr := row.Scan(&reason, &expiryDate)
-	return scanErr == nil, reason, expiryDate
+	row := db.QueryRow(query, id, idType)
+	var b Blacklist
+	scanErr := row.Scan(&b.ID, &b.IDType, &b.DateAdded, &b.DateExpires, &b.Reason, &b.LastMessaged)
+	if scanErr != nil {
+		return false, Blacklist{}
+	}
+	return true, b
 }
 
 // AddToBlacklist adds the given ID to the blacklist table of the database.
@@ -135,5 +136,22 @@ func RemoveExpiredBlacklist() error {
 
 	_, execErr := db.Exec(`DELETE FROM blacklist
 							WHERE date_expires <= DATE('now')`)
+	return execErr
+}
+
+// UpdateLastMessaged updates the last_messaged field of the given ID in the blacklist table of
+// the database.
+func UpdateLastMessaged(id string) error {
+	logs.LogInfo("OWNER", "updating last messaged", false, "id", id)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec(`UPDATE blacklist
+							SET last_messaged = ?
+							WHERE discord_id = ?`,
+		time.Now().UTC().Format("2006-01-02"), id)
 	return execErr
 }

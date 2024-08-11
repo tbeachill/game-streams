@@ -82,7 +82,8 @@ func CreateDB() error {
 								id_type TEXT,
 								date_added TEXT,
 								date_expires TEXT,
-								reason TEXT)`)
+								reason TEXT,
+								last_messaged TEXT)`)
 
 	if tableErr != nil {
 		return tableErr

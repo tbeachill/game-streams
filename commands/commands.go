@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 
@@ -54,16 +55,28 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 	return &s
 }
 
+// userIsBlacklisted checks if a user is blacklisted from using the bot.
+// If the user is blacklisted, it sends a DM to the user with the reason for the blacklist.
 func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
 	userID := utils.GetUserID(i)
-	blacklisted, reason, expiryDate := db.IsBlacklisted(userID, "user")
+	blacklisted, b := db.IsBlacklisted(userID, "user")
+
 	if blacklisted {
 		logs.LogInfo(" CMND", "blacklisted user tried to use command", false,
 			"user", userID,
-			"reason", reason,
+			"reason", b.Reason,
 			"command", i.ApplicationCommandData().Name)
-		discord.DM(userID, fmt.Sprintf("You are blacklisted from using this bot.\n\nReason: %s"+
-			"\nExpires: %s ", reason, expiryDate))
+		lastMessaged, timeErr := time.Parse("2006-01-02", b.LastMessaged)
+		if timeErr != nil {
+			logs.LogError(" CMND", "error parsing time",
+				"user", userID,
+				"err", timeErr)
+		}
+		if b.LastMessaged == "" || time.Now().Compare(lastMessaged) > 0 {
+			discord.DM(userID, fmt.Sprintf("You are blacklisted from using this bot.\n\nReason: %s"+
+				"\nExpires: %s ", b.Reason, b.DateExpires))
+			db.UpdateLastMessaged(userID)
+		}
 		return true
 	}
 	return false
