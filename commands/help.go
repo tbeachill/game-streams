@@ -28,7 +28,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"server", i.GuildID)
 
 	var content []*discordgo.MessageEmbed
-	if i.ApplicationCommandData().Options == nil {
+	if len(i.ApplicationCommandData().Options) == 0 {
 		content = helpGeneral()
 	} else {
 		switch i.ApplicationCommandData().Options[0].Value {

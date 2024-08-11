@@ -34,7 +34,8 @@ func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 	d.UsedDate = dateTime.Format("2006-01-02")
 	d.UsedTime = dateTime.Format("15:04:05")
 	d.Command = interaction.ApplicationCommandData().Name
-	if d.Command == "streaminfo" || d.Command == "help" {
+	if d.Command == "streaminfo" || (d.Command == "help" &&
+		len(interaction.ApplicationCommandData().Options) > 0) {
 		d.Options = interaction.ApplicationCommandData().Options[0].StringValue()
 	} else if d.Command == "suggest" {
 		d.Options = fmt.Sprintf("name: %s, date: %s, url: %s",

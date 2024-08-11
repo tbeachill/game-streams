@@ -31,23 +31,41 @@ func IsBlacklisted(id string, idType string) (bool, Blacklist) {
 	defer db.Close()
 
 	var query string
+	var row *sql.Row
 	if idType == "" {
-		query = `SELECT *
+		query = `SELECT id,
+						id_type,
+						date_added,
+						date_expires,
+						reason,
+						last_messaged
 				FROM blacklist
 				WHERE discord_id = ?`
+		row = db.QueryRow(query, id)
 	} else {
-		query = `SELECT *
+		query = `SELECT id,
+					id_type,
+					date_added,
+					date_expires,
+					reason,
+					last_messaged
 				FROM blacklist
 				WHERE discord_id = ?
 				AND id_type = ?`
+		row = db.QueryRow(query, id, idType)
 	}
-
-	row := db.QueryRow(query, id, idType)
 	var b Blacklist
 	scanErr := row.Scan(&b.ID, &b.IDType, &b.DateAdded, &b.DateExpires, &b.Reason, &b.LastMessaged)
 	if scanErr != nil {
+		logs.LogInfo("   DB", "not blacklisted", false,
+			"id", id,
+			"idType", idType)
 		return false, Blacklist{}
 	}
+	logs.LogInfo("   DB", "blacklisted", false,
+		"id", id,
+		"idType", idType,
+		"reason", b.Reason)
 	return true, b
 }
 
