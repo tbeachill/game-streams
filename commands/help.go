@@ -86,7 +86,7 @@ func helpGeneral() []*discordgo.MessageEmbed {
 					Inline: false,
 				},
 				{
-					Name: "Information",
+					Name: "Version",
 					Value: fmt.Sprintf("Version: `%s`\n", config.Values.Bot.Version) +
 						fmt.Sprintf("Release Date: `%s`\n", config.Values.Bot.ReleaseDate),
 				},
