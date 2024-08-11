@@ -16,7 +16,8 @@ import (
 type CommandData struct {
 	ServerID     string
 	UserID       string
-	DateTime     string
+	UsedDate     string
+	UsedTime     string
 	Command      string
 	Options      string
 	StartTime    int64
@@ -29,7 +30,9 @@ func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 	d.ServerID = interaction.GuildID
 	d.UserID = utils.GetUserID(interaction)
 	d.StartTime = time.Now().UnixMilli()
-	d.DateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
+	dateTime := time.Now().UTC()
+	d.UsedDate = dateTime.Format("2006-01-02")
+	d.UsedTime = dateTime.Format("15:04:05")
 	d.Command = interaction.ApplicationCommandData().Name
 	if d.Command == "streaminfo" || d.Command == "help" {
 		d.Options = interaction.ApplicationCommandData().Options[0].StringValue()
@@ -67,12 +70,13 @@ func (d *CommandData) DBInsert() error {
 	_, execErr := db.Exec(`INSERT INTO commands
 							(server_id,
 							user_id,
-							date_time,
+							used_date,
+							used_time,
 							command,
 							options,
 							response_time_ms)
-						VALUES (?, ?, ?, ?, ?, ?)`,
-		d.ServerID, d.UserID, d.DateTime, d.Command, d.Options, d.ResponseTime)
+						VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		d.ServerID, d.UserID, d.UsedDate, d.UsedTime, d.Command, d.Options, d.ResponseTime)
 	return execErr
 }
 
