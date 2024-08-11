@@ -155,9 +155,9 @@ func leaveServer(session *discordgo.Session, serverID string, reason string, e *
 // leaveIfBlacklisted checks if the server with the given server ID is blacklisted. If
 // it is, the bot leaves the server.
 func LeaveIfBlacklisted(session *discordgo.Session, serverID string, e *discordgo.GuildCreate) error {
-	blacklisted, reason := db.IsBlacklisted(serverID, "server")
+	blacklisted, b := db.IsBlacklisted(serverID, "server")
 	if blacklisted {
-		return leaveServer(session, serverID, fmt.Sprintf("blacklisted: %s", reason), e)
+		return leaveServer(session, serverID, fmt.Sprintf("blacklisted: %s", b.Reason), e)
 	}
 	return nil
 }
