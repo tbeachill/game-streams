@@ -100,6 +100,12 @@ func BackupDB() {
 		return
 	}
 
+	err := Encrypt()
+	if err != nil {
+		logs.LogError("SCHED", "backup failed: could not encrypt database", "err", err)
+		return
+	}
+
 	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 		return aws.Endpoint{
 			URL: fmt.Sprintf("https://%s.eu.r2.cloudflarestorage.com", config.Values.Cloudflare.AccountID),
@@ -125,6 +131,6 @@ func BackupDB() {
 		logs.LogInfo("SCHED", "backup already exists for today", false)
 		return
 	}
-	bucket.UploadFile(config.Values.Files.Database)
+	bucket.UploadFile(config.Values.Files.EncryptedDatabase)
 	bucket.CleanUp()
 }

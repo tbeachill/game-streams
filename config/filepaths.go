@@ -11,9 +11,11 @@ import (
 
 // FilePaths is a struct that holds the file paths of important files for the bot.
 type FilePaths struct {
-	Config   string `toml:"config"`
-	Database string `toml:"database"`
-	Log      string `toml:"log"`
+	Config            string `toml:"config"`
+	Database          string `toml:"database"`
+	EncryptedDatabase string `toml:"encrypted_database"`
+	EncryptionKey     string `toml:"encryption_key"`
+	Log               string `toml:"log"`
 }
 
 // SetPaths sets the file paths for the bot depending on the operating system.
@@ -32,6 +34,8 @@ func (f *FilePaths) UnmarshalTOML(data interface{}) error {
 		if runtime.GOOS == "windows" {
 			v := w.(map[string]interface{})["windows"].(map[string]interface{})
 			f.Database = v["database"].(string)
+			f.EncryptedDatabase = v["encrypted_database"].(string)
+			f.EncryptionKey = v["encryption_key"].(string)
 			f.Log = v["log"].(string)
 		} else {
 			home, err := os.UserHomeDir()
@@ -40,6 +44,8 @@ func (f *FilePaths) UnmarshalTOML(data interface{}) error {
 			}
 			v := w.(map[string]interface{})["linux"].(map[string]interface{})
 			f.Database = fmt.Sprintf(v["database"].(string), home)
+			f.EncryptedDatabase = fmt.Sprintf(v["encrypted_database"].(string), home)
+			f.EncryptionKey = fmt.Sprintf(v["encryption_key"].(string), home)
 			f.Log = fmt.Sprintf(v["log"].(string), home)
 		}
 	}

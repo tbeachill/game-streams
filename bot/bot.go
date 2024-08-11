@@ -7,7 +7,9 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/backup"
 	"gamestreams/commands"
+	"gamestreams/config"
 	"gamestreams/discord"
 	"gamestreams/logs"
 	"gamestreams/servers"
@@ -18,6 +20,13 @@ import (
 // registers the commands, and registers the scheduled functions.
 // The bot runs until it receives a termination signal (ctrl + c).
 func Run(botToken, appID string) {
+	if config.Values.Bot.RestoreDatabase {
+		backup.BackupDB()
+		logs.LogInfo(" MAIN", "RESTORE FLAG SET: RESTORING DATABASE", false)
+		backup.RestoreDB()
+		os.Exit(0)
+	}
+
 	session, sessionErr := discordgo.New("Bot " + botToken)
 	if sessionErr != nil {
 		logs.LogError(" MAIN", "error creating Discord session",
