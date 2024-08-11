@@ -23,12 +23,12 @@ func TruncateLogs() {
 
 	// rotate and vacuum journalctl logs
 	if runtime.GOOS == "linux" {
-		cmd := exec.Command("sudo journalctl --rotate")
+		cmd := exec.Command("sudo", "journalctl", "--rotate")
 		err := cmd.Run()
 		if err != nil {
 			LogError(" LOGS", "error rotating journalctl logs", "err", err)
 		}
-		cmd = exec.Command("sudo journalctl --vacuum-time=14d")
+		cmd = exec.Command("sudo", "journalctl", "--vacuum-time=14d")
 		err = cmd.Run()
 		if err != nil {
 			LogError(" LOGS", "error vacuuming journalctl logs", "err", err)
