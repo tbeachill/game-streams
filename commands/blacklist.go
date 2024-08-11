@@ -11,7 +11,6 @@ import (
 	"gamestreams/discord"
 	"gamestreams/logs"
 	"gamestreams/utils"
-
 )
 
 // userIsBlacklisted checks if a user is blacklisted from using the bot.
