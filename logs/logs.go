@@ -26,6 +26,7 @@ func (l *Logger) Init() {
 	})
 	l.ErrorWarn = log.NewWithOptions(os.Stderr, log.Options{
 		ReportCaller:    true,
+		CallerOffset:    2,
 		ReportTimestamp: true,
 	})
 	logFile, err := os.OpenFile(config.Values.Files.Log, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
