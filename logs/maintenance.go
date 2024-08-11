@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"time"
 
 	"gamestreams/config"
@@ -14,11 +16,26 @@ import (
 func TruncateLogs() {
 	logFile, err := os.OpenFile(config.Values.Files.Log, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		LogError(" MAIN", "error opening log file", "err", err)
+		LogError(" SCHED", "error opening log file", "err", err)
 		return
 	}
 	defer logFile.Close()
 
+	// rotate and vacuum journalctl logs
+	if runtime.GOOS == "linux" {
+		cmd := exec.Command("sudo journalctl --rotate")
+		err := cmd.Run()
+		if err != nil {
+			LogError("MNTNC", "error rotating journalctl logs", "err", err)
+		}
+		cmd = exec.Command("sudo journalctl --vacuum-time=14d")
+		err = cmd.Run()
+		if err != nil {
+			LogError("MNTNC", "error vacuuming journalctl logs", "err", err)
+		}
+	}
+
+	// truncate log file
 	lines := []string{}
 	scanner := bufio.NewScanner(logFile)
 	for scanner.Scan() {
