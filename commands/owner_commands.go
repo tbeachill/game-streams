@@ -297,8 +297,8 @@ func suggestions(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	var msg string
 	for _, suggestion := range suggestions {
-		msg += fmt.Sprintf("added: `%s` name: `%s` date: `%s` url: `%s`\n",
-			suggestion.DateAdded, suggestion.Name, suggestion.Date, suggestion.URL)
+		msg += fmt.Sprintf("name: `%s` date: `%s` url: `%s`\n",
+			suggestion.Name, suggestion.Date, suggestion.URL)
 	}
 	s.ChannelMessageSend(m.ChannelID, msg)
 }

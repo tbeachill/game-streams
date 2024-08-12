@@ -48,10 +48,11 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	insertErr := suggestion.Insert()
 	if insertErr != nil {
 		logs.LogError(" CMND", "error inserting suggestion",
-			"err", suggestErr)
+			"err", insertErr)
 		embed = &discordgo.MessageEmbed{
 			Title:       "Error",
 			Description: "**An error occurred.** Your suggestion may not have been recieved.",
+			Color:       0xc3d23e,
 		}
 	}
 	respond(s, i, embed)

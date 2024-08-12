@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -37,11 +36,6 @@ func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 	if d.Command == "streaminfo" || (d.Command == "help" &&
 		len(interaction.ApplicationCommandData().Options) > 0) {
 		d.Options = interaction.ApplicationCommandData().Options[0].StringValue()
-	} else if d.Command == "suggest" {
-		d.Options = fmt.Sprintf("name: %s, date: %s, url: %s",
-			interaction.ApplicationCommandData().Options[0].StringValue(),
-			interaction.ApplicationCommandData().Options[1].StringValue(),
-			interaction.ApplicationCommandData().Options[2].StringValue())
 	}
 }
 

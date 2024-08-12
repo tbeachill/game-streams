@@ -12,10 +12,9 @@ import (
 )
 
 type Suggestion struct {
-	Name      string
-	Date      string
-	URL       string
-	DateAdded string
+	Name string
+	Date string
+	URL  string
 }
 
 // NewSuggestion creates a new suggestion with the given name, date, and URL. It validates
@@ -63,11 +62,10 @@ func (s *Suggestion) Insert() error {
 		return openErr
 	}
 	defer db.Close()
-	s.DateAdded = time.Now().UTC().Format("2006-01-02 15:04:05")
 
-	_, execErr := db.Exec(`INSERT INTO suggestions (stream_name, stream_date, stream_url, date_added)
-							VALUES (?, ?, ?, ?)`,
-		s.Name, s.Date, s.URL, s.DateAdded)
+	_, execErr := db.Exec(`INSERT INTO suggestions (stream_name, stream_date, stream_url)
+							VALUES (?, ?, ?)`,
+		s.Name, s.Date, s.URL)
 	if execErr != nil {
 		return execErr
 	}
@@ -83,7 +81,7 @@ func GetSuggestions(limit int) ([]Suggestion, error) {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query(`SELECT stream_name, stream_date, stream_url, added_date
+	rows, queryErr := db.Query(`SELECT stream_name, stream_date, stream_url
 								FROM suggestions
 								ORDER BY date_added DESC
 								LIMIT ?`,
@@ -96,7 +94,7 @@ func GetSuggestions(limit int) ([]Suggestion, error) {
 	var suggestions []Suggestion
 	for rows.Next() {
 		var suggestion Suggestion
-		scanErr := rows.Scan(&suggestion.Name, &suggestion.Date, &suggestion.URL, &suggestion.DateAdded)
+		scanErr := rows.Scan(&suggestion.Name, &suggestion.Date, &suggestion.URL)
 		if scanErr != nil {
 			return nil, scanErr
 		}
@@ -130,7 +128,13 @@ func RemoveOldSuggestions() error {
 	defer db.Close()
 
 	_, execErr := db.Exec(`DELETE FROM suggestions
-							WHERE date_added < datetime('now', '-30 days')`)
+							WHERE command_id IN (
+								SELECT id
+								FROM commands
+								WHERE used_date < datetime('now', '-30 days')
+								AND command = "suggest"
+							)
+						`)
 	if execErr != nil {
 		return execErr
 	}
