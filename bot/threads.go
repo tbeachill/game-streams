@@ -59,6 +59,7 @@ func performMaintenance(session *discordgo.Session) {
 	logs.LogInfo("MNTNC", "performing stream maintenance...", false)
 	streams.StreamMaintenance()
 	logs.LogInfo("MNTNC", "performing suggestion maintenance...", false)
+	db.ArchiveSuggestions()
 	db.RemoveOldSuggestions()
 	logs.LogInfo("MNTNC", "performing blacklist maintenance...", false)
 	db.RemoveExpiredBlacklist()

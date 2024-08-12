@@ -108,13 +108,23 @@ func CreateDB() error {
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS suggestions
 								(id INTEGER PRIMARY KEY AUTOINCREMENT,
 								command_id INTEGER,
-								date_added TEXT,
 								stream_name TEXT,
 								stream_date TEXT,
 								stream_url TEXT,
 								FOREIGN KEY (command_id) REFERENCES commands (id)
 									ON DELETE CASCADE
 									ON UPDATE CASCADE)`)
+
+	if tableErr != nil {
+		return tableErr
+	}
+
+	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS suggestions_archive
+								(id INTEGER PRIMARY KEY AUTOINCREMENT,
+								stream_name TEXT,
+								stream_date TEXT,
+								stream_url TEXT,
+								spam BOOLEAN)`)
 
 	if tableErr != nil {
 		return tableErr

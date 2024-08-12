@@ -112,7 +112,12 @@ func UpdateSuggestion() error {
 	defer db.Close()
 
 	_, execErr := db.Exec(`UPDATE suggestions
-							SET command_id = (SELECT MAX(id) FROM commands WHERE command = "suggest")`)
+							SET command_id = (SELECT MAX(id)
+												FROM commands
+												WHERE command = "suggest")
+							WHERE id = (SELECT MAX(id)
+										FROM suggestions)
+						`)
 	if execErr != nil {
 		return execErr
 	}
@@ -133,6 +138,28 @@ func RemoveOldSuggestions() error {
 								FROM commands
 								WHERE used_date < datetime('now', '-30 days')
 								AND command = "suggest"
+							)
+						`)
+	if execErr != nil {
+		return execErr
+	}
+	return nil
+}
+
+// ArchiveSuggestions archives suggestions that are not already in the suggestions_archive
+func ArchiveSuggestions() error {
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec(`INSERT INTO suggestions_archive (stream_name, stream_date, stream_url)
+							SELECT stream_name, stream_date, stream_url
+							FROM suggestions
+							WHERE id NOT IN (
+								SELECT id
+								FROM suggestions_archive
 							)
 						`)
 	if execErr != nil {
