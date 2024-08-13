@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/robfig/cron/v3"
 
 	"gamestreams/config"
 )
@@ -97,25 +99,38 @@ func (s *Streams) GetUpcoming(params ...int) error {
 }
 
 // GetToday gets all streams for today that have not yet started from the streams
-// table of the database.
+// table of the database. It also gets streams that are scheduled for tomorrow but
+// are scheduled to start before the configured stream notification cron time.
 func (s *Streams) GetToday() error {
+	schedule, err := cron.ParseStandard(config.Values.Schedule.StreamNotifications.Cron)
+	if err != nil {
+		return err
+	}
+	scheduleTime := schedule.Next(time.Now().UTC()).Format("15:04")
 	if err := s.Query(` SELECT *
 						FROM streams
 						WHERE stream_date = DATE('now')
 						AND start_time >= TIME('now')
-						ORDER BY start_time`); err != nil {
+					UNION
+						SELECT *
+						FROM streams
+						WHERE stream_date = DATE('now', '+1 day')
+						AND start_time < ?
+						ORDER BY stream_date, start_time`,
+		scheduleTime); err != nil {
 		return err
 	}
 	return nil
 }
 
-// CheckTomorrow checks for streams in the streams table of the database that are
-// scheduled for tomorrow but do not
-// have a time set.
-func (s *Streams) CheckTomorrow() error {
+// CheckTimeless checks for streams that are scheduled for tomorrow or the day after
+// that do not have a time set. It notifies the owner which streams are missing a time
+// so they can be updated.
+func (s *Streams) CheckTimeless() error {
 	if err := s.Query(`SELECT *
 						FROM streams
-						WHERE stream_date = DATE('now', '+1 day')
+						WHERE stream_date > DATE('now')
+						AND stream_date <= DATE('now', '+2 day')
 						AND start_time = ''`); err != nil {
 		return err
 	}
