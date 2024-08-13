@@ -1,3 +1,7 @@
+/*
+bot.go contains the main function that runs the bot.
+It is the first file called by main.go when the bot is started.
+*/
 package bot
 
 import (
@@ -18,7 +22,8 @@ import (
 
 // Run is the main function that runs the bot. It creates a new Discord session,
 // registers the commands, and registers the scheduled functions.
-// The bot runs until it receives a termination signal (ctrl + c).
+// If the restore flag is set, it restores the database from the most recent backup
+// then exits. The bot runs until it receives a termination signal (ctrl + c).
 func Run(botToken, appID string) {
 	if config.Values.Bot.RestoreDatabase {
 		backup.BackupDB()
@@ -49,10 +54,11 @@ func Run(botToken, appID string) {
 	commands.RegisterHandler(session, &discordgo.InteractionCreate{})
 	commands.RegisterOwnerCommands(session)
 
+	// Run some of the scheduled functions immediately
 	streamUpdater()
 	performMaintenance(session)
 	streamNotifications(session)
-	checkTomorrowsStreams()
+	checkTimelessStreams()
 
 	servers.MonitorGuilds(session)
 	utils.StartTime = time.Now().UTC()

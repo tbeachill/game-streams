@@ -1,3 +1,8 @@
+/*
+threads.go contains functions that are run on a schedule in their own threads.
+These functions perform maintenance tasks, update streams, schedule notifications,
+and backup the database.
+*/
 package bot
 
 import (
@@ -10,7 +15,7 @@ import (
 	"gamestreams/streams"
 )
 
-// streamUpdater updates the streams in the database from a toml file
+// streamUpdater updates the streams in the database from a web-hosted toml file.
 func streamUpdater() {
 	var s db.Streams
 	logs.LogInfo("UPDAT", "checking for stream updates...", false)
@@ -21,7 +26,8 @@ func streamUpdater() {
 	}
 }
 
-// streamNotifications schedules stream notifications for the day
+// streamNotifications schedules stream notifications for the day. The day is the
+// 24-hour period between cron jobs.
 func streamNotifications(session *discordgo.Session) {
 	logs.LogInfo("NOTIF", "scheduling stream notifications...", false)
 
@@ -31,12 +37,12 @@ func streamNotifications(session *discordgo.Session) {
 	}
 }
 
-// checkTomorrowsStreams checks for streams scheduled for tomorrow that do not have a time
-// set. It notifies the owner of the streams that are missing a time.
-func checkTomorrowsStreams() {
+// checkTimelessStreams checks for streams that have no time set and logs them.
+// a DM is also sent to the owner as a reminder to set times for the streams.
+func checkTimelessStreams() {
 	var s db.Streams
-	if tomorrowErr := s.CheckTomorrow(); tomorrowErr != nil {
-		logs.LogError("TMRW ", "error checking tomorrow's streams",
+	if tomorrowErr := s.CheckTimeless(); tomorrowErr != nil {
+		logs.LogError("TMRW ", "error checking timeless streams",
 			"err", tomorrowErr)
 	}
 	if len(s.Streams) > 0 {
@@ -44,13 +50,13 @@ func checkTomorrowsStreams() {
 		for _, stream := range s.Streams {
 			cleanStreams[stream.ID] = stream.Name
 		}
-		logs.LogInfo("TMRW ", "streams tomorrow with no time", true,
+		logs.LogInfo("TMRW ", "upcoming streams with no time", true,
 			"streams", cleanStreams)
 	}
 }
 
 // performMaintenance performs database maintenance, clean up of logs
-// blacklisted items and suggestions
+// blacklisted items and suggestions.
 func performMaintenance(session *discordgo.Session) {
 	logs.LogInfo("MNTNC", "truncating logs...", false)
 	logs.TruncateLogs()
@@ -65,7 +71,7 @@ func performMaintenance(session *discordgo.Session) {
 	db.RemoveExpiredBlacklist()
 }
 
-// backupDatabase backs up the database to cloudflare
+// backupDatabase backs up the database to a cloudflare R2 storage bucket.
 func backupDatabase() {
 	logs.LogInfo("BCKUP", "backing up database...", false)
 	backup.BackupDB()

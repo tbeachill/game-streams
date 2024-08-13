@@ -1,3 +1,6 @@
+/*
+scheduling.go contains logic to schedule functions to run at specified intervals.
+*/
 package bot
 
 import (
@@ -11,7 +14,7 @@ import (
 
 // ScheduleFunctions schedules the functions that need to be run on a schedule.
 // It uses the cron package to schedule the functions at the intervals specified
-// in the configuration file.
+// in the config.toml file.
 func ScheduleFunctions(session *discordgo.Session) {
 	c := cron.New(cron.WithLocation(time.UTC))
 
@@ -25,9 +28,9 @@ func ScheduleFunctions(session *discordgo.Session) {
 			streamNotifications(session)
 		})
 	}
-	if config.Values.Schedule.CheckTomorrowsStreams.Enabled {
-		c.AddFunc(config.Values.Schedule.CheckTomorrowsStreams.Cron, func() {
-			checkTomorrowsStreams()
+	if config.Values.Schedule.CheckTimelessStreams.Enabled {
+		c.AddFunc(config.Values.Schedule.CheckTimelessStreams.Cron, func() {
+			checkTimelessStreams()
 		})
 	}
 	if config.Values.Schedule.Maintenance.Enabled {
