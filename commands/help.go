@@ -1,3 +1,7 @@
+/*
+help.go contains the function that responds to the /help command and any associated
+functions that are required to provide help messages to the user.
+*/
 package commands
 
 import (

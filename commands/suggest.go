@@ -1,3 +1,6 @@
+/*
+suggest.go provides the functions for handling the /suggest command.
+*/
 package commands
 
 import (
@@ -9,10 +12,10 @@ import (
 )
 
 // suggest allows users to suggest a stream to be added to the database. It extracts the
-// stream name, platform, date, time, description, and URL from the options. It then
-// creates a stream struct with the information and adds it to the database. If the
-// stream is successfully added, it responds to the interaction with a success message.
-// If an error occurs, it responds with an error message.
+// stream name, date, and URL from the options then creates a new suggestion. If the
+// suggestion is successfully created, it inserts the suggestion into the database and
+// responds to the interaction with a success message. If an error occurs, it responds
+// with an error message.
 func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return

@@ -1,3 +1,6 @@
+/*
+streams.go contains functions for handling the /streams command.
+*/
 package commands
 
 import (

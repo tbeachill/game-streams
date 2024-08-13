@@ -1,3 +1,7 @@
+/*
+owner_commands.go contains functions for commands that are only available to the owner
+of the bot. These commands are used to manage the bot and the data it uses.
+*/
 package commands
 
 import (
@@ -16,7 +20,7 @@ import (
 	"gamestreams/utils"
 )
 
-// register event to deal with incoming messages
+// RegisterOwnerCommands registers the owner commands with the Discord session.
 func RegisterOwnerCommands(s *discordgo.Session) {
 	s.AddHandler(uptime)
 	s.AddHandler(serverCount)
@@ -30,8 +34,9 @@ func RegisterOwnerCommands(s *discordgo.Session) {
 	s.AddHandler(suggestions)
 }
 
-// listCommands is a command that lists all the owner commands
+// listCommands lists the available owner commands
 func listCommands(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// ensure the message is from the bot owner and not the bot itself
 	if m.Author.ID == s.State.User.ID ||
 		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!commands" {
@@ -52,9 +57,8 @@ func listCommands(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-// uptime is a command that returns the uptime of the bot
+// uptime displays the uptime of the bot
 func uptime(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// check if the message author is the bot or not the owner
 	if m.Author.ID == s.State.User.ID ||
 		m.Author.ID != config.Values.Discord.OwnerID ||
 		strings.Split(m.Content, " ")[0] != "!uptime" {
@@ -109,7 +113,7 @@ func removeOldServers(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 // sqlExecute allows for the execution of SQL commands on the database via Discord
-// message
+// DM
 func sqlExecute(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID ||
 		m.Author.ID != config.Values.Discord.OwnerID ||
@@ -145,8 +149,10 @@ func ownerListStreams(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	for _, stream := range streams.Streams {
 		stream.ProvideUnsetValues()
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("id: `%d`\nname: `%s`\nplatform: `%s`\ndate: `%s`\ntime: `%s`\ndescription: `%s`\nurl: `%s`",
-			stream.ID, stream.Name, stream.Platform, stream.Date, stream.Time, stream.Description, stream.URL))
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("id: `%d`\nname: `%s`\n"+
+			"platform: `%s`\ndate: `%s`\ntime: `%s`\ndescription: `%s`\nurl: `%s`",
+			stream.ID, stream.Name, stream.Platform, stream.Date, stream.Time,
+			stream.Description, stream.URL))
 
 		s.ChannelMessageSend(m.ChannelID, "----------------")
 		time.Sleep(time.Second / 2)
@@ -263,7 +269,8 @@ func blacklistGet(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		var msg string
 		for _, entry := range blacklist {
-			msg += fmt.Sprintf("id: `%d` id_type: `%s` date_added: `%s` date_expires `%s` reason: `%s`\n",
+			msg += fmt.Sprintf("id: `%d` id_type: `%s` date_added: `%s` "+
+				"date_expires `%s` reason: `%s`\n",
 				entry.ID, entry.IDType, entry.DateAdded, entry.DateExpires, entry.Reason)
 		}
 		s.ChannelMessageSend(m.ChannelID, msg)

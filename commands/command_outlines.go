@@ -1,3 +1,7 @@
+/*
+command_outlines.go contains the outline for all the commands that the bot can register
+with Discord.
+*/
 package commands
 
 import "github.com/bwmarrin/discordgo"

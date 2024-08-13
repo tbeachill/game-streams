@@ -1,3 +1,7 @@
+/*
+command_registers.go contains functions related to registering and removing commands
+from the Discord application.
+*/
 package commands
 
 import (
@@ -6,8 +10,17 @@ import (
 	"gamestreams/logs"
 )
 
+// commandHandlers is a map of command names to their respective handler functions.
+var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+	"streams":    listStreams,
+	"streaminfo": streamInfo,
+	"suggest":    suggest,
+	"help":       help,
+	"settings":   settings,
+}
+
 // RegisterCommands registers all commands in the commands slice, which is defined in
-// commands.go
+// command_outlines.go
 func RegisterCommands(appID string, s *discordgo.Session) {
 	for _, c := range commands {
 		_, err := s.ApplicationCommandCreate(appID, "", c)
@@ -41,8 +54,8 @@ func RemoveAllCommands(appID string, s *discordgo.Session) {
 	}
 }
 
-// RegisterHandler registers the command handler functions, defined in handlers.go, for
-// each command.
+// RegisterHandler registers the functions that handle each commands. The functions
+// and the command names are mapped to each other in the commandHandlers map.
 func RegisterHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {

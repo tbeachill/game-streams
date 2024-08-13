@@ -1,3 +1,6 @@
+/*
+stream_info.go provides the functions for the /streaminfo command.
+*/
 package commands
 
 import (
