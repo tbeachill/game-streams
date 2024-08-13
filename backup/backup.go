@@ -1,3 +1,6 @@
+/*
+backup.go contains functions to backup the database to a Cloudflare R2 bucket.
+*/
 package backup
 
 import (
@@ -17,6 +20,7 @@ import (
 	"gamestreams/logs"
 )
 
+// Bucket represents a Cloudflare R2 bucket.
 type Bucket struct {
 	Name      string
 	AccountID string
@@ -25,7 +29,7 @@ type Bucket struct {
 	Client    *s3.Client
 }
 
-// UploadFile uploads a file to the bucket.
+// UploadFile uploads a file to the bucket. The current date is appended to the file name.
 func (bucket Bucket) UploadFile(filePath string) {
 	file, err := os.Open(filePath)
 	currentDate := time.Now().UTC().Format("2006-01-02")
@@ -93,7 +97,7 @@ func (bucket Bucket) TodaysBackupExists() bool {
 	return false
 }
 
-// BackupDB uploads the database file to the Cloudflare bucket.
+// BackupDB wraps the other functions in this package to create a backup of the database.
 func BackupDB() {
 	if runtime.GOOS == "windows" {
 		logs.LogInfo("BCKUP", "backup not supported on windows", false)
@@ -105,12 +109,13 @@ func BackupDB() {
 		logs.LogError("BCKUP", "backup failed: could not encrypt database", "err", err)
 		return
 	}
-
+	// Create a new endpoint resolver that resolves to the R2 endpoint.
 	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 		return aws.Endpoint{
 			URL: fmt.Sprintf("https://%s.eu.r2.cloudflarestorage.com", config.Values.Cloudflare.AccountID),
 		}, nil
 	})
+	// Load the default configuration with the R2 endpoint resolver and Cloudflare credentials.
 	cfg, err := awsconf.LoadDefaultConfig(context.TODO(),
 		awsconf.WithEndpointResolverWithOptions(r2Resolver),
 		awsconf.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(config.Values.Cloudflare.AccessKeyID, config.Values.Cloudflare.AccessKeySecret, "")),

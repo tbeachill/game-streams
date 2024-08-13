@@ -1,3 +1,6 @@
+/*
+restore.go contains the functions to restore the database from the most recent backup in the bucket.
+*/
 package backup
 
 import (
@@ -65,7 +68,7 @@ func (bucket Bucket) DownloadFile() {
 
 }
 
-// RestoreDB restores the database from the most recent backup in the bucket.
+// RestoreDB wraps the download and decrypt functions to restore the database.
 func RestoreDB() {
 	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 		return aws.Endpoint{
@@ -73,6 +76,7 @@ func RestoreDB() {
 		}, nil
 	})
 
+	// Load the default config with the custom resolver and credentials.
 	cfg, err := awsconf.LoadDefaultConfig(context.TODO(),
 		awsconf.WithEndpointResolverWithOptions(r2Resolver),
 		awsconf.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(config.Values.Cloudflare.AccessKeyID, config.Values.Cloudflare.AccessKeySecret, "")),

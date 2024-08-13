@@ -1,3 +1,6 @@
+/*
+encrypt.go contains functions to encrypt and decrypt the database using AES256 encryption.
+*/
 package backup
 
 import (
@@ -11,7 +14,7 @@ import (
 	"gamestreams/logs"
 )
 
-// Encrypt encrypts the database.
+// Encrypt encrypts the database using AES256 encryption.
 func Encrypt() error {
 	logs.LogInfo("BCKUP", "encrypting database...", false)
 	dbFile, err := os.ReadFile(config.Values.Files.Database)
@@ -45,7 +48,7 @@ func Encrypt() error {
 	return nil
 }
 
-// Decrypt decrypts the database.
+// Decrypt decrypts the database and writes it to the database file location.
 func Decrypt() error {
 	logs.LogInfo("RESTO", "decrypting database...", false)
 	dbEncrypted, err := os.ReadFile(config.Values.Files.EncryptedDatabase)
