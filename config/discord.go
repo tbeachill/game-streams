@@ -1,6 +1,7 @@
 package config
 
-// Discord is a struct that holds the Discord configuration values for the bot.
+// Discord is a struct that holds the credentials for the bot to interact with
+// the Discord API.
 type Discord struct {
 	Token         string `toml:"token"`
 	ApplicationID string `toml:"application_id"`

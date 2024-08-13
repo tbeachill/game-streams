@@ -11,11 +11,16 @@ import (
 
 // FilePaths is a struct that holds the file paths of important files for the bot.
 type FilePaths struct {
-	Config            string `toml:"config"`
-	Database          string `toml:"database"`
+	// The path to the config file.
+	Config string `toml:"config"`
+	// The path to the database file.
+	Database string `toml:"database"`
+	// The path to save the database once encrypted.
 	EncryptedDatabase string `toml:"encrypted_database"`
-	EncryptionKey     string `toml:"encryption_key"`
-	Log               string `toml:"log"`
+	// The path to the encryption key used to encrypt the database.
+	EncryptionKey string `toml:"encryption_key"`
+	// The path to the log file.
+	Log string `toml:"log"`
 }
 
 // SetPaths sets the file paths for the bot depending on the operating system.
@@ -27,7 +32,10 @@ func (f *FilePaths) SetPaths() {
 	toml.Unmarshal(file, &f)
 }
 
-// UnmarshalTOML unmarshals the TOML data into the FilePaths struct.
+// UnmarshalTOML unmarshals the TOML data into the FilePaths struct. This function
+// is required as there are two different sets of paths for Windows and Linux in
+// config.toml but only one struct at runtime. This prevents the TOML decoder from
+// unmarshalling the paths directly into the struct.
 func (f *FilePaths) UnmarshalTOML(data interface{}) error {
 	m := data.(map[string]interface{})
 	if w, ok := m["paths"]; ok {

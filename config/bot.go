@@ -1,7 +1,11 @@
 package config
 
+// Bot is a struct that holds the bot configuration values.
 type Bot struct {
-	Version         string `toml:"version"`
-	ReleaseDate     string `toml:"release_date"`
-	RestoreDatabase bool   `toml:"restore_database"`
+	// The current version of the bot.
+	Version string `toml:"version"`
+	// The date the current version of the bot was released.
+	ReleaseDate string `toml:"release_date"`
+	// Flag to determine if the bot should restore the database from a backup.
+	RestoreDatabase bool `toml:"restore_database"`
 }

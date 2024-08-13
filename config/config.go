@@ -9,8 +9,10 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// Values is the global configuration values for the bot.
 var Values Config
 
+// Config is a struct that holds all the configuration values for the bot.
 type Config struct {
 	Bot        Bot        `toml:"bot"`
 	Files      FilePaths  `toml:"files"`
@@ -23,7 +25,8 @@ type Config struct {
 	Schedule   Schedules  `toml:"schedule"`
 }
 
-// LoadConfig loads the configuration values from the TOML file.
+// LoadConfig loads the configuration values from the config.toml file into the
+// Values variable.
 func (c *Config) Load() {
 	var configFile string
 	if runtime.GOOS == "windows" {

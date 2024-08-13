@@ -1,6 +1,7 @@
 package config
 
-// Cloudflare is a struct that holds the Cloudflare configuration values for the bot.
+// Cloudflare is a struct that holds the credentials for accessing the backup
+// Cloudflare R2 Storage Bucket.
 type Cloudflare struct {
 	BucketName      string `toml:"bucket_name"`
 	AccountID       string `toml:"account_id"`
