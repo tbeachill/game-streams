@@ -1,5 +1,6 @@
 /*
-restore.go contains the functions to restore the database from the most recent backup in the bucket.
+restore.go contains the functions to restore the database from the most recent backup
+in the bucket.
 */
 package backup
 

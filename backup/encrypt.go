@@ -1,5 +1,6 @@
 /*
-encrypt.go contains functions to encrypt and decrypt the database using AES256 encryption.
+encrypt.go contains functions to encrypt and decrypt the database using AES256
+encryption.
 */
 package backup
 
