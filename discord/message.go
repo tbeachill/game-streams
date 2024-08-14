@@ -1,3 +1,6 @@
+/*
+message.go contains functions that send messages to users.
+*/
 package discord
 
 import (
@@ -5,7 +8,7 @@ import (
 	"gamestreams/logs"
 )
 
-// IntroDM sends an introductory DM to a user when they add the bot to their server.
+// IntroDM sends an introductory DM to a server owner when the bot is added to a server.
 func IntroDM(userID string) {
 	message := "🕹 Hello! Thank you for adding me to your server! 🕹\n\n" +
 		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings` in the server you added me to.\n\n" +
@@ -15,7 +18,7 @@ func IntroDM(userID string) {
 	DM(userID, message)
 }
 
-// DM sends a direct message to a user.
+// DM sends a direct message containing the given message to the user with the given ID.
 func DM(userID string, message string) {
 	st, err := Session.UserChannelCreate(userID)
 	if err != nil {
@@ -28,8 +31,7 @@ func DM(userID string, message string) {
 	}
 }
 
-// DM sends a direct message to the bot owner. The owner's Discord ID is stored in
-// the OWNER_ID environment variable.
+// DM sends a direct message to the bot owner. The owner ID is set in config.toml.
 func DMOwner(message string) {
 	DM(config.Values.Discord.OwnerID, message)
 }
