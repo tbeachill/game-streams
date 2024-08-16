@@ -35,7 +35,7 @@ func (t *StreamTOML) Get() error {
 	defer db.Close()
 
 	row := db.QueryRow(`SELECT *
-						FROM streams_toml
+						FROM stream_toml
 						WHERE id = 1`)
 
 	scanErr := row.Scan(&t.ID, &t.LastUpdate)
