@@ -157,7 +157,7 @@ func leaveServer(session *discordgo.Session, serverID string, reason string, e *
 func LeaveIfBlacklisted(session *discordgo.Session, serverID string, e *discordgo.GuildCreate) error {
 	blacklisted, b := db.IsBlacklisted(serverID, "server")
 	if blacklisted {
-		return leaveServer(session, serverID, fmt.Sprintf("blacklisted: %s", b.Reason), e)
+		return leaveServer(session, serverID, fmt.Sprintf("blacklisted until %s: %s", b.DateExpires, b.Reason), e)
 	}
 	return nil
 }
