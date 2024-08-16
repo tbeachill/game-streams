@@ -34,6 +34,8 @@ type Config struct {
 	Streams Streams `toml:"streams"`
 	// The configuration values for the blacklist.
 	Blacklist Blacklist `toml:"blacklist"`
+	// The configuration values for the suggestions.
+	Suggestions Suggestions `toml:"suggestions"`
 	// Allows cron jobs to be scheduled and enabled/disabled.
 	Schedule Schedules `toml:"schedule"`
 }
