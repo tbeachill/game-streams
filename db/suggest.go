@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -136,10 +137,10 @@ func RemoveOldSuggestions() error {
 							WHERE command_id IN (
 								SELECT id
 								FROM commands
-								WHERE used_date < datetime('now', '-30 days')
+								WHERE used_date < datetime('now', ?)
 								AND command = "suggest"
 							)
-						`)
+						`, fmt.Sprintf("-%d days", config.Values.Suggestions.DaysToKeep))
 	if execErr != nil {
 		return execErr
 	}

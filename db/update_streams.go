@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -310,6 +311,7 @@ func RemoveOldStreams() error {
 	defer db.Close()
 
 	_, execErr := db.Exec(`DELETE FROM streams
-							WHERE stream_date < date('now', '-12 months')`)
+							WHERE stream_date < date('now', ?)`,
+		fmt.Sprintf("-%d months", config.Values.Streams.MonthsToKeep))
 	return execErr
 }
