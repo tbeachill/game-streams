@@ -19,6 +19,7 @@ type Config struct {
 	Discord    Discord    `toml:"discord"`
 	Github     Github     `toml:"github"`
 	Cloudflare Cloudflare `toml:"cloudflare"`
+	Backup     Backup     `toml:"backup"`
 	Documents  Documents  `toml:"documents"`
 	Streams    Streams    `toml:"streams"`
 	Blacklist  Blacklist  `toml:"blacklist"`

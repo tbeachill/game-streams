@@ -53,7 +53,7 @@ func (bucket Bucket) UploadFile(filePath string) {
 	}
 }
 
-// CleanUp removes backup files older than 28 days from the bucket.
+// CleanUp removes backup files older than the number of days specified in config.toml.
 func (bucket Bucket) CleanUp() {
 	objects, err := bucket.Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucket.Name),
@@ -63,7 +63,7 @@ func (bucket Bucket) CleanUp() {
 		return
 	}
 	for _, object := range objects.Contents {
-		if object.LastModified.Before(time.Now().AddDate(0, 0, -28)) {
+		if object.LastModified.Before(time.Now().AddDate(0, 0, -config.Values.Backup.DaysToKeep)) {
 			_, err := bucket.Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
 				Bucket: aws.String(bucket.Name),
 				Key:    object.Key,
