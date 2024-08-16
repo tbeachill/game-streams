@@ -11,7 +11,7 @@ import (
 	"gamestreams/config"
 )
 
-// TruncateLogs deletes log file entries older than 14 days by looking at
+// TruncateLogs deletes log file entries older than the DaysToKeep value by looking at
 // the timestamp at the start of each line
 func TruncateLogs() {
 	logFile, err := os.OpenFile(config.Values.Files.Log, os.O_RDWR|os.O_CREATE, 0666)
@@ -28,7 +28,7 @@ func TruncateLogs() {
 		if err != nil {
 			LogError(" LOGS", "error rotating journalctl logs", "err", err)
 		}
-		cmd = exec.Command("sudo", "journalctl", "--vacuum-time=14d")
+		cmd = exec.Command("sudo", "journalctl", fmt.Sprintf("--vacuum-time=%dd", config.Values.Logs.DaysToKeep))
 		err = cmd.Run()
 		if err != nil {
 			LogError(" LOGS", "error vacuuming journalctl logs", "err", err)
@@ -46,7 +46,7 @@ func TruncateLogs() {
 			lines = append(lines, line)
 			continue
 		}
-		if t.After(time.Now().UTC().AddDate(0, 0, -14)) {
+		if t.After(time.Now().UTC().AddDate(0, 0, -config.Values.Logs.DaysToKeep)) {
 			lines = append(lines, line)
 		}
 	}

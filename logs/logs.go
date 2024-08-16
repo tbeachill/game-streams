@@ -22,12 +22,14 @@ type Logger struct {
 // Init initializes the loggers for the bot.
 func (l *Logger) Init() {
 	l.Info = log.NewWithOptions(os.Stderr, log.Options{
-		ReportTimestamp: true,
+		ReportCaller:    config.Values.Logs.Info.ReportCaller,
+		CallerOffset:    config.Values.Logs.Info.CallerOffset,
+		ReportTimestamp: config.Values.Logs.Info.ReportTimestamp,
 	})
 	l.ErrorWarn = log.NewWithOptions(os.Stderr, log.Options{
-		ReportCaller:    true,
-		CallerOffset:    1,
-		ReportTimestamp: true,
+		ReportCaller:    config.Values.Logs.Error.ReportCaller,
+		CallerOffset:    config.Values.Logs.Error.CallerOffset,
+		ReportTimestamp: config.Values.Logs.Error.ReportTimestamp,
 	})
 	logFile, err := os.OpenFile(config.Values.Files.Log, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {

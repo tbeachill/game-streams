@@ -16,6 +16,8 @@ var Values Config
 type Config struct {
 	// The bot configuration values.
 	Bot Bot `toml:"bot"`
+	// The configuration values for logging.
+	Logs Logs `toml:"logs"`
 	// The file paths for the bot.
 	Files FilePaths `toml:"files"`
 	// Discord authentication values and configuration values.
