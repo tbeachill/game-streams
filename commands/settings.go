@@ -9,6 +9,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/config"
 	"gamestreams/db"
 	"gamestreams/logs"
 	"gamestreams/utils"
@@ -94,7 +95,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		{
 			Title:       "Settings",
 			Description: status,
-			Color:       0xc3d23e,
+			Color:       config.Values.Discord.EmbedColor,
 			Fields: []*discordgo.MessageEmbedField{
 				{},
 				{

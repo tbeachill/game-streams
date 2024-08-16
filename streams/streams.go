@@ -20,7 +20,7 @@ import (
 func StreamList() (*discordgo.MessageEmbed, error) {
 	embed := &discordgo.MessageEmbed{
 		Title: "Upcoming Streams",
-		Color: 0xc3d23e,
+		Color: config.Values.Discord.EmbedColor,
 	}
 	var streamList db.Streams
 	if upcomErr := streamList.GetUpcoming(); upcomErr != nil {
@@ -66,7 +66,7 @@ func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 	}
 	embed := &discordgo.MessageEmbed{
 		Title: stream.Name,
-		Color: 0xc3d23e,
+		Color: config.Values.Discord.EmbedColor,
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Name:   "Platforms",
@@ -236,7 +236,7 @@ func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, 
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: utils.GetVideoThumbnail(stream.URL),
 			},
-			Color: 0xc3d23e,
+			Color: config.Values.Discord.EmbedColor,
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name:   "\u200b\nPlatforms",

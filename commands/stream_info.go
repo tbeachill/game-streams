@@ -6,6 +6,7 @@ package commands
 import (
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/config"
 	"gamestreams/db"
 	"gamestreams/logs"
 	"gamestreams/streams"
@@ -38,7 +39,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			embed = &discordgo.MessageEmbed{
 				Title:       "Stream Info",
 				Description: "No streams found with that name",
-				Color:       0xc3d23e,
+				Color:       config.Values.Discord.EmbedColor,
 			}
 		} else {
 			logs.LogError(" CMND", "error creating embeds",
@@ -46,7 +47,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			embed = &discordgo.MessageEmbed{
 				Title:       "Stream Info",
 				Description: "An error occurred",
-				Color:       0xc3d23e,
+				Color:       config.Values.Discord.EmbedColor,
 			}
 		}
 	}

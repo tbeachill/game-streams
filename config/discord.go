@@ -6,4 +6,5 @@ type Discord struct {
 	Token         string `toml:"token"`
 	ApplicationID string `toml:"application_id"`
 	OwnerID       string `toml:"owner_id"`
+	EmbedColor    int    `toml:"embed_color"`
 }

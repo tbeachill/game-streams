@@ -6,6 +6,7 @@ package commands
 import (
 	"github.com/bwmarrin/discordgo"
 
+	"gamestreams/config"
 	"gamestreams/db"
 	"gamestreams/logs"
 	"gamestreams/utils"
@@ -31,7 +32,7 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed := &discordgo.MessageEmbed{
 		Title:       "Thank you",
 		Description: "Your suggestion has been received",
-		Color:       0xc3d23e,
+		Color:       config.Values.Discord.EmbedColor,
 	}
 	streamName := i.ApplicationCommandData().Options[0].StringValue()
 	streamDate := i.ApplicationCommandData().Options[1].StringValue()
@@ -42,7 +43,7 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		embed = &discordgo.MessageEmbed{
 			Title:       "Error",
 			Description: suggestErr.Error(),
-			Color:       0xc3d23e,
+			Color:       config.Values.Discord.EmbedColor,
 		}
 		respond(s, i, embed)
 		return
@@ -55,7 +56,7 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		embed = &discordgo.MessageEmbed{
 			Title:       "Error",
 			Description: "**An error occurred.** Your suggestion may not have been recieved.",
-			Color:       0xc3d23e,
+			Color:       config.Values.Discord.EmbedColor,
 		}
 	}
 	respond(s, i, embed)
