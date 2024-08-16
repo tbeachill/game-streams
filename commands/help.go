@@ -70,16 +70,16 @@ func helpGeneral() []*discordgo.MessageEmbed {
 			Title: "Game Streams",
 			Description: "Game Streams is a bot that keeps track of game announcement streams " +
 				"and can announce when streams are beginning. \n\nUse the `/settings` command in your server " +
-				"to configure the bot to your liking.",
+				"to configure stream announcements.",
 			Color: config.Values.Discord.EmbedColor,
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name: "Commands",
-					Value: "`/streams` - List all upcoming streams" +
+					Value: "`/streams` - List upcoming streams" +
 						"\n`/streaminfo` - Get information on a specific stream by title" +
 						"\n`/suggest` - Suggest a stream to be added to the database" +
-						"\n`/help` - Get help with the bot" +
-						"\n`/settings` [admin] - Change bot settings",
+						"\n`/help` - Get help with the bot and commands" +
+						"\n`/settings` [admin] - Configure stream announcements",
 					Inline: false,
 				},
 				{
@@ -104,7 +104,7 @@ func helpStreams() []*discordgo.MessageEmbed {
 	return []*discordgo.MessageEmbed{
 		{
 			Title: "/streams",
-			Description: "List all upcoming streams. Streams are sorted by date and time." +
+			Description: "List upcoming streams. Streams are sorted by date and time." +
 				"\n\nStreams that have already started will not be listed. " +
 				fmt.Sprintf("\n\nList is limited to %d streams.", config.Values.Streams.Limit),
 			Color: config.Values.Discord.EmbedColor,
