@@ -112,7 +112,8 @@ func BackupDB() {
 	// Create a new endpoint resolver that resolves to the R2 endpoint.
 	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 		return aws.Endpoint{
-			URL: fmt.Sprintf("https://%s.eu.r2.cloudflarestorage.com", config.Values.Cloudflare.AccountID),
+			URL: fmt.Sprintf("https://%s.%s", config.Values.Cloudflare.AccountID,
+				config.Values.Cloudflare.Endpoint),
 		}, nil
 	})
 	// Load the default configuration with the R2 endpoint resolver and Cloudflare credentials.
