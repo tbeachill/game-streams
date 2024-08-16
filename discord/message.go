@@ -11,8 +11,10 @@ import (
 // IntroDM sends an introductory DM to a server owner when the bot is added to a server.
 func IntroDM(userID string) {
 	message := "🕹 Hello! Thank you for adding me to your server! 🕹\n\n" +
-		"To set up your server's announcement channel, announcement role, and which platforms you want to follow, type `/settings` in the server you added me to.\n\n" +
-		"For more information, type `/help`."
+		"To set up the bot to announce when streams are starting, and which platforms you" +
+		" want to follow, type `/settings` in the server you added me to.\n\nFor help" +
+		" with the bot and its commands, type `/help`. Commands can only be used" +
+		" in servers."
 	logs.LogInfo("DSCRD", "sending intro DM", false, "user", userID)
 
 	DM(userID, message)
