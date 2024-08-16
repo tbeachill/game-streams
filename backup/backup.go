@@ -80,22 +80,22 @@ func (bucket Bucket) CleanUp() {
 }
 
 // TodaysBackupExists checks if todays backup already exists in the bucket.
-func (bucket Bucket) TodaysBackupExists() bool {
-	objects, err := bucket.Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
-		Bucket: aws.String(bucket.Name),
-	})
-	if err != nil {
-		logs.LogError("BCKUP", "could not list objects in bucket", "err", err)
-		return false
-	}
-	currentDate := time.Now().UTC().Format("2006-01-02")
-	for _, object := range objects.Contents {
-		if strings.Contains(*object.Key, currentDate) {
-			return true
-		}
-	}
-	return false
-}
+//func (bucket Bucket) TodaysBackupExists() bool {
+//	objects, err := bucket.Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+//		Bucket: aws.String(bucket.Name),
+//	})
+//	if err != nil {
+//		logs.LogError("BCKUP", "could not list objects in bucket", "err", err)
+//		return false
+//	}
+//	currentDate := time.Now().UTC().Format("2006-01-02")
+//	for _, object := range objects.Contents {
+//		if strings.Contains(*object.Key, currentDate) {
+//			return true
+//		}
+//	}
+//	return false
+//}
 
 // BackupDB wraps the other functions in this package to create a backup of the database.
 func BackupDB() {
@@ -132,10 +132,10 @@ func BackupDB() {
 		KeySecret: config.Values.Cloudflare.AccessKeySecret,
 		Client:    s3.NewFromConfig(cfg),
 	}
-	if bucket.TodaysBackupExists() {
-		logs.LogInfo("BCKUP", "backup already exists for today", false)
-		return
-	}
+	//	if bucket.TodaysBackupExists() {
+	//		logs.LogInfo("BCKUP", "backup already exists for today", false)
+	//		return
+	//	}
 	bucket.UploadFile(config.Values.Files.EncryptedDatabase)
 	bucket.CleanUp()
 }
