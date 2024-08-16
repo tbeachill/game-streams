@@ -39,10 +39,8 @@ func CreateDB() error {
 		return tableErr
 	}
 
-	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS config
+	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS stream_toml
 								(id INTEGER PRIMARY KEY AUTOINCREMENT,
-								toml_url TEXT,
-								api_url TEXT,
 								last_updated TEXT)`)
 
 	if tableErr != nil {

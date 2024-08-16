@@ -17,13 +17,13 @@ import (
 // and updates the database by inserting new streams, updating existing streams, and
 // deleting streams that have been marked for deletion.
 func (s *Streams) Update() error {
-	var c Config
+	var t StreamTOML
 
-	if getErr := c.Get(); getErr != nil {
+	if getErr := t.Get(); getErr != nil {
 		return getErr
 	}
 
-	updated, checkErr := c.Check()
+	updated, checkErr := t.Check()
 	if checkErr != nil {
 		return checkErr
 	}
@@ -33,12 +33,12 @@ func (s *Streams) Update() error {
 	}
 	logs.LogInfo("   DB", "found new version of toml", false)
 
-	*s = parseToml(c)
+	*s = parseToml()
 
 	// if new version of toml is empty, update the last update time and return
 	if len(s.Streams) == 0 {
 		logs.LogInfo("   DB", "toml is empty", false)
-		if setErr := c.Set(); setErr != nil {
+		if setErr := t.Set(); setErr != nil {
 			return setErr
 		}
 	}
@@ -56,7 +56,7 @@ func (s *Streams) Update() error {
 	}
 	if len(s.Streams) == 0 {
 		logs.LogInfo("   DB", "no new streams found", false)
-		if setErr := c.Set(); setErr != nil {
+		if setErr := t.Set(); setErr != nil {
 			return setErr
 		}
 		return nil
@@ -66,7 +66,7 @@ func (s *Streams) Update() error {
 
 	s.DeleteStreams()
 
-	if setErr := c.Set(); setErr != nil {
+	if setErr := t.Set(); setErr != nil {
 		return setErr
 	}
 	return nil
@@ -74,8 +74,8 @@ func (s *Streams) Update() error {
 
 // parseToml parses the streams.toml file from the flat-files repository and returns
 // as a Streams struct.
-func parseToml(c Config) Streams {
-	response, httpErr := http.Get(c.StreamsTOMLURL)
+func parseToml() Streams {
+	response, httpErr := http.Get(config.Values.Github.StreamsTOMLURL)
 	if httpErr != nil {
 		logs.LogError("   DB", "error getting toml", "err", httpErr)
 		return Streams{}
