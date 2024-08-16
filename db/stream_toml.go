@@ -40,7 +40,7 @@ func (t *StreamTOML) Get() error {
 
 	scanErr := row.Scan(&t.ID, &t.LastUpdate)
 	if scanErr == sql.ErrNoRows {
-		logs.LogInfo("   DB", "No config found, setting default", false)
+		logs.LogInfo("   DB", "No stream_toml values found, setting default", false)
 		if defaultErr := t.SetDefault(); defaultErr != nil {
 			return defaultErr
 		}
@@ -53,7 +53,7 @@ func (t *StreamTOML) Get() error {
 // SetDefault sets the default values for the config struct from the environment
 // variables and writes them to the database.
 func (t *StreamTOML) SetDefault() error {
-	logs.LogInfo("   DB", "Setting default config", false)
+	logs.LogInfo("   DB", "Setting default stream_toml values", false)
 
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -61,7 +61,7 @@ func (t *StreamTOML) SetDefault() error {
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(`INSERT INTO config
+	_, execErr := db.Exec(`INSERT INTO stream_toml
 								(id,
 								last_updated)
 							VALUES (1, ?)`,
@@ -76,7 +76,7 @@ func (t *StreamTOML) SetDefault() error {
 
 // Set writes the current values of the Config struct to the database.
 func (t *StreamTOML) Set() error {
-	logs.LogInfo("   DB", "Updating config", false)
+	logs.LogInfo("   DB", "Updating stream_toml values", false)
 
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -85,7 +85,7 @@ func (t *StreamTOML) Set() error {
 	defer db.Close()
 	t.LastUpdate = t.CommitTime.Format("2006-01-02T15:04:05Z07:00")
 
-	_, execErr := db.Exec(`UPDATE config
+	_, execErr := db.Exec(`UPDATE stream_toml
 							SET last_updated = ?
 							WHERE id = 1`,
 		t.LastUpdate)
