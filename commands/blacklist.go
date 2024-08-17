@@ -26,7 +26,7 @@ import (
 // messages.
 func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
 	userID := utils.GetUserID(i)
-	blacklisted, b := db.IsBlacklisted(userID, "user")
+	blacklisted, b := db.IsBlacklisted(userID)
 
 	if blacklisted {
 		logs.LogInfo(" CMND", "blacklisted user tried to use command", false,

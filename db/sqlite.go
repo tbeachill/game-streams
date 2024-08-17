@@ -76,12 +76,13 @@ func CreateDB() error {
 	}
 
 	_, tableErr = db.Exec(`CREATE TABLE IF NOT EXISTS blacklist
-								(discord_id TEXT NOT NULL PRIMARY KEY,
+								(discord_id TEXT NOT NULL,
 								id_type TEXT,
 								date_added TEXT,
-								date_expires TEXT,
+								date_expires TEXT NOT NULL,
 								reason TEXT,
-								last_messaged TEXT)`)
+								last_messaged TEXT,
+								PRIMARY KEY (discord_id, date_expires))`)
 
 	if tableErr != nil {
 		return tableErr

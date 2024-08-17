@@ -1,3 +1,6 @@
+/*
+blacklist.go provides functions to interact with the blacklist table of the database.
+*/
 package db
 
 import (
@@ -8,69 +11,62 @@ import (
 	"gamestreams/logs"
 )
 
-// Blacklist is a struct that holds the blacklist values for the bot.
+// Blacklist is a struct that holds the values from a row in the blacklist table
+// of the database.
 type Blacklist struct {
-	ID           int
-	IDType       string
-	DateAdded    string
-	DateExpires  string
-	Reason       string
+	// The ID of the blacklisted user/server.
+	ID int
+	// The type of ID that was blacklisted (user/server).
+	IDType string
+	// The date the ID was added to the blacklist.
+	DateAdded string
+	// The date the ID will expire from the blacklist.
+	DateExpires string
+	// The reason the ID was blacklisted.
+	Reason string
+	// The date the ID was last messaged explaining the blacklist reason.
 	LastMessaged string
 }
 
-// IsBlacklisted checks if the given ID is blacklisted. Returns true if the ID is blacklisted,
-// false if it is not.
-func IsBlacklisted(id string, idType string) (bool, Blacklist) {
+// IsBlacklisted checks if the given ID is blacklisted. Returns true and the blacklist
+// values if the ID is blacklisted, otherwise returns false and an empty Blacklist struct.
+func IsBlacklisted(id string) (bool, Blacklist) {
 	logs.LogInfo("   DB", "checking if blacklisted", false,
-		"id", id,
-		"idType", idType)
+		"id", id)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return false, Blacklist{}
 	}
 	defer db.Close()
 
-	var query string
-	var row *sql.Row
-	if idType == "" {
-		query = `SELECT id,
-						id_type,
-						date_added,
-						date_expires,
-						reason,
-						last_messaged
-				FROM blacklist
-				WHERE discord_id = ?`
-		row = db.QueryRow(query, id)
-	} else {
-		query = `SELECT id,
-					id_type,
-					date_added,
-					date_expires,
-					reason,
-					last_messaged
-				FROM blacklist
-				WHERE discord_id = ?
-				AND id_type = ?`
-		row = db.QueryRow(query, id, idType)
-	}
+	row := db.QueryRow(`SELECT id,
+							id_type,
+							date_added,
+							date_expires,
+							reason,
+							last_messaged
+						FROM blacklist
+						WHERE discord_id = ?
+						AND date_expires > ?`,
+		id,
+		time.Now().UTC().Format("2006-01-02"))
+
 	var b Blacklist
 	scanErr := row.Scan(&b.ID, &b.IDType, &b.DateAdded, &b.DateExpires, &b.Reason, &b.LastMessaged)
 	if scanErr != nil {
-		logs.LogInfo("   DB", "not blacklisted", false,
-			"id", id,
-			"idType", idType)
 		return false, Blacklist{}
 	}
-	logs.LogInfo("   DB", "blacklisted", false,
-		"id", id,
-		"idType", idType,
-		"reason", b.Reason)
 	return true, b
 }
 
-// AddToBlacklist adds the given ID to the blacklist table of the database.
+// AddToBlacklist adds the given ID to the blacklist table. The ID is
+// added with the given ID type, reason, and length of time in days.
 func AddToBlacklist(id string, idType string, reason string, length_days int) error {
+	blacklisted, _ := IsBlacklisted(id)
+	if blacklisted {
+		logs.LogInfo("   DB", "ID already blacklisted", false, "id", id)
+		return nil
+	}
 	logs.LogInfo("   DB", "adding to blacklist table", false,
 		"id", id,
 		"idType", idType,
@@ -96,7 +92,7 @@ func AddToBlacklist(id string, idType string, reason string, length_days int) er
 	return execErr
 }
 
-// RemoveFromBlacklist removes the given ID from the blacklist table of the database.
+// RemoveFromBlacklist removes the given ID from the blacklist table.
 func RemoveFromBlacklist(id string) error {
 	logs.LogInfo("   DB", "removing from blacklist table", false, "id", id)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
@@ -111,7 +107,7 @@ func RemoveFromBlacklist(id string) error {
 	return execErr
 }
 
-// GetBlacklist returns a list of all blacklisted IDs from the blacklist table of the database.
+// GetBlacklist returns a slice of Blacklist structs of all IDs in the blacklist.
 func GetBlacklist() ([]Blacklist, error) {
 	logs.LogInfo("   DB", "getting blacklist", false)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
@@ -125,7 +121,10 @@ func GetBlacklist() ([]Blacklist, error) {
 									date_added,
 									date_expires,
 									reason
-								FROM blacklist`)
+								FROM blacklist
+								WHERE date_expires > ?
+								ORDER BY date_expires ASC`,
+		time.Now().UTC().Format("2006-01-02"))
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -143,22 +142,8 @@ func GetBlacklist() ([]Blacklist, error) {
 	return blacklist, nil
 }
 
-// RemoveExpiredBlacklist removes all blacklisted IDs that have expired from the blacklist table
-// of the database.
-func RemoveExpiredBlacklist() error {
-	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
-	if openErr != nil {
-		return openErr
-	}
-	defer db.Close()
-
-	_, execErr := db.Exec(`DELETE FROM blacklist
-							WHERE date_expires <= DATE('now')`)
-	return execErr
-}
-
-// UpdateLastMessaged updates the last_messaged field of the given ID in the blacklist table of
-// the database.
+// UpdateLastMessaged updates the last_messaged field of the given ID in the blacklist
+// table to the current date.
 func UpdateLastMessaged(id string) error {
 	logs.LogInfo("   DB", "updating last messaged", false, "id", id)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
@@ -167,9 +152,14 @@ func UpdateLastMessaged(id string) error {
 	}
 	defer db.Close()
 
+	timeNow := time.Now().UTC().Format("2006-01-02")
+
 	_, execErr := db.Exec(`UPDATE blacklist
 							SET last_messaged = ?
-							WHERE discord_id = ?`,
-		time.Now().UTC().Format("2006-01-02"), id)
+							WHERE discord_id = ?
+							AND date_expires > ?`,
+		timeNow,
+		id,
+		timeNow)
 	return execErr
 }

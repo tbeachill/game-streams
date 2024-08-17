@@ -1,3 +1,6 @@
+/*
+commands.go provides the functions for interactions with the database regarding commands.
+*/
 package db
 
 import (
@@ -11,20 +14,32 @@ import (
 	"gamestreams/utils"
 )
 
-// CommandData is a struct that holds data about a command interaction.
+// CommandData is a struct that contains values for a row in the commands table of the
+// database and other values used for calculating the response time of the command.
 type CommandData struct {
-	ServerID     string
-	UserID       string
-	UsedDate     string
-	UsedTime     string
-	Command      string
-	Options      string
-	StartTime    int64
-	EndTime      int64
+	// The server ID where the command was used.
+	ServerID string
+	// The user ID of the user who used the command.
+	UserID string
+	// The date the command was used.
+	UsedDate string
+	// The time the command was used.
+	UsedTime string
+	// The name of the command used.
+	Command string
+	// The options used with the command.
+	Options string
+	// The time the command was started.
+	StartTime int64
+	// The time the command was ended.
+	EndTime int64
+	// The response time of the command. Calculated by subtracting the start time
+	// from the end time.
 	ResponseTime int64
 }
 
 // Start initializes the CommandData struct with the necessary data from the interaction.
+// It sets the server ID, user ID, start time, used date, used time, command, and options.
 func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 	d.ServerID = interaction.GuildID
 	d.UserID = utils.GetUserID(interaction)
@@ -39,7 +54,8 @@ func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 	}
 }
 
-// End finalizes the CommandData struct by calculating the response time and inserting the data into the database.
+// End finalizes the CommandData struct by calculating the response time and inserting
+// the data into the database.
 func (d *CommandData) End() {
 	d.EndTime = time.Now().UnixMilli()
 	d.ResponseTime = d.EndTime - d.StartTime
@@ -75,7 +91,7 @@ func (d *CommandData) DBInsert() error {
 	return execErr
 }
 
-// UpdateSuggestion updates the last entry in the suggestions table to include the command ID.
+// RemoveCommandData removes all logged command interactions for a given server ID.
 func RemoveCommandData(serverID string) error {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -89,7 +105,7 @@ func RemoveCommandData(serverID string) error {
 }
 
 // CheckUsageByUser checks the number of commands used by a user in a given period.
-// Period example: "-1 day".
+// Period example: "-1 day", "-1 hour", "-1 minute"
 func CheckUsageByUser(userID string, period string) (int, error) {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -100,7 +116,7 @@ func CheckUsageByUser(userID string, period string) (int, error) {
 	row := db.QueryRow(`SELECT COUNT(*)
 						FROM commands
 						WHERE user_id = ?
-						AND used_date=DATE('now')
+						AND used_date = DATE('now')
 						AND used_time BETWEEN TIME('now', ?)
 							AND TIME('now')`, userID, period)
 

@@ -67,8 +67,6 @@ func performMaintenance(session *discordgo.Session) {
 	logs.LogInfo("MNTNC", "performing suggestion maintenance...", false)
 	db.ArchiveSuggestions()
 	db.RemoveOldSuggestions()
-	logs.LogInfo("MNTNC", "performing blacklist maintenance...", false)
-	db.RemoveExpiredBlacklist()
 }
 
 // backupDatabase backs up the database to a cloudflare R2 storage bucket.
