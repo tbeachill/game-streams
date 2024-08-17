@@ -64,8 +64,7 @@ func (t *StreamTOML) SetDefault() error {
 	_, execErr := db.Exec(`INSERT INTO stream_toml
 								(id,
 								last_updated)
-							VALUES (1, ?)`,
-		"")
+							VALUES (1, "")`)
 
 	if execErr != nil {
 		return execErr

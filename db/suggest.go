@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -67,6 +66,7 @@ func (s *Suggestion) Insert() error {
 	_, execErr := db.Exec(`INSERT INTO suggestions (stream_name, stream_date, stream_url)
 							VALUES (?, ?, ?)`,
 		s.Name, s.Date, s.URL)
+
 	if execErr != nil {
 		return execErr
 	}
@@ -87,6 +87,7 @@ func GetSuggestions(limit int) ([]Suggestion, error) {
 								ORDER BY date_added DESC
 								LIMIT ?`,
 		limit)
+
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -117,8 +118,8 @@ func UpdateSuggestion() error {
 												FROM commands
 												WHERE command = "suggest")
 							WHERE id = (SELECT MAX(id)
-										FROM suggestions)
-						`)
+										FROM suggestions)`)
+
 	if execErr != nil {
 		return execErr
 	}
@@ -137,10 +138,10 @@ func RemoveOldSuggestions() error {
 							WHERE command_id IN (
 								SELECT id
 								FROM commands
-								WHERE used_date < datetime('now', ?)
-								AND command = "suggest"
-							)
-						`, fmt.Sprintf("-%d days", config.Values.Suggestions.DaysToKeep))
+								WHERE used_date < datetime('now', ? || ' days')
+								AND command = "suggest")`,
+		config.Values.Suggestions.DaysToKeep)
+
 	if execErr != nil {
 		return execErr
 	}
@@ -163,6 +164,7 @@ func ArchiveSuggestions() error {
 								FROM suggestions_archive
 							)
 						`)
+
 	if execErr != nil {
 		return execErr
 	}

@@ -93,9 +93,8 @@ func GetPlatformServerIDs(platform string) ([]string, error) {
 
 	rows, queryErr := db.Query(`SELECT server_id
 								FROM servers
-								WHERE ? = ?`,
-		platform,
-		"1")
+								WHERE ? = 1`,
+		platform)
 
 	if queryErr != nil {
 		return nil, queryErr
@@ -131,6 +130,7 @@ func RemoveServer(serverID string) error {
 	_, execErr := db.Exec(`DELETE FROM servers
 							WHERE server_id = ?`,
 		serverID)
+
 	return execErr
 }
 
@@ -172,6 +172,7 @@ func CheckServerColumns() ([]string, error) {
 								OR server_name = ""
 								OR member_count = 0
 								OR locale = ""`)
+
 	if execErr != nil {
 		return nil, execErr
 	}
@@ -219,6 +220,7 @@ func (s *Server) Set() error {
 			s.DateJoined,
 			s.MemberCount,
 			s.Locale)
+
 		return execErr
 	} else {
 		_, execErr := db.Exec(`UPDATE servers
@@ -234,6 +236,7 @@ func (s *Server) Set() error {
 			s.MemberCount,
 			s.Locale,
 			s.ID)
+
 		return execErr
 	}
 }

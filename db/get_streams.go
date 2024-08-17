@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -92,7 +93,7 @@ func (s *Streams) GetUpcoming(params ...int) error {
 						AND start_time >= TIME('now')
 						ORDER BY stream_date, start_time
 						LIMIT ?`,
-		fmt.Sprint(limit)); err != nil {
+		strconv.Itoa(limit)); err != nil {
 		return err
 	}
 	return nil
@@ -130,7 +131,7 @@ func (s *Streams) CheckTimeless() error {
 	if err := s.Query(`SELECT *
 						FROM streams
 						WHERE stream_date > DATE('now')
-						AND stream_date <= DATE('now', '+2 day')
+						AND stream_date <= DATE('now', '+2 days')
 						AND start_time = ''`); err != nil {
 		return err
 	}
