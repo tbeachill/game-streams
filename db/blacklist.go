@@ -5,7 +5,8 @@ package db
 
 import (
 	"database/sql"
-	"time"
+	"math"
+	//"time"
 
 	"gamestreams/config"
 	"gamestreams/logs"
@@ -47,9 +48,8 @@ func IsBlacklisted(id string) (bool, Blacklist) {
 							last_messaged
 						FROM blacklist
 						WHERE discord_id = ?
-						AND date_expires > ?`,
-		id,
-		time.Now().UTC().Format("2006-01-02"))
+						AND date_expires > DATE('now')`,
+		id)
 
 	var b Blacklist
 	scanErr := row.Scan(&b.ID, &b.IDType, &b.DateAdded, &b.DateExpires, &b.Reason, &b.LastMessaged)
@@ -73,22 +73,31 @@ func AddToBlacklist(id string, idType string, reason string, length_days int) er
 		"days", length_days,
 		"reason", reason)
 
+	bCount, countErr := countBlacklistEntries(id, 2)
+	if countErr != nil {
+		return countErr
+	}
+	if bCount > 0 {
+		length_days = int(math.Pow(float64(length_days), float64(bCount)))
+		if length_days > 365 {
+			length_days = 365
+		}
+	}
+
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
 		return openErr
 	}
 	defer db.Close()
 
-	currentDate := time.Now().UTC().Format("2006-01-02")
-	expiryDate := time.Now().AddDate(0, 0, length_days).UTC().Format("2006-01-02")
 	_, execErr := db.Exec(`INSERT INTO blacklist
 								(discord_id,
 								id_type,
 								date_added,
 								date_expires,
 								reason)
-							VALUES (?, ?, ?, ?, ?)`,
-		id, idType, currentDate, expiryDate, reason)
+							VALUES (?, ?, DATE('now'), DATE('now', ? || ' days'), ?)`,
+		id, idType, length_days, reason)
 	return execErr
 }
 
@@ -122,9 +131,8 @@ func GetBlacklist() ([]Blacklist, error) {
 									date_expires,
 									reason
 								FROM blacklist
-								WHERE date_expires > ?
-								ORDER BY date_expires ASC`,
-		time.Now().UTC().Format("2006-01-02"))
+								WHERE date_expires > DATE('now')
+								ORDER BY date_expires ASC`)
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -142,6 +150,31 @@ func GetBlacklist() ([]Blacklist, error) {
 	return blacklist, nil
 }
 
+// CountBlacklistEntries returns the number of entries in the blacklist table for the
+// given ID.
+func countBlacklistEntries(id string, num_years int) (int, error) {
+	logs.LogInfo("   DB", "counting blacklist entries", false, "id", id)
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	if openErr != nil {
+		return 0, openErr
+	}
+	defer db.Close()
+
+	row := db.QueryRow(`SELECT COUNT(*)
+						FROM blacklist
+						WHERE discord_id = ?
+						AND date_expires > DATE('now', ? || ' years')`,
+		id,
+		-num_years)
+
+	var count int
+	scanErr := row.Scan(&count)
+	if scanErr != nil {
+		return 0, scanErr
+	}
+	return count, nil
+}
+
 // UpdateLastMessaged updates the last_messaged field of the given ID in the blacklist
 // table to the current date.
 func UpdateLastMessaged(id string) error {
@@ -152,14 +185,10 @@ func UpdateLastMessaged(id string) error {
 	}
 	defer db.Close()
 
-	timeNow := time.Now().UTC().Format("2006-01-02")
-
 	_, execErr := db.Exec(`UPDATE blacklist
-							SET last_messaged = ?
+							SET last_messaged = DATE('now')
 							WHERE discord_id = ?
-							AND date_expires > ?`,
-		timeNow,
-		id,
-		timeNow)
+							AND date_expires > DATE('now')`,
+		id)
 	return execErr
 }
