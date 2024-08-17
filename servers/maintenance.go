@@ -40,7 +40,7 @@ func ServerMaintenance(session *discordgo.Session) {
 			logs.LogInfo("SERVR", "adding server to database", false,
 				"server", server.Name)
 
-			newErr := db.NewServer(server.ID, server.Name, server.OwnerID, server.MemberCount, server.PreferredLocale)
+			newErr := db.NewServer(server.ID, server.Name, server.OwnerID, server.JoinedAt, server.MemberCount, server.PreferredLocale)
 			if newErr != nil {
 				logs.LogError("SERVR", "error adding server to database",
 					"server", server.Name,

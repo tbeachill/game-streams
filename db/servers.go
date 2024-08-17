@@ -135,7 +135,7 @@ func RemoveServer(serverID string) error {
 }
 
 // NewServer adds a new server to the servers table in the database.
-func NewServer(serverID string, serverName string, ownerID string, memberCount int, locale string) error {
+func NewServer(serverID string, serverName string, ownerID string, joinedAt time.Time, memberCount int, locale string) error {
 	logs.LogInfo("   DB", "adding new server to servers table", false,
 		"serverID", serverID)
 
@@ -143,7 +143,7 @@ func NewServer(serverID string, serverName string, ownerID string, memberCount i
 		ID:          serverID,
 		Name:        serverName,
 		OwnerID:     ownerID,
-		DateJoined:  time.Now().UTC().Format("2006-01-02"),
+		DateJoined:  joinedAt.UTC().Format("2006-01-02"),
 		MemberCount: memberCount,
 		Locale:      locale,
 		Settings:    NewSettings(serverID),

@@ -61,7 +61,7 @@ func MonitorGuilds(session *discordgo.Session) {
 
 			discord.IntroDM(e.OwnerID)
 
-			newErr := db.NewServer(e.Guild.ID, e.Guild.Name, e.Guild.OwnerID, e.Guild.MemberCount, e.Guild.PreferredLocale)
+			newErr := db.NewServer(e.Guild.ID, e.Guild.Name, e.Guild.OwnerID, e.Guild.JoinedAt, e.Guild.MemberCount, e.Guild.PreferredLocale)
 			if newErr != nil {
 				logs.LogError("SERVR", "error adding server to database",
 					"server", e.Guild.Name,
