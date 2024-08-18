@@ -29,6 +29,23 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"user", userID,
 		"server", i.GuildID)
 
+	// Check if the user has reached the daily limit for suggestions
+	suggestionsToday, countErr := db.CountSuggestions(userID, 1)
+	if countErr != nil {
+		logs.LogError(" CMND", "error counting suggestions",
+			"user", userID,
+			"err", countErr)
+	}
+	if suggestionsToday >= config.Values.Suggestions.DailyLimit {
+		embed := &discordgo.MessageEmbed{
+			Title:       "Error",
+			Description: "You have reached the daily suggestion limit. Try again tomorrow.",
+			Color:       config.Values.Discord.EmbedColor,
+		}
+		respond(s, i, embed)
+		return
+	}
+
 	embed := &discordgo.MessageEmbed{
 		Title:       "Thank you",
 		Description: "Your suggestion has been received",

@@ -140,7 +140,7 @@ func RemoveOldSuggestions() error {
 								FROM commands
 								WHERE used_date < datetime('now', ? || ' days')
 								AND command = "suggest")`,
-		config.Values.Suggestions.DaysToKeep)
+		-config.Values.Suggestions.DaysToKeep)
 
 	if execErr != nil {
 		return execErr
@@ -169,4 +169,26 @@ func ArchiveSuggestions() error {
 		return execErr
 	}
 	return nil
+}
+
+func CountSuggestions(userID string, days int) (int, error) {
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	if openErr != nil {
+		return 0, openErr
+	}
+	defer db.Close()
+
+	row := db.QueryRow(`SELECT COUNT(*)
+						FROM commands
+						WHERE user_id = ?
+						AND used_date > datetime('now', ? || ' days')
+						AND command = "suggest"`,
+		userID, -days)
+
+	var count int
+	scanErr := row.Scan(&count)
+	if scanErr != nil {
+		return 0, scanErr
+	}
+	return count, nil
 }
