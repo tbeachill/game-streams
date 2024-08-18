@@ -137,14 +137,14 @@ func (s *Streams) GetToday() error {
 	return nil
 }
 
-// CheckTimeless checks for streams that are scheduled for tomorrow or the day after
+// CheckTimeless checks for streams that are scheduled for the next 5 days
 // that do not have a time set. It notifies the owner which streams are missing a time
 // so they can be updated.
 func (s *Streams) CheckTimeless() error {
 	if err := s.Query(`SELECT *
 						FROM streams
 						WHERE stream_date > DATE('now')
-						AND stream_date <= DATE('now', '+2 days')
+						AND stream_date <= DATE('now', '+5 days')
 						AND start_time = ''`); err != nil {
 		return err
 	}
