@@ -92,19 +92,6 @@ func (d *CommandData) DBInsert() error {
 	return execErr
 }
 
-// RemoveCommandData removes all logged command interactions for a given server ID.
-func RemoveCommandData(serverID string) error {
-	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
-	if openErr != nil {
-		return openErr
-	}
-	defer db.Close()
-
-	_, execErr := db.Exec(`DELETE FROM commands
-							WHERE server_id = ?`, serverID)
-	return execErr
-}
-
 // CheckUsageByUser checks the number of commands used by a user in a given period.
 // Period example: "-1 day", "-1 hour", "-1 minute"
 func CheckUsageByUser(userID string, period string) (int, error) {

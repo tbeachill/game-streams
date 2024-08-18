@@ -122,16 +122,6 @@ func RemoveOldServerIDs(session *discordgo.Session) error {
 			if removeErr := db.RemoveServer(dbID); removeErr != nil {
 				return removeErr
 			}
-			logs.LogInfo("SERVR", "removing old server settings", false,
-				"server", dbID)
-			if removeErr := db.RemoveServerSettings(dbID); removeErr != nil {
-				return removeErr
-			}
-			logs.LogInfo("SERVR", "removing command data", false,
-				"server", dbID)
-			if removeErr := db.RemoveCommandData(dbID); removeErr != nil {
-				return removeErr
-			}
 		}
 	}
 	return nil
