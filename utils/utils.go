@@ -1,3 +1,6 @@
+/*
+utils.go contains utility functions that are used throughout the bot.
+*/
 package utils
 
 import (

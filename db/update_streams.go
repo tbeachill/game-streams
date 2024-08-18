@@ -1,3 +1,7 @@
+/*
+update_streams.go contains functions that update the streams table in the database with
+information from the streams.toml file in the flat-files repository.
+*/
 package db
 
 import (

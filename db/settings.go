@@ -1,3 +1,7 @@
+/*
+settings.go contains the Settings struct and functions that interact with the
+server_settings table of the database.
+*/
 package db
 
 import (

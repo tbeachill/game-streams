@@ -1,3 +1,6 @@
+/*
+sqlite.go contains functions to create the database and tables.
+*/
 package db
 
 import (

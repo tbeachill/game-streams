@@ -1,3 +1,6 @@
+/*
+maintenance.go contains functions for log file maintenance.
+*/
 package logs
 
 import (

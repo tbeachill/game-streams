@@ -1,5 +1,7 @@
 /*
-config.go provides functions to interact with the config table of the database.
+stream_toml.go contains the StreamTOML struct and methods for interacting with the
+stream_toml table in the database. This table contains information about the streams.toml
+file, including the last time it was updated and the time of the last commit to the file.
 */
 package db
 

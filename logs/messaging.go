@@ -1,3 +1,6 @@
+/*
+messages.go provides functions for sending messages to users and the bot owner.
+*/
 package logs
 
 import (

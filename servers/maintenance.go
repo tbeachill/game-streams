@@ -1,3 +1,6 @@
+/*
+maintenance.go provides functions for maintaining the servers table in the database.
+*/
 package servers
 
 import (

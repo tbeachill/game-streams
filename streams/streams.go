@@ -1,3 +1,9 @@
+/*
+streams.go contains functions that are used to gather stream information from the streams
+table of the database and post stream announcements to the servers that are following
+the platforms of the stream. These are middleware functions that are between the
+commands and the database functions.
+*/
 package streams
 
 import (

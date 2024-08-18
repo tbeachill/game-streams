@@ -1,3 +1,7 @@
+/*
+suggestions.go provides functions for interacting with the suggestions table of the
+database.
+*/
 package db
 
 import (

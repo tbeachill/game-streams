@@ -1,3 +1,6 @@
+/*
+get_streams.go contains functions that query the streams table of the database.
+*/
 package db
 
 import (

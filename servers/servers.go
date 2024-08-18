@@ -1,3 +1,6 @@
+/*
+servers.go provides functions for monitoring the servers the bot is in.
+*/
 package servers
 
 import (

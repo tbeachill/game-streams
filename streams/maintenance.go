@@ -1,3 +1,6 @@
+/*
+maintenance.go contains functions that are used to maintain the streams table in the database.
+*/
 package streams
 
 import (

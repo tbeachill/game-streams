@@ -1,3 +1,9 @@
+/*
+logs.go is a package that contains the loggers for the bot. The loggers are used to log
+information and errors to the console and a log file. The loggers are initialized when the
+bot starts and are used throughout the bot's lifecycle. The loggers are configured in the
+config.toml file.
+*/
 package logs
 
 import (

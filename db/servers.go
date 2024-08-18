@@ -1,3 +1,6 @@
+/*
+servers.go contains functions that interact with the servers table of the database.
+*/
 package db
 
 import (
