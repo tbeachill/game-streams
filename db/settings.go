@@ -10,34 +10,46 @@ import (
 	"gamestreams/logs"
 )
 
-// Settings is a struct that contains the options for a server. It contains the
-// server ID, the channel to announce streams, the role to announce streams, and flags
-// for each platform to announce streams for. It also contains a flag to reset the
-// options for a server.
+// Settings is a struct that contains the settings for a server. These settings are used
+// to determine which streams to announce in a server, where to announce them, and which
+// roles to ping when announcing them.
 type Settings struct {
-	ServerID        string
+	// The Discord ID of the server.
+	ServerID string
+	// The Discord ID of the channel where the bot will announce streams.
 	AnnounceChannel StringSet
-	AnnounceRole    StringSet
-	Playstation     BoolSet
-	Xbox            BoolSet
-	Nintendo        BoolSet
-	PC              BoolSet
-	VR              BoolSet
-	Reset           bool
+	// The Discord ID of the role that will be pinged when a stream is announced.
+	AnnounceRole StringSet
+	// A flag to determine if the server wants Playstation stream announcements.
+	Playstation BoolSet
+	// A flag to determine if the server wants Xbox stream announcements.
+	Xbox BoolSet
+	// A flag to determine if the server wants Nintendo stream announcements.
+	Nintendo BoolSet
+	// A flag to determine if the server wants PC stream announcements.
+	PC BoolSet
+	// A flag to determine if the server wants VR stream announcements.
+	VR BoolSet
+	// A flag to determine if the server settings should be reset to default values.
+	Reset bool
 }
 
 // StringSet is a struct that contains a string value and a boolean flag to determine
 // if the value has been set.
 type StringSet struct {
+	// The string value.
 	Value string
-	Set   bool
+	// A flag to determine if the value has been set.
+	Set bool
 }
 
 // BoolSet is a struct that contains a boolean value and a boolean flag to determine
 // if the value has been set.
 type BoolSet struct {
+	// The boolean value.
 	Value bool
-	Set   bool
+	// A flag to determine if the value has been set.
+	Set bool
 }
 
 // NewSettings returns a new Settings struct with default values and the given server ID.
@@ -57,7 +69,8 @@ func NewSettings(serverID string) Settings {
 
 // Set will write the values of the Settings struct to the server_settings table of the
 // database. If the server is not in the table, it will insert a new row. If the server
-// is in the table, it will update the row.
+// is in the table, it will update the row. If the server is not in the servers table,
+// it will first insert a new record in that table.
 func (s *Settings) Set() error {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -137,9 +150,8 @@ func (s *Settings) Set() error {
 	return nil
 }
 
-// Get will get the settings for a server from the servers table of the database and
-// write them to the options struct. If the server is not in the table, it will set the
-// default values for the options struct and write them to the database.
+// Get populates the Settings struct with information from the server_settings table in
+// the database. It uses the server ID from the struct to query the database.
 func (s *Settings) Get(serverID string) error {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -178,9 +190,9 @@ func (s *Settings) Get(serverID string) error {
 	return nil
 }
 
-// Merge will merge the values of the given options struct into the options struct
-// calling the method. If a value is set in the given options struct, it will overwrite
-// the value in the calling options struct.
+// Merge will merge the values of the given settings struct into the settings struct
+// calling the method. If a value in the given settings struct is set, it will overwrite
+// the value in the calling struct.
 func (s *Settings) Merge(t Settings) {
 	if t.AnnounceChannel.Set {
 		s.AnnounceChannel = t.AnnounceChannel
@@ -206,7 +218,7 @@ func (s *Settings) Merge(t Settings) {
 }
 
 // checkOptions checks if the given server ID exists in the servers table of the
-// database. Returns true if the server ID exists, false if it does not.
+// database. Returns true if the server ID exists.
 func CheckSettings(serverID string) bool {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {

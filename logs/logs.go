@@ -19,7 +19,8 @@ type Logger struct {
 	Info      *log.Logger
 }
 
-// Init initializes the loggers for the bot.
+// Init initializes the loggers for the bot. The options for each logger are set
+// in the config.toml file.
 func (l *Logger) Init() {
 	l.Info = log.NewWithOptions(os.Stderr, log.Options{
 		ReportCaller:    config.Values.Logs.Info.ReportCaller,
@@ -41,7 +42,8 @@ func (l *Logger) Init() {
 	l.ErrorWarn.SetOutput(mw)
 }
 
-// LogInfo logs an info message with a prefix.
+// LogInfo logs messages with the Info logger and a prefix. Optionally sends a DM to the
+// bot owner.
 func LogInfo(prefix string, msg string, dm bool, keyvals ...interface{}) {
 	Log.Info.Helper()
 	Log.Info.WithPrefix(prefix).Info(msg, keyvals...)

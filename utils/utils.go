@@ -103,7 +103,7 @@ func GetYoutubeLiveThumbnail(streamUrl string) string {
 		ID = strings.Split(streamUrl, "=")[1]
 	} else {
 		// thumbnail from channel link
-		directUrl, success := GetYoutubeDirectUrl(streamUrl)
+		directUrl, success := GetYoutubeDirectURL(streamUrl)
 		if success {
 			ID = strings.Split(directUrl, "=")[1]
 		}
@@ -114,13 +114,13 @@ func GetYoutubeLiveThumbnail(streamUrl string) string {
 	return ""
 }
 
-// GetYoutubeDirectUrl returns the direct URL of a YouTube stream from a profiles
+// GetYoutubeDirectURL returns the direct URL of a YouTube stream from a profiles
 // /live URL.
-func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
+func GetYoutubeDirectURL(streamUrl string) (string, bool) {
 	var directUrl string = ""
 	var success bool = false
 
-	doc, err := GetHtmlBody(streamUrl)
+	doc, err := GetHTMLBody(streamUrl)
 	if err != nil {
 		logs.LogError("UTILS", "error getting youtube html", "err", err)
 		return "", false
@@ -135,8 +135,8 @@ func GetYoutubeDirectUrl(streamUrl string) (string, bool) {
 	return directUrl, success
 }
 
-// GetHtmlBody returns the HTML body of a given URL as a goquery.Document struct.
-func GetHtmlBody(url string) (*goquery.Document, error) {
+// GetHTMLBody returns the HTML body of a given URL as a goquery.Document struct.
+func GetHTMLBody(url string) (*goquery.Document, error) {
 	res, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func GetUserID(i *discordgo.InteractionCreate) string {
 	}
 }
 
-// PatternValidator checks if a string matches a given pattern.
+// PatternValidator checks if a string matches a given regex pattern.
 func PatternValidator(s string, pattern string) (bool, error) {
 	match, err := regexp.MatchString(pattern, s)
 	if err != nil {

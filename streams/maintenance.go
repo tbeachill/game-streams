@@ -6,7 +6,7 @@ import (
 )
 
 // StreamMaintenance checks for streams in the streams table of the database that are
-// over 12 months old and removes them.
+// over the limit specified in config.toml and removes them.
 func StreamMaintenance() {
 	if err := db.RemoveOldStreams(); err != nil {
 		logs.LogError("STRMS", "error removing old streams",

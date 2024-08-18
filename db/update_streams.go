@@ -332,7 +332,7 @@ func (s *Streams) DeleteStreams() {
 }
 
 // RemoveOldStreams removes streams from the streams table of the database that are
-// older than 12 months
+// older than the number of months specified in the config.toml file.
 func RemoveOldStreams() error {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {

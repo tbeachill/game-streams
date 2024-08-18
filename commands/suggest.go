@@ -16,7 +16,7 @@ import (
 // stream name, date, and URL from the options then creates a new suggestion. If the
 // suggestion is successfully created, it inserts the suggestion into the database and
 // responds to the interaction with a success message. If an error occurs, it responds
-// with an error message.
+// with an error message. A suggestion limit is defined in config.toml.
 func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if userIsBlacklisted(i) {
 		return

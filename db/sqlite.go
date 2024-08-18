@@ -12,12 +12,14 @@ import (
 // CreateDB creates the database if it does not exist. It creates the streams, config,
 // and servers tables.
 // streams contains information about the streams.
-// config contains configuration information for the bot.
-// servers contains information about the servers that the bot is in and their settings.
+// streams_toml contains information about updating the streams table from a toml file.
+// servers contains information about the servers that the bot is in.
+// server_settings contains the settings for each server.
 // blacklist contains information about users and servers that are blacklisted from
 // using the bot.
 // commands contains information about commands that are run by users.
 // suggestions contains information about stream suggestions that are made by users.
+// suggestions_archive contains anonymised suggestions for later use.
 func CreateDB() error {
 	logs.LogInfo(" MAIN", "loading/creating database", false)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database+"?_fk=1&_cache_size=10000")

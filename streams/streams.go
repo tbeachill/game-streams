@@ -16,7 +16,7 @@ import (
 
 // StreamList populates a Streams struct with upcoming streams from the streams table
 // of the database. It then creates a discordgo.MessageEmbed struct with the date, time
-// and title of the next 10 upcoming streams.
+// and title of the next [limit] streams. The limit is set in the config.toml file.
 func StreamList() (*discordgo.MessageEmbed, error) {
 	embed := &discordgo.MessageEmbed{
 		Title: "Upcoming Streams",
@@ -49,7 +49,7 @@ func StreamList() (*discordgo.MessageEmbed, error) {
 }
 
 // StreamInfo gets a stream from the streams table of the database by name. It then
-// creates a discordgo.MessageEmbed struct with the date, time, platforms, URL, and
+// returns a discordgo.MessageEmbed struct with the date, time, platforms, URL, and
 // description of the stream.
 func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 	var streams db.Streams
@@ -101,9 +101,9 @@ func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 // ScheduleNotifications gets all streams for today that have not yet started from the
 // streams table of the database. It then schedules notifications for each stream by
 // creating a goroutine for each stream that sleeps until the streams start time -
-// the configured notification_t_minus. It then posts a message to the servers that are
-// following one or more of the platforms of the stream by calling the PostStreamLink
-// function.
+// the configured notification_t_minus in config.toml. It then posts a message to the
+// servers that are following one or more of the platforms of the stream by calling the
+// PostStreamLink function.
 func ScheduleNotifications(session *discordgo.Session) error {
 	var streamList db.Streams
 	if todayErr := streamList.GetToday(); todayErr != nil {
@@ -156,7 +156,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 	// and the stream may be related to multiple platforms. Therefore the same server
 	// may be added to allServerPlatforms multiple times.
 	uniqueServers := utils.RemoveSliceDuplicates(allServerPlatforms)
-	MakeStreamUrlDirect(&stream)
+	MakeStreamURLDirect(&stream)
 
 	for server := range uniqueServers {
 		var settings db.Settings
@@ -188,12 +188,12 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 	}
 }
 
-// MakeStreamUrlDirect checks if the stream URL is a Youtube link and if so, gets the
+// MakeStreamURLDirect checks if the stream URL is a Youtube link and if so, gets the
 // direct URL to the stream. This is done as streams could be linked to as a profile's
 // /live URL which would no longer link to the correct video after the stream has ended.
-func MakeStreamUrlDirect(stream *db.Stream) {
+func MakeStreamURLDirect(stream *db.Stream) {
 	if strings.Contains(stream.URL, "youtube") {
-		directUrl, success := utils.GetYoutubeDirectUrl(stream.URL)
+		directUrl, success := utils.GetYoutubeDirectURL(stream.URL)
 		if success {
 			stream.URL = directUrl
 		}

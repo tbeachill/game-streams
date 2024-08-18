@@ -18,6 +18,8 @@ type Schedules struct {
 
 // Schedule is a struct that holds the configuration values for each schedule.
 type Schedule struct {
-	Enabled bool   `toml:"enabled"`
-	Cron    string `toml:"cron"`
+	// Whether the schedule is enabled or not.
+	Enabled bool `toml:"enabled"`
+	// The cron string for defining when the schedule runs.
+	Cron string `toml:"cron"`
 }

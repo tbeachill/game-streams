@@ -84,7 +84,8 @@ func (s *Streams) Query(q string, params ...string) error {
 	return nil
 }
 
-// GetUpcoming gets the next 10 upcoming streams from the streams table of the database.
+// GetUpcoming gets the next [limit] upcoming streams from the streams table of the
+// database. The limit is set in config.toml.
 func (s *Streams) GetUpcoming(params ...int) error {
 	var limit int
 	if len(params) == 0 {

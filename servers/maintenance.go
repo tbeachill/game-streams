@@ -11,12 +11,11 @@ import (
 	"gamestreams/logs"
 )
 
-// ServerMaintenance checks the servers table for servers that are no longer in the
-// discord returned list of servers and removes them from the servers table.
-// it then checks for connected servers that are not in the servers table and adds
-// them to the servers table. Then it checks for blacklisted servers and removes them
-// from the servers table. Then it checks for servers in the servers table with missing
-// columns and adds the missing columns.
+// ServerMaintenance performs maintenance on the servers table.
+// It gets the list of servers the bot is in from the Discord API. It then
+// leaves blacklisted servers, adds servers that are in the Discord list but
+// not in the servers table, removes servers that are in the table but not in
+// the Discord list, and adds missing columns to the servers table.
 func ServerMaintenance(session *discordgo.Session) {
 	servers := session.State.Guilds
 	// add servers that are in the discord list but not in the servers table
@@ -121,7 +120,8 @@ func ServerMaintenance(session *discordgo.Session) {
 	}
 }
 
-// updateMemberCount updates the member count of a server in the servers table.
+// updateMemberCount updates the member count of a server from its ID in the servers
+// table.
 func updateMemberCount(serverID string) (int, error) {
 	server, err := discord.Session.Guild(serverID)
 	if err != nil {
@@ -132,7 +132,7 @@ func updateMemberCount(serverID string) (int, error) {
 	return server.MemberCount, nil
 }
 
-// getDateJoined returns the date a server was joined by the bot.
+// getDateJoined returns the date a server was joined by the bot from its ID.
 func getDateJoined(serverID string) (string, error) {
 	server, err := discord.Session.Guild(serverID)
 	if err != nil {
@@ -142,7 +142,7 @@ func getDateJoined(serverID string) (string, error) {
 	return dateJoined, nil
 }
 
-// getServerLocale returns the locale of a server.
+// getServerLocale returns the locale of a server from its ID.
 func getServerLocale(serverID string) (string, error) {
 	server, err := discord.Session.Guild(serverID)
 	if err != nil {

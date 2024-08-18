@@ -12,21 +12,25 @@ import (
 	"gamestreams/logs"
 )
 
-// Server is a struct that contains information about a server. It contains the server
-// ID, the name of the server, the owner ID of the server, the date the bot joined the
-// server, the number of times the bot has been used in the server, and the settings for
-// the server.
+// Server represents a row in the servers table of the database.
 type Server struct {
-	ID          string
-	Name        string
-	OwnerID     string
-	DateJoined  string
+	// The Discord ID of the server.
+	ID string
+	// The name of the server.
+	Name string
+	// The Discord ID of the server owner.
+	OwnerID string
+	// The date the bot joined the server.
+	DateJoined string
+	// The number of members in the server.
 	MemberCount int
-	Locale      string
-	Settings    Settings
+	// The locale of the server.
+	Locale string
+	// The settings for the stream announcements in the server.
+	Settings Settings
 }
 
-// GetAllServerIDs returns a list of all server IDs from the servers table
+// GetAllServerIDs returns a slice of all server IDs from the servers table
 func GetAllServerIDs() ([]string, error) {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -157,7 +161,8 @@ func NewServer(serverID string, serverName string, ownerID string, joinedAt time
 	return nil
 }
 
-// check for servers that have missing columns in the servers table
+// CheckServerColumns checks for servers that have missing columns in the servers table
+// and returns a slice of server IDs that have missing columns.
 func CheckServerColumns() ([]string, error) {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -191,7 +196,9 @@ func CheckServerColumns() ([]string, error) {
 	return servers, nil
 }
 
-// Set sets the settings for the given server ID in the servers table.
+// Set writes the server information from the struct to the servers table in the
+// database. If the server is not in the table, it will insert a new row. If the server
+// is in the table, it will update the row.
 func (s *Server) Set() error {
 	logs.LogInfo("   DB", "setting server settings", false,
 		"serverID", s.ID)
@@ -241,7 +248,8 @@ func (s *Server) Set() error {
 	}
 }
 
-// Get returns the server information for the given server ID from the servers table.
+// Get populates the struct with information from the servers table in the database.
+// It uses the server ID from the struct to query the database.
 func (s *Server) Get() error {
 	logs.LogInfo("   DB", "getting server settings", false,
 		"serverID", s.ID)

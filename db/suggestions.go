@@ -11,10 +11,14 @@ import (
 	"gamestreams/utils"
 )
 
+// Suggestion represents a row in the suggestions table of the database.
 type Suggestion struct {
+	// The name of the stream.
 	Name string
+	// The date the stream is scheduled for.
 	Date string
-	URL  string
+	// The URL of the stream.
+	URL string
 }
 
 // NewSuggestion creates a new suggestion with the given name, date, and URL. It validates
@@ -53,9 +57,7 @@ func NewSuggestion(name, date, url string) (*Suggestion, error) {
 	}, nil
 }
 
-// Insert inserts the suggestion into the suggestions table of the database. It sets the
-// date added to the current time in UTC. It returns an error if the suggestion cannot be
-// inserted.
+// Insert inserts the suggestion into the suggestions table of the database.
 func (s *Suggestion) Insert() error {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -73,7 +75,7 @@ func (s *Suggestion) Insert() error {
 	return nil
 }
 
-// GetSuggestions gets the last `limit` suggestions from the suggestions table of the
+// GetSuggestions gets the last [limit] suggestions from the suggestions table of the
 // database. It returns a slice of Suggestion structs.
 func GetSuggestions(limit int) ([]Suggestion, error) {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
@@ -126,7 +128,8 @@ func UpdateSuggestion() error {
 	return nil
 }
 
-// RemoveOldSuggestions removes suggestions that are older than 30 days
+// RemoveOldSuggestions removes suggestions that are older than the number of days
+// specified in config.toml.
 func RemoveOldSuggestions() error {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -171,6 +174,7 @@ func ArchiveSuggestions() error {
 	return nil
 }
 
+// CountSuggestions counts the number of suggestions made by a user in the last [days] days.
 func CountSuggestions(userID string, days int) (int, error) {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {

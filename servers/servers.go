@@ -134,7 +134,7 @@ func leaveServer(session *discordgo.Session, serverID string, reason string, e *
 		"server", serverID,
 		"reason", reason)
 
-	discord.DM(e.OwnerID, fmt.Sprintf("I am leaving your server because %s", reason))
+	discord.DM(e.OwnerID, fmt.Sprintf("I am leaving your server because: %s", reason))
 	if removeErr := session.GuildLeave(serverID); removeErr != nil {
 		return removeErr
 	}
@@ -147,7 +147,9 @@ func leaveServer(session *discordgo.Session, serverID string, reason string, e *
 func LeaveIfBlacklisted(session *discordgo.Session, serverID string, e *discordgo.GuildCreate) error {
 	blacklisted, b := db.IsBlacklisted(serverID)
 	if blacklisted {
-		return leaveServer(session, serverID, fmt.Sprintf("blacklisted until %s: %s", b.DateExpires, b.Reason), e)
+		return leaveServer(session, serverID, fmt.Sprintf("Server ID is blacklisted.\n\n"+
+			"**Reason:** `%s`\n**Expires:** `%s`",
+			b.Reason, b.DateExpires), e)
 	}
 	return nil
 }

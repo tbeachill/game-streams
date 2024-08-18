@@ -41,8 +41,9 @@ func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
 		}
 		if b.LastMessaged == "" ||
 			time.Now().Compare(lastMessaged) >= config.Values.Blacklist.DaysBetweenMessages {
-			discord.DM(userID, fmt.Sprintf("You are blacklisted from using this bot.\n\nReason: %s"+
-				"\nExpires: %s ", b.Reason, b.DateExpires))
+			discord.DM(userID, fmt.Sprintf("You are blacklisted from using this bot.\n\n"+
+				"**Reason:** `%s`\n**Expires:** `%s`",
+				b.Reason, b.DateExpires))
 			db.UpdateLastMessaged(userID)
 		}
 		return true

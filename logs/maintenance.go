@@ -12,7 +12,9 @@ import (
 )
 
 // TruncateLogs deletes log file entries older than the DaysToKeep value by looking at
-// the timestamp at the start of each line
+// the timestamp at the start of each line. It also rotates and vacuums journalctl logs
+// on Linux systems. The number of days to keep log entries is set in the config.toml
+// file.
 func TruncateLogs() {
 	logFile, err := os.OpenFile(config.Values.Files.Log, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {

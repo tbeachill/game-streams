@@ -17,8 +17,8 @@ func DM(userID string, message string) {
 	}
 }
 
-// DM sends a direct message to the bot owner. The owner's Discord ID is stored in
-// the OWNER_ID environment variable.
+// DM sends a direct message to the bot owner. The owner's Discord ID is set in
+// config.toml.
 func DMOwner(message string) {
 	DM(config.Values.Discord.OwnerID, message)
 }

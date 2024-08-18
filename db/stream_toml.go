@@ -16,17 +16,20 @@ import (
 	"gamestreams/logs"
 )
 
+// StreamToml holds information about the streams.toml file.
 var StreamToml StreamTOML
 
-// Config is a struct that holds the configuration values for the bot.
+// StreamTOML represents a row in the stream_toml table of the database.
 type StreamTOML struct {
-	ID         int
+	// The ID of the row.
+	ID int
+	// The time the streams table was last updated with the streams.toml file.
 	LastUpdate string
+	// The time of the last commit to the streams.toml file.
 	CommitTime time.Time
 }
 
-// Get gets the configuration values from the database and sets them in the Config
-// struct.
+// Get retrieves the stream_toml values from the database and stores them in the struct.
 func (t *StreamTOML) Get() error {
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
 	if openErr != nil {
@@ -50,8 +53,7 @@ func (t *StreamTOML) Get() error {
 	return nil
 }
 
-// SetDefault sets the default values for the config struct from the environment
-// variables and writes them to the database.
+// SetDefault sets the default values for the stream_toml table in the database.
 func (t *StreamTOML) SetDefault() error {
 	logs.LogInfo("   DB", "Setting default stream_toml values", false)
 
@@ -73,7 +75,7 @@ func (t *StreamTOML) SetDefault() error {
 	return nil
 }
 
-// Set writes the current values of the Config struct to the database.
+// Set writes the current values of the struct to the stream_toml table in the database.
 func (t *StreamTOML) Set() error {
 	logs.LogInfo("   DB", "Updating stream_toml values", false)
 
