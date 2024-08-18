@@ -61,6 +61,9 @@ func IsBlacklisted(id string) (bool, Blacklist) {
 
 // AddToBlacklist adds the given ID to the blacklist table. The ID is
 // added with the given ID type, reason, and length of time in days.
+// If the ID is already blacklisted, the length of time is raised to the
+// power of the number of times the ID has been blacklisted. The maximum
+// length of time is 365 days.
 func AddToBlacklist(id string, idType string, reason string, length_days int) error {
 	blacklisted, _ := IsBlacklisted(id)
 	if blacklisted {
@@ -116,7 +119,8 @@ func RemoveFromBlacklist(id string) error {
 	return execErr
 }
 
-// GetBlacklist returns a slice of Blacklist structs of all IDs in the blacklist.
+// GetBlacklist returns a slice of Blacklist structs containing all IDs in the
+// blacklist.
 func GetBlacklist() ([]Blacklist, error) {
 	logs.LogInfo("   DB", "getting blacklist", false)
 	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)

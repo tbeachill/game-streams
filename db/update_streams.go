@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	_ "github.com/mattn/go-sqlite3"
@@ -47,6 +48,8 @@ func (s *Streams) Update() error {
 	if dateErr := s.FormatDate(); dateErr != nil {
 		return dateErr
 	}
+
+	s.correctPlatformCapitalisation()
 
 	if rowErr := s.UpdateRow(); rowErr != nil {
 		return rowErr
@@ -109,6 +112,33 @@ func (s *Streams) FormatDate() error {
 		s.Streams[i].Date = d
 	}
 	return nil
+}
+
+// correctPlatformCapitalisation corrects the capitalisation of the platforms in the
+// Streams struct. This is done to ensure that the platforms are capitalised correctly
+// when displayed in the Discord embed.
+func (s *Streams) correctPlatformCapitalisation() {
+	for i, stream := range s.Streams {
+		splitPlatforms := strings.Split(stream.Platform, ",")
+
+		for j, platform := range splitPlatforms {
+			switch strings.TrimSpace(strings.ToLower(platform)) {
+			case "pc":
+				splitPlatforms[j] = "PC"
+			case "playstation":
+				splitPlatforms[j] = "PlayStation"
+			case "xbox":
+				splitPlatforms[j] = "Xbox"
+			case "nintendo":
+				splitPlatforms[j] = "Nintendo"
+			case "vr":
+				splitPlatforms[j] = "VR"
+			default:
+				continue
+			}
+		}
+		s.Streams[i].Platform = strings.Join(splitPlatforms, ", ")
+	}
 }
 
 // UpdateRow updates streams in the streams table of the database with information

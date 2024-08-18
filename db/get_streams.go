@@ -13,22 +13,31 @@ import (
 	"gamestreams/config"
 )
 
-// Stream is a representation of a stream. It containes information about the stream,
-// the ID of the row in the streams table of the database and a flag to signify if the
-// stream should be deleted.
+// Stream is a representation of a row in the streams table of the database.
+// It also contains a Delete field to determine if the stream should be deleted.
+// This is used when batch deleting streams using streams.toml.
 type Stream struct {
-	ID          int
-	Name        string
-	Platform    string
-	Date        string
-	Time        string
+	// The unique identifier for the stream.
+	ID int
+	// The name of the stream.
+	Name string
+	// The platform the stream is on (xbox, playstation, pc, nintendo, vr).
+	Platform string
+	// The date the stream is scheduled for.
+	Date string
+	// The time the stream is scheduled for.
+	Time string
+	// Description of the stream.
 	Description string
-	URL         string
-	Delete      bool
+	// The URL of the stream.
+	URL string
+	// A flag to determine if the stream should be deleted.
+	Delete bool
 }
 
-// Streams contains a list of Stream structs.
+// Streams contains a slice of Stream structs.
 type Streams struct {
+	// A slice of Stream structs.
 	Streams []Stream
 }
 
