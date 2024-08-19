@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -171,4 +172,9 @@ func PatternValidator(s string, pattern string) (bool, error) {
 		return false, err
 	}
 	return match, nil
+}
+
+func ValidateURL(s string) bool {
+	u, err := url.Parse(s)
+	return err == nil && u.Scheme != "" && u.Host != ""
 }

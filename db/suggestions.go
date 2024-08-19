@@ -27,34 +27,27 @@ type Suggestion struct {
 
 // NewSuggestion creates a new suggestion with the given name, date, and URL. It validates
 // the date and URL before creating the suggestion. If the date is not in the correct
-// format or is in the past, it returns an error. If the URL is not in the correct format,
-// it returns an error. If the date and URL are valid, it returns a pointer to the
-// suggestion.
+// format or is in the past or too far in the future, it returns an error. If the URL is
+// not in the correct format, it returns an error. If the date and URL are valid, it
+// returns a pointer to the suggestion.
 func NewSuggestion(name, date, url string) (*Suggestion, error) {
 	dateCorrect, dateErr := utils.PatternValidator(date,
 		`^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$`)
-	if dateErr != nil {
-		return nil, errors.New("date is invalid")
-	}
-	if !dateCorrect {
+	if dateErr != nil || !dateCorrect {
 		return nil, errors.New("date invalid or not in correct format (`YYYY-MM-DD`)")
 	}
 	dateTime, parseErr := time.Parse("2006-01-02", date)
 	if parseErr != nil {
-		return nil, errors.New("date is invalid")
+		return nil, errors.New("date invalid or not in correct format (`YYYY-MM-DD`)")
 	}
 	if dateTime.Before(time.Now()) {
 		return nil, errors.New("date is in the past")
 	}
-	if dateTime.After(time.Now().AddDate(1, 0, 0)) {
+	if dateTime.After(time.Now().AddDate(0, 6, 0)) {
 		return nil, errors.New("date is too far in the future")
 	}
-	urlCorrect, urlErr := utils.PatternValidator(url, `^(?:https?:\/\/)?(?:ftp:\/\/)?(?:www\.)?([^\/]+)`)
-	if urlErr != nil {
+	if !utils.ValidateURL(url) {
 		return nil, errors.New("url is invalid")
-	}
-	if !urlCorrect {
-		return nil, errors.New("url not in correct format")
 	}
 	return &Suggestion{
 		Name: name,
