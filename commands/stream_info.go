@@ -39,7 +39,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			embed = &discordgo.MessageEmbed{
 				Title:       "Stream Info",
 				Description: "No streams found with that name",
-				Color:       config.Values.Discord.EmbedColor,
+				Color:       config.Values.Discord.EmbedColour,
 			}
 		} else {
 			logs.LogError(" CMND", "error creating embeds",
@@ -47,7 +47,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			embed = &discordgo.MessageEmbed{
 				Title:       "Stream Info",
 				Description: "An error occurred",
-				Color:       config.Values.Discord.EmbedColor,
+				Color:       config.Values.Discord.EmbedColour,
 			}
 		}
 	}

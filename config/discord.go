@@ -9,6 +9,6 @@ type Discord struct {
 	ApplicationID string `toml:"application_id"`
 	// The owner of the bot's Discord user ID.
 	OwnerID string `toml:"owner_id"`
-	// The color on the left side of the embeds.
-	EmbedColor int `toml:"embed_color"`
+	// The colour on the left side of the embeds.
+	EmbedColour int `toml:"embed_colour"`
 }

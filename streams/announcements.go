@@ -14,6 +14,7 @@ import (
 	"gamestreams/db"
 	"gamestreams/logs"
 	"gamestreams/utils"
+
 )
 
 // ScheduleNotifications gets all streams for today that have not yet started from the
@@ -142,7 +143,7 @@ func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, 
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: utils.GetVideoThumbnail(stream.URL),
 			},
-			Color: config.Values.Discord.EmbedColor,
+			Color: config.Values.Discord.EmbedColour,
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name:   "\u200b\nPlatforms",

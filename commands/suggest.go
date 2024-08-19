@@ -40,7 +40,7 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		embed := &discordgo.MessageEmbed{
 			Title:       "Error",
 			Description: "You have reached the daily suggestion limit. Try again tomorrow.",
-			Color:       config.Values.Discord.EmbedColor,
+			Color:       config.Values.Discord.EmbedColour,
 		}
 		respond(s, i, embed)
 		return
@@ -49,7 +49,7 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed := &discordgo.MessageEmbed{
 		Title:       "Thank you",
 		Description: "Your suggestion has been received",
-		Color:       config.Values.Discord.EmbedColor,
+		Color:       config.Values.Discord.EmbedColour,
 	}
 	streamName := i.ApplicationCommandData().Options[0].StringValue()
 	streamDate := i.ApplicationCommandData().Options[1].StringValue()
@@ -60,7 +60,7 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		embed = &discordgo.MessageEmbed{
 			Title:       "Error",
 			Description: suggestErr.Error(),
-			Color:       config.Values.Discord.EmbedColor,
+			Color:       config.Values.Discord.EmbedColour,
 		}
 		respond(s, i, embed)
 		return
@@ -73,7 +73,7 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		embed = &discordgo.MessageEmbed{
 			Title:       "Error",
 			Description: "**An error occurred.** Your suggestion may not have been recieved.",
-			Color:       config.Values.Discord.EmbedColor,
+			Color:       config.Values.Discord.EmbedColour,
 		}
 	}
 	respond(s, i, embed)

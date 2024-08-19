@@ -71,7 +71,7 @@ func helpGeneral() []*discordgo.MessageEmbed {
 			Description: "Game Streams is a bot that keeps track of game announcement streams " +
 				"and can announce when streams are beginning. \n\nUse the `/settings` command in your server " +
 				"to configure stream announcements.",
-			Color: config.Values.Discord.EmbedColor,
+			Color: config.Values.Discord.EmbedColour,
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name: "Commands",
@@ -107,7 +107,7 @@ func helpStreams() []*discordgo.MessageEmbed {
 			Description: "List upcoming streams. Streams are sorted by date and time." +
 				"\n\nStreams that have already started will not be listed. " +
 				fmt.Sprintf("\n\nList is limited to %d streams.", config.Values.Streams.Limit),
-			Color: config.Values.Discord.EmbedColor,
+			Color: config.Values.Discord.EmbedColour,
 		},
 	}
 }
@@ -119,7 +119,7 @@ func helpStreamInfo() []*discordgo.MessageEmbed {
 			Title: "/streaminfo",
 			Description: "Get information on a specific stream by title." +
 				"\n\nThe name field is required.",
-			Color: config.Values.Discord.EmbedColor,
+			Color: config.Values.Discord.EmbedColour,
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name:   "name",
@@ -138,7 +138,7 @@ func helpSuggest() []*discordgo.MessageEmbed {
 			Title: "/suggest",
 			Description: "Suggest a stream to be added to the database. Suggestions will be reviewed by " +
 				"the bot owner and added to the database if they are valid.\n\nAll fields are required.",
-			Color: config.Values.Discord.EmbedColor,
+			Color: config.Values.Discord.EmbedColour,
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name:   "name",
@@ -168,7 +168,7 @@ func helpSettings() []*discordgo.MessageEmbed {
 			Description: "Settings for the Game Streams bot. These need to be set in your server to " +
 				"enable the bot to announce streams.\n\nOnly server administrators can use this command." +
 				"\n\nAll fields are optional.",
-			Color: config.Values.Discord.EmbedColor,
+			Color: config.Values.Discord.EmbedColour,
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name: "channel",

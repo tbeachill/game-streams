@@ -95,7 +95,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		{
 			Title:       "Settings",
 			Description: status,
-			Color:       config.Values.Discord.EmbedColor,
+			Color:       config.Values.Discord.EmbedColour,
 			Fields: []*discordgo.MessageEmbedField{
 				{},
 				{

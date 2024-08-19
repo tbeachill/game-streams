@@ -36,7 +36,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			embed = &discordgo.MessageEmbed{
 				Title:       "Upcoming Streams",
 				Description: "No streams found",
-				Color:       config.Values.Discord.EmbedColor,
+				Color:       config.Values.Discord.EmbedColour,
 			}
 		} else {
 			logs.LogError(" CMND", "error creating embeds",
@@ -44,7 +44,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			embed = &discordgo.MessageEmbed{
 				Title:       "Upcoming Streams",
 				Description: "An error occurred",
-				Color:       config.Values.Discord.EmbedColor,
+				Color:       config.Values.Discord.EmbedColour,
 			}
 		}
 	}
