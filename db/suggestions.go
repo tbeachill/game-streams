@@ -46,8 +46,10 @@ func NewSuggestion(name, date, url string) (*Suggestion, error) {
 	if dateTime.Before(time.Now()) {
 		return nil, errors.New("date is in the past")
 	}
-	urlCorrect, urlErr := utils.PatternValidator(url,
-		`(?:http[s]?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)`)
+	if dateTime.After(time.Now().AddDate(1, 0, 0)) {
+		return nil, errors.New("date is too far in the future")
+	}
+	urlCorrect, urlErr := utils.PatternValidator(url, `^(?:https?:\/\/)?(?:ftp:\/\/)?(?:www\.)?([^\/]+)`)
 	if urlErr != nil {
 		return nil, errors.New("url is invalid")
 	}
@@ -187,10 +189,14 @@ func CountSuggestions(userID string, days int) (int, error) {
 	defer db.Close()
 
 	row := db.QueryRow(`SELECT COUNT(*)
-						FROM commands
-						WHERE user_id = ?
-						AND used_date > datetime('now', ? || ' days')
-						AND command = "suggest"`,
+						FROM suggestions
+						WHERE command_id IN (
+							SELECT id
+							FROM commands
+							WHERE user_id = ?
+							AND used_date > datetime('now', ? || ' days')
+							AND command = "suggest"
+						)`,
 		userID, -days)
 
 	var count int
