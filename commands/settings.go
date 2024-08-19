@@ -41,7 +41,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if *options == (db.Settings{}) || options.Reset {
 		status = "Current settings:"
 	} else {
-		status = "Settings successfully updated\nCurrent settings:"
+		status = "Settings successfully updated.\n\n**Current settings:**"
 	}
 	if options.Reset {
 		*options = db.NewSettings(i.GuildID)
