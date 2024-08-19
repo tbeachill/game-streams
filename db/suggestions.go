@@ -147,7 +147,7 @@ func RemoveOldSuggestions() error {
 							WHERE command_id IN (
 								SELECT id
 								FROM commands
-								WHERE used_date < datetime('now', ? || ' days')
+								WHERE used_date < DATETIME('now', ? || ' days')
 								AND command = "suggest")`,
 		-config.Values.Suggestions.DaysToKeep)
 
@@ -194,7 +194,7 @@ func CountSuggestions(userID string, days int) (int, error) {
 							SELECT id
 							FROM commands
 							WHERE user_id = ?
-							AND used_date > datetime('now', ? || ' days')
+							AND used_date > DATETIME('now', ? || ' days')
 							AND command = "suggest"
 						)`,
 		userID, -days)
