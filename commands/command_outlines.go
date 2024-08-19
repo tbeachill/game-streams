@@ -82,13 +82,13 @@ var commands = []*discordgo.ApplicationCommand{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "date",
-				Description: "The date of the stream",
+				Description: "The date of the stream (YYYY-MM-DD)",
 				Required:    true,
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "url",
-				Description: "The URL of the stream or information about the stream",
+				Description: "The URL of the stream or with information about the stream",
 				Required:    true,
 			},
 		},
