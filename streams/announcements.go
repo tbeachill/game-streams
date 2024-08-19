@@ -14,7 +14,6 @@ import (
 	"gamestreams/db"
 	"gamestreams/logs"
 	"gamestreams/utils"
-
 )
 
 // ScheduleNotifications gets all streams for today that have not yet started from the
