@@ -17,6 +17,8 @@ import (
 // CommandData is a struct that contains values for a row in the commands table of the
 // database and other values used for calculating the response time of the command.
 type CommandData struct {
+	// The ID of the command in the database.
+	CommandID int
 	// The server ID where the command was used.
 	ServerID string
 	// The user ID of the user who used the command.
@@ -52,6 +54,17 @@ func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 		len(interaction.ApplicationCommandData().Options) > 0) {
 		d.Options = interaction.ApplicationCommandData().Options[0].StringValue()
 	}
+	d.Initialise()
+}
+
+// Initialise sets the CommandID of the CommandData struct to the latest command ID in the
+// database and inserts the data into the database. This is done so that when a suggestion
+// is created, the foreign key constraint is satisfied and the suggestion contains the
+// correct command ID.
+func (d *CommandData) Initialise() {
+	d.CommandID, _ = getLatestCommandID()
+	d.CommandID += 1
+	d.DBInsert()
 }
 
 // End finalizes the CommandData struct by calculating the response time and inserting
@@ -59,15 +72,11 @@ func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 func (d *CommandData) End() {
 	d.EndTime = time.Now().UnixMilli()
 	d.ResponseTime = d.EndTime - d.StartTime
-	if err := d.DBInsert(); err != nil {
-		logs.LogError("   DB", "error inserting command data", "err", err)
-		return
-	}
-	// update last entry in suggestions table to include command id
-	if d.Command == "suggest" {
-		if err := UpdateSuggestion(); err != nil {
-			logs.LogError("   DB", "error updating suggestion command_id", "err", err)
-		}
+	updateErr := d.DBUpdateResponseTime()
+	if updateErr != nil {
+		logs.LogError(" CMND", "error updating command",
+			"command", d.Command,
+			"err", updateErr)
 	}
 }
 
@@ -80,15 +89,34 @@ func (d *CommandData) DBInsert() error {
 	defer db.Close()
 
 	_, execErr := db.Exec(`INSERT INTO commands
-							(server_id,
+							(id,
+							server_id,
 							user_id,
 							used_date,
 							used_time,
 							command,
 							options,
 							response_time_ms)
-						VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		d.ServerID, d.UserID, d.UsedDate, d.UsedTime, d.Command, d.Options, d.ResponseTime)
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		d.CommandID, d.ServerID, d.UserID,
+		d.UsedDate, d.UsedTime, d.Command,
+		d.Options, d.ResponseTime)
+	return execErr
+}
+
+// DBUpdateResponseTime updates the response time of the CommandData struct in the
+// commands table of the database.
+func (d *CommandData) DBUpdateResponseTime() error {
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec(`UPDATE commands
+							SET response_time_ms = ?
+							WHERE id = ?`,
+		d.ResponseTime, d.CommandID)
 	return execErr
 }
 
@@ -111,4 +139,19 @@ func CheckUsageByUser(userID string, period string) (int, error) {
 	var count int
 	scanErr := row.Scan(&count)
 	return count, scanErr
+}
+
+func getLatestCommandID() (int, error) {
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	if openErr != nil {
+		return 0, openErr
+	}
+	defer db.Close()
+
+	row := db.QueryRow(`SELECT MAX(id)
+						FROM commands`)
+
+	var id int
+	scanErr := row.Scan(&id)
+	return id, scanErr
 }

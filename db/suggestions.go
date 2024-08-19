@@ -17,6 +17,8 @@ import (
 
 // Suggestion represents a row in the suggestions table of the database.
 type Suggestion struct {
+	// The ID of the command from the commands table.
+	CommandID int
 	// The name of the stream.
 	Name string
 	// The date the stream is scheduled for.
@@ -64,9 +66,9 @@ func (s *Suggestion) Insert() error {
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(`INSERT INTO suggestions (stream_name, stream_date, stream_url)
-							VALUES (?, ?, ?)`,
-		s.Name, s.Date, s.URL)
+	_, execErr := db.Exec(`INSERT INTO suggestions (command_id, stream_name, stream_date, stream_url)
+							VALUES (?, ?, ?, ?)`,
+		s.CommandID, s.Name, s.Date, s.URL)
 
 	if execErr != nil {
 		return execErr
@@ -104,27 +106,6 @@ func GetSuggestions(limit int) ([]Suggestion, error) {
 		suggestions = append(suggestions, suggestion)
 	}
 	return suggestions, nil
-}
-
-// UpdateSuggestion updates the last entry in the suggestions table to include the command ID
-func UpdateSuggestion() error {
-	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
-	if openErr != nil {
-		return openErr
-	}
-	defer db.Close()
-
-	_, execErr := db.Exec(`UPDATE suggestions
-							SET command_id = (SELECT MAX(id)
-												FROM commands
-												WHERE command = "suggest")
-							WHERE id = (SELECT MAX(id)
-										FROM suggestions)`)
-
-	if execErr != nil {
-		return execErr
-	}
-	return nil
 }
 
 // RemoveOldSuggestions removes suggestions that are older than the number of days

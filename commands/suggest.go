@@ -65,7 +65,7 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		respond(s, i, embed)
 		return
 	}
-
+	suggestion.CommandID = a.CommandID
 	insertErr := suggestion.Insert()
 	if insertErr != nil {
 		logs.LogError(" CMND", "error inserting suggestion",
