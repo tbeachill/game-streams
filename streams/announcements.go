@@ -76,6 +76,9 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 	uniqueServers := utils.RemoveSliceDuplicates(allServerPlatforms)
 	MakeStreamURLDirect(&stream)
 
+	logs.LogInfo("STRMS", "retrieved server IDs", false,
+		"count", len(uniqueServers))
+
 	for server := range uniqueServers {
 		var settings db.Settings
 		if getSetErr := settings.Get(server); getSetErr != nil {
@@ -107,6 +110,8 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		}
 		go EditAnnouncementEmbed(msg, embed, session)
 	}
+	logs.LogInfo("STRMS", "finished posting stream", false,
+		"stream", stream.Name)
 }
 
 // EditAnnouncementEmbed edits the description of an announcement embed to show that
@@ -116,7 +121,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed, session *discordgo.Session) {
 	embed.Description = embed.Description[0:14] + "ed" + embed.Description[17:]
 	medit := discordgo.NewMessageEdit(msg.ChannelID, msg.ID).SetEmbed(embed)
-	time.Sleep(time.Duration(config.Values.Schedule.NotificationTMinus))
+	time.Sleep(time.Duration(config.Values.Schedule.NotificationTMinus) * time.Minute)
 	_, editErr := session.ChannelMessageEditComplex(medit)
 	if editErr != nil {
 		logs.LogError("STRMS", "error editing message",
