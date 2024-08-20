@@ -82,66 +82,83 @@ func PlaceholderText(s string) string {
 }
 
 // GetVideoThumbnail returns the thumbnail of a video stream from a given URL.
-func GetVideoThumbnail(stream string) string {
-	if strings.Contains(stream, "twitch") {
-		name := strings.Split(stream, "/")[3]
-		return fmt.Sprintf("https://static-cdn.jtvnw.net/previews-ttv/live_user_%s-1280x720.jpg", name)
-	} else if strings.Contains(stream, "youtube") {
-		return GetYoutubeLiveThumbnail(stream)
-	} else if strings.Contains(stream, "facebook") {
-		name := strings.Split(stream, "/")[3]
+func GetVideoThumbnail(streamURL string) string {
+	if strings.Contains(streamURL, "twitch") {
+		return GetTwitchProfilePicture(streamURL)
+	} else if strings.Contains(streamURL, "youtube") {
+		return GetYoutubeLiveThumbnail(streamURL)
+	} else if strings.Contains(streamURL, "facebook") {
+		name := strings.Split(streamURL, "/")[3]
 		return fmt.Sprintf("https://graph.facebook.com/%s/picture?type=large", name)
 	}
 	return ""
+}
+
+// GetTwitchProfilePicture returns the profile picture of a Twitch stream from a given
+// URL.
+func GetTwitchProfilePicture(streamURL string) string {
+	doc, err := GetHTMLBody(streamURL)
+	if err != nil {
+		logs.LogError("UTILS", "error getting twitch html", "err", err)
+		return ""
+	}
+	var pictureURL string
+	doc.Find("meta").Each(func(i int, s *goquery.Selection) {
+		val, exists := s.Attr("property")
+		if exists && val == "og:image" {
+			pictureURL, _ = s.Attr("content")
+		}
+	})
+	return pictureURL
 }
 
 // GetYoutubeLiveThumbnail returns the thumbnail of a YouTube stream from a given URL.
 // If the URL is a direct link to the stream, it extract the video ID from the URL.
 // If the URL is a channel link, it will call GetYoutubeDirectUrl to get the direct
 // link and extract the video ID from that.
-func GetYoutubeLiveThumbnail(streamUrl string) string {
+func GetYoutubeLiveThumbnail(streamURL string) string {
 	var ID string = ""
 
-	if strings.Contains(streamUrl, "=") {
+	if strings.Contains(streamURL, "=") {
 		// thumbnail from direct link
-		ID = strings.Split(streamUrl, "=")[1]
+		ID = strings.Split(streamURL, "=")[1]
 	} else {
 		// thumbnail from channel link
-		directUrl, success := GetYoutubeDirectURL(streamUrl)
+		directURL, success := GetYoutubeDirectURL(streamURL)
 		if success {
-			ID = strings.Split(directUrl, "=")[1]
+			ID = strings.Split(directURL, "=")[1]
 		}
 	}
 	if ID != "" {
-		return fmt.Sprintf("https://img.youtube.com/vi/%s/mqdefault.jpg", ID)
+		return fmt.Sprintf("https://img.youtube.com/vi/%s/maxresdefault.jpg", ID)
 	}
 	return ""
 }
 
 // GetYoutubeDirectURL returns the direct URL of a YouTube stream from a profiles
 // /live URL.
-func GetYoutubeDirectURL(streamUrl string) (string, bool) {
-	var directUrl string = ""
+func GetYoutubeDirectURL(streamURL string) (string, bool) {
+	var directURL string = ""
 	var success bool = false
 
-	doc, err := GetHTMLBody(streamUrl)
+	doc, err := GetHTMLBody(streamURL)
 	if err != nil {
 		logs.LogError("UTILS", "error getting youtube html", "err", err)
 		return "", false
 	}
 	doc.Find("link").Each(func(i int, s *goquery.Selection) {
-		url, _ := s.Attr("href")
-		if strings.Contains(url, "?v=") {
-			directUrl = url
+		URL, _ := s.Attr("href")
+		if strings.Contains(URL, "?v=") {
+			directURL = URL
 			success = true
 		}
 	})
-	return directUrl, success
+	return directURL, success
 }
 
 // GetHTMLBody returns the HTML body of a given URL as a goquery.Document struct.
-func GetHTMLBody(url string) (*goquery.Document, error) {
-	res, err := http.Get(url)
+func GetHTMLBody(URL string) (*goquery.Document, error) {
+	res, err := http.Get(URL)
 	if err != nil {
 		return nil, err
 	}

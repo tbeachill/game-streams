@@ -5,8 +5,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
-	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -83,45 +81,6 @@ func CheckServerID(serverID string) (bool, error) {
 		return false, scanErr
 	}
 	return true, nil
-}
-
-// GetPlatformServerIDs returns a list of server IDs that have the given platform set
-// to true in the servers table.
-func GetPlatformServerIDs(platform string) ([]string, error) {
-	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
-	if openErr != nil {
-		return nil, openErr
-	}
-	defer db.Close()
-
-	platform = strings.ToLower(platform)
-	logs.Log.Info.WithPrefix("   DB").Info("getting server IDs for",
-		"platform", platform)
-
-	rows, queryErr := db.Query(`SELECT server_id
-								FROM servers
-								WHERE ? = 1`,
-		platform)
-
-	if queryErr != nil {
-		return nil, queryErr
-	}
-	defer rows.Close()
-
-	var serverIDs []string
-	for rows.Next() {
-		var serverID string
-		scanErr := rows.Scan(&serverID)
-		if scanErr != nil {
-			return nil, scanErr
-		}
-		serverIDs = append(serverIDs, fmt.Sprint(serverID))
-	}
-	err := rows.Err()
-	if err != nil {
-		logs.Log.Info.Error(err)
-	}
-	return serverIDs, nil
 }
 
 // RemoveServer removes the given server ID from the servers table.

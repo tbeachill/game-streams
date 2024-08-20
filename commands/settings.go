@@ -5,6 +5,7 @@ update the stream announcement settings for the server.
 package commands
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
@@ -41,7 +42,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if *options == (db.Settings{}) || options.Reset {
 		status = "Current settings:"
 	} else {
-		status = "Settings successfully updated\nCurrent settings:"
+		status = "Settings successfully updated.\n\n**Current settings:**"
 	}
 	if options.Reset {
 		*options = db.NewSettings(i.GuildID)
@@ -64,33 +65,6 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	currentOptions.Merge(*options)
 
-	var channelName string
-	var roleName string
-	if currentOptions.AnnounceChannel.Value != "" {
-		channel, cErr := s.Channel(currentOptions.AnnounceChannel.Value)
-		if cErr != nil {
-
-			logs.LogError(" CMND", "error getting channel name",
-				"channel", currentOptions.AnnounceChannel,
-				"err", cErr)
-
-			channelName = currentOptions.AnnounceChannel.Value
-		} else {
-			channelName = channel.Name
-		}
-	}
-	if currentOptions.AnnounceRole.Value != "" {
-		role, rErr := s.State.Role(i.GuildID, currentOptions.AnnounceRole.Value)
-		if rErr != nil {
-			logs.LogError(" CMND", "error getting role name",
-				"role", currentOptions.AnnounceRole,
-				"err", rErr)
-
-			roleName = currentOptions.AnnounceRole.Value
-		} else {
-			roleName = role.Name
-		}
-	}
 	content := []*discordgo.MessageEmbed{
 		{
 			Title:       "Settings",
@@ -100,12 +74,12 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				{},
 				{
 					Name:   "Announce Channel",
-					Value:  utils.PlaceholderText(channelName),
+					Value:  utils.PlaceholderText(fmt.Sprintf("<#%s>", currentOptions.AnnounceChannel.Value)),
 					Inline: false,
 				},
 				{
 					Name:   "Announce Role",
-					Value:  utils.PlaceholderText(roleName),
+					Value:  utils.PlaceholderText(fmt.Sprintf("<@&%s>", currentOptions.AnnounceRole.Value)),
 					Inline: false,
 				},
 				{

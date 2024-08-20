@@ -76,6 +76,9 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 	uniqueServers := utils.RemoveSliceDuplicates(allServerPlatforms)
 	MakeStreamURLDirect(&stream)
 
+	logs.LogInfo("STRMS", "retrieved server IDs", false,
+		"count", len(uniqueServers))
+
 	for server := range uniqueServers {
 		var settings db.Settings
 		if getSetErr := settings.Get(server); getSetErr != nil {
@@ -87,14 +90,17 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		if settings.AnnounceChannel.Value == "" {
 			continue
 		}
-		embed, embedErr := createStreamEmbed(stream, settings.AnnounceRole.Value)
+		embed, embedErr := createStreamEmbed(stream)
 		if embedErr != nil {
 			logs.LogError("STRMS", "error creating embed",
 				"server", server,
 				"err", embedErr)
 			continue
 		}
-		msg, postErr := session.ChannelMessageSendEmbed(settings.AnnounceChannel.Value, embed)
+		msg, postErr := session.ChannelMessageSendComplex(settings.AnnounceChannel.Value, &discordgo.MessageSend{
+			Embed:   embed,
+			Content: fmt.Sprintf("<@&%s>", settings.AnnounceRole.Value),
+		})
 		if postErr != nil {
 			logs.LogError("STRMS", "error posting message",
 				"server", server,
@@ -104,6 +110,8 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		}
 		go EditAnnouncementEmbed(msg, embed, session)
 	}
+	logs.LogInfo("STRMS", "finished posting stream", false,
+		"name", stream.Name)
 }
 
 // EditAnnouncementEmbed edits the description of an announcement embed to show that
@@ -113,7 +121,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed, session *discordgo.Session) {
 	embed.Description = embed.Description[0:14] + "ed" + embed.Description[17:]
 	medit := discordgo.NewMessageEdit(msg.ChannelID, msg.ID).SetEmbed(embed)
-	time.Sleep(time.Duration(config.Values.Schedule.NotificationTMinus))
+	time.Sleep(time.Duration(config.Values.Schedule.NotificationTMinus) * time.Minute)
 	_, editErr := session.ChannelMessageEditComplex(medit)
 	if editErr != nil {
 		logs.LogError("STRMS", "error editing message",
@@ -125,20 +133,17 @@ func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed
 
 // createStreamEmbed returns a discordgo.MessageEmbed struct with the stream
 // information from the given stream and announcement role.
-func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, error) {
+func createStreamEmbed(stream db.Stream) (*discordgo.MessageEmbed, error) {
 	ts, tsErr := utils.CreateTimestampRelative(stream.Date, stream.Time)
 	if tsErr != nil {
 		return nil, tsErr
-	}
-	if role != "" {
-		role = fmt.Sprintf("<@&%s> ", role)
 	}
 	embed :=
 		&discordgo.MessageEmbed{
 			Title:       stream.Name,
 			URL:         stream.URL,
 			Type:        "video",
-			Description: fmt.Sprintf("%s**Stream starting %s.**\n\n%s", role, ts, stream.Description),
+			Description: fmt.Sprintf("**Stream starting %s.**\n\n%s", ts, stream.Description),
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: utils.GetVideoThumbnail(stream.URL),
 			},
@@ -165,9 +170,6 @@ func getAllPlatforms(stream db.Stream) ([]string, error) {
 		if platErr != nil {
 			return nil, platErr
 		}
-		logs.LogInfo("STRMS", "found servers for platform", false,
-			"platform", platform)
-
 		allServerPlatforms = append(allServerPlatforms, server_list...)
 	}
 	return allServerPlatforms, nil
