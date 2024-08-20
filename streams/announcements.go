@@ -111,7 +111,7 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		go EditAnnouncementEmbed(msg, embed, session)
 	}
 	logs.LogInfo("STRMS", "finished posting stream", false,
-		"stream", stream.Name)
+		"name", stream.Name)
 }
 
 // EditAnnouncementEmbed edits the description of an announcement embed to show that
