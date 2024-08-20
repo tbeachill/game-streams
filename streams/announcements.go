@@ -87,14 +87,17 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 		if settings.AnnounceChannel.Value == "" {
 			continue
 		}
-		embed, embedErr := createStreamEmbed(stream, settings.AnnounceRole.Value)
+		embed, embedErr := createStreamEmbed(stream)
 		if embedErr != nil {
 			logs.LogError("STRMS", "error creating embed",
 				"server", server,
 				"err", embedErr)
 			continue
 		}
-		msg, postErr := session.ChannelMessageSendEmbed(settings.AnnounceChannel.Value, embed)
+		msg, postErr := session.ChannelMessageSendComplex(settings.AnnounceChannel.Value, &discordgo.MessageSend{
+			Embed:   embed,
+			Content: fmt.Sprintf("<@&%s>", settings.AnnounceRole.Value),
+		})
 		if postErr != nil {
 			logs.LogError("STRMS", "error posting message",
 				"server", server,
@@ -125,20 +128,17 @@ func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed
 
 // createStreamEmbed returns a discordgo.MessageEmbed struct with the stream
 // information from the given stream and announcement role.
-func createStreamEmbed(stream db.Stream, role string) (*discordgo.MessageEmbed, error) {
+func createStreamEmbed(stream db.Stream) (*discordgo.MessageEmbed, error) {
 	ts, tsErr := utils.CreateTimestampRelative(stream.Date, stream.Time)
 	if tsErr != nil {
 		return nil, tsErr
-	}
-	if role != "" {
-		role = fmt.Sprintf("<@&%s> ", role)
 	}
 	embed :=
 		&discordgo.MessageEmbed{
 			Title:       stream.Name,
 			URL:         stream.URL,
 			Type:        "video",
-			Description: fmt.Sprintf("%s**Stream starting %s.**\n\n%s", role, ts, stream.Description),
+			Description: fmt.Sprintf("**Stream starting %s.**\n\n%s", ts, stream.Description),
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: utils.GetVideoThumbnail(stream.URL),
 			},
@@ -165,9 +165,6 @@ func getAllPlatforms(stream db.Stream) ([]string, error) {
 		if platErr != nil {
 			return nil, platErr
 		}
-		logs.LogInfo("STRMS", "found servers for platform", false,
-			"platform", platform)
-
 		allServerPlatforms = append(allServerPlatforms, server_list...)
 	}
 	return allServerPlatforms, nil
