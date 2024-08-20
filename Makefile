@@ -13,6 +13,10 @@ clean:
 	go clean -cache
 	rmdir /S /Q bin
 
+upgrade:
+	go get -u all
+	go mod tidy
+
 tidy:
 	go mod tidy
 
