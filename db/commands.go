@@ -5,6 +5,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -154,4 +155,20 @@ func getLatestCommandID() (int, error) {
 	var id int
 	scanErr := row.Scan(&id)
 	return id, scanErr
+}
+
+// PerformMaintenance performs maintenance on the commands table of the database. It
+// deletes commands older than the specified number of days.
+func PerformCommandMaintenance() error {
+	db, openErr := sql.Open("sqlite3", config.Values.Files.Database)
+	if openErr != nil {
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec(`DELETE FROM commands
+							WHERE used_date < DATE('now', ?)`,
+		fmt.Sprintf("-%d months", config.Values.Commands.MonthsToKeep))
+
+	return execErr
 }

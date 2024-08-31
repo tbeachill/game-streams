@@ -36,6 +36,8 @@ type Config struct {
 	Blacklist Blacklist `toml:"blacklist"`
 	// The configuration values for the suggestions.
 	Suggestions Suggestions `toml:"suggestions"`
+	// The configuration values for the commands.
+	Commands Commands `toml:"commands"`
 	// Allows cron jobs to be scheduled and enabled/disabled.
 	Schedule Schedules `toml:"schedule"`
 }

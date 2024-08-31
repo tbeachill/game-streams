@@ -67,6 +67,7 @@ func performMaintenance(session *discordgo.Session) {
 	logs.LogInfo("MNTNC", "performing suggestion maintenance...", false)
 	db.ArchiveSuggestions()
 	db.RemoveOldSuggestions()
+	db.PerformCommandMaintenance()
 }
 
 // backupDatabase backs up the database to a cloudflare R2 storage bucket.
