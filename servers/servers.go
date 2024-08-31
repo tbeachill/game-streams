@@ -77,9 +77,7 @@ func MonitorGuilds(session *discordgo.Session) {
 	// leave handler
 	session.AddHandler(func(s *discordgo.Session, e *discordgo.GuildDelete) {
 		logs.LogInfo("SERVR", "left server", false,
-			"server", GetServerName(e.Guild.ID),
-			"server_id", e.Guild.ID,
-			"owner", GetServerOwner(e.Guild.ID))
+			"server_id", e.Guild.ID)
 
 		logGuildNumber(s)
 		if removeErr := db.RemoveServer(e.Guild.ID); removeErr != nil {
