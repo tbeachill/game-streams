@@ -10,8 +10,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 
 	"gamestreams/config"
+	"gamestreams/discord"
 	"gamestreams/logs"
-	"gamestreams/utils"
 )
 
 // CommandData is a struct that contains values for a row in the commands table of the
@@ -44,7 +44,7 @@ type CommandData struct {
 // It sets the server ID, user ID, start time, used date, used time, command, and options.
 func (d *CommandData) Start(interaction *discordgo.InteractionCreate) {
 	d.ServerID = interaction.GuildID
-	d.UserID = utils.GetUserID(interaction)
+	d.UserID = discord.GetUserID(interaction)
 	d.StartTime = time.Now().UnixMilli()
 	dateTime := time.Now().UTC()
 	d.UsedDate = dateTime.Format("2006-01-02")

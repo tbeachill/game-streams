@@ -11,8 +11,8 @@ import (
 
 	"gamestreams/config"
 	"gamestreams/db"
+	"gamestreams/discord"
 	"gamestreams/logs"
-	"gamestreams/utils"
 )
 
 // help responds with a help message for the bot.
@@ -26,7 +26,7 @@ func help(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	a.Start(i)
 	defer a.End()
 
-	userID := utils.GetUserID(i)
+	userID := discord.GetUserID(i)
 	logs.LogInfo(" CMND", "help command", false,
 		"user", userID,
 		"server", i.GuildID)

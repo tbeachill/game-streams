@@ -8,8 +8,8 @@ import (
 
 	"gamestreams/config"
 	"gamestreams/db"
+	"gamestreams/discord"
 	"gamestreams/logs"
-	"gamestreams/utils"
 )
 
 // suggest allows users to suggest a stream to be added to the database. It extracts the
@@ -24,7 +24,7 @@ func suggest(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	a := db.CommandData{}
 	a.Start(i)
 	defer a.End()
-	userID := utils.GetUserID(i)
+	userID := discord.GetUserID(i)
 	logs.LogInfo(" CMND", "suggest command", false,
 		"user", userID,
 		"server", i.GuildID)

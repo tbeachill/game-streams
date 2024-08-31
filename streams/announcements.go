@@ -12,6 +12,7 @@ import (
 
 	"gamestreams/config"
 	"gamestreams/db"
+	"gamestreams/discord"
 	"gamestreams/logs"
 	"gamestreams/utils"
 )
@@ -98,8 +99,8 @@ func PostStreamLink(stream db.Stream, session *discordgo.Session) {
 			continue
 		}
 		msg, postErr := session.ChannelMessageSendComplex(settings.AnnounceChannel.Value, &discordgo.MessageSend{
+			Content: discord.DisplayRole(session, server, settings.AnnounceRole.Value),
 			Embed:   embed,
-			Content: fmt.Sprintf("<@&%s>", settings.AnnounceRole.Value),
 		})
 		if postErr != nil {
 			logs.LogError("STRMS", "error posting message",
@@ -134,7 +135,7 @@ func EditAnnouncementEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed
 // createStreamEmbed returns a discordgo.MessageEmbed struct with the stream
 // information from the given stream and announcement role.
 func createStreamEmbed(stream db.Stream) (*discordgo.MessageEmbed, error) {
-	ts, tsErr := utils.CreateTimestampRelative(stream.Date, stream.Time)
+	ts, tsErr := discord.CreateTimestampRelative(stream.Date, stream.Time)
 	if tsErr != nil {
 		return nil, tsErr
 	}

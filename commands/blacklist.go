@@ -14,7 +14,6 @@ import (
 	"gamestreams/db"
 	"gamestreams/discord"
 	"gamestreams/logs"
-	"gamestreams/utils"
 )
 
 // userIsBlacklisted checks if a user is blacklisted from using the bot.
@@ -25,7 +24,7 @@ import (
 // field in the database to the current date so that the user is not spammed with
 // messages.
 func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
-	userID := utils.GetUserID(i)
+	userID := discord.GetUserID(i)
 	blacklisted, b := db.IsBlacklisted(userID)
 
 	if blacklisted {
@@ -56,7 +55,7 @@ func userIsBlacklisted(i *discordgo.InteractionCreate) bool {
 // commands, it adds them to the blacklist with a reason of "spamming commands"
 // and a duration of 2 days.
 func BlacklistIfSpamming(i *discordgo.InteractionCreate) {
-	userID := utils.GetUserID(i)
+	userID := discord.GetUserID(i)
 
 	dCount, err := db.CheckUsageByUser(userID, "-1 day")
 	if err != nil {

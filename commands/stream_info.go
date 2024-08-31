@@ -8,9 +8,9 @@ import (
 
 	"gamestreams/config"
 	"gamestreams/db"
+	"gamestreams/discord"
 	"gamestreams/logs"
 	"gamestreams/streams"
-	"gamestreams/utils"
 )
 
 // streamInfo gets the information for a specific stream by title. It extracts the
@@ -27,7 +27,7 @@ func streamInfo(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	defer a.End()
 
 	streamName := i.ApplicationCommandData().Options[0].StringValue()
-	userID := utils.GetUserID(i)
+	userID := discord.GetUserID(i)
 	logs.LogInfo(" CMND", "stream info command", false,
 		"stream", streamName,
 		"user", userID,

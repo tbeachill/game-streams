@@ -14,6 +14,7 @@ import (
 
 	"gamestreams/config"
 	"gamestreams/db"
+	"gamestreams/discord"
 	"gamestreams/logs"
 	"gamestreams/utils"
 )
@@ -64,7 +65,7 @@ func StreamInfo(streamName string) (*discordgo.MessageEmbed, error) {
 		return nil, errors.New("no streams found")
 	}
 	stream := streams.Streams[0]
-	date, time, dtErr := utils.CreateTimestamp(stream.Date, stream.Time)
+	date, time, dtErr := discord.CreateTimestamp(stream.Date, stream.Time)
 	if dtErr != nil {
 		return nil, dtErr
 	}
@@ -117,7 +118,7 @@ func MakeStreamURLDirect(stream *db.Stream) {
 // streamEmbedField returns a discordgo.MessageEmbedField struct with the date, time,
 // and name of the given stream.
 func streamEmbedField(stream db.Stream) (*discordgo.MessageEmbedField, error) {
-	ds, ts, tsErr := utils.CreateTimestamp(stream.Date, stream.Time)
+	ds, ts, tsErr := discord.CreateTimestamp(stream.Date, stream.Time)
 	if tsErr != nil {
 		return nil, tsErr
 	}

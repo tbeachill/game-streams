@@ -12,6 +12,7 @@ import (
 
 	"gamestreams/config"
 	"gamestreams/db"
+	"gamestreams/discord"
 	"gamestreams/logs"
 	"gamestreams/utils"
 )
@@ -31,7 +32,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	a.Start(i)
 	defer a.End()
 
-	userID := utils.GetUserID(i)
+	userID := discord.GetUserID(i)
 	logs.LogInfo(" CMND", "settings command", false,
 		"user", userID,
 		"server", i.GuildID)
@@ -79,7 +80,7 @@ func settings(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				},
 				{
 					Name:   "Announce Role",
-					Value:  utils.PlaceholderText(fmt.Sprintf("<@&%s>", currentOptions.AnnounceRole.Value)),
+					Value:  utils.PlaceholderText(discord.DisplayRole(s, i.GuildID, currentOptions.AnnounceRole.Value)),
 					Inline: false,
 				},
 				{

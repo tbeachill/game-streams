@@ -8,9 +8,9 @@ import (
 
 	"gamestreams/config"
 	"gamestreams/db"
+	"gamestreams/discord"
 	"gamestreams/logs"
 	"gamestreams/streams"
-	"gamestreams/utils"
 )
 
 // listStreams gets a list of all upcoming streams as an embed. If the embed is
@@ -25,7 +25,7 @@ func listStreams(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	a.Start(i)
 	defer a.End()
 
-	userID := utils.GetUserID(i)
+	userID := discord.GetUserID(i)
 	logs.LogInfo(" CMND", "list streams command", false,
 		"user", userID,
 		"server", i.GuildID)
