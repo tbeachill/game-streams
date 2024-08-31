@@ -35,6 +35,8 @@ func DisplayRole(s *discordgo.Session, guildID string, role string) string {
 	// Stop the role from displaying as @@everyone
 	if GetRoleName(s, guildID, role) == "@everyone" {
 		return "@everyone"
+	} else if GetRoleName(s, guildID, role) == "" {
+		return ""
 	}
 	return fmt.Sprintf("<@&%s>", role)
 }
