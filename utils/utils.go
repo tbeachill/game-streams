@@ -49,7 +49,11 @@ func RemoveSliceDuplicates(s []string) map[string]bool {
 
 // PlaceholderText returns "not set" if the given string is empty.
 func PlaceholderText(s string) string {
-	if len(s) == 0 {
+	s = strings.TrimSpace(s)
+	if len(s) == 0 ||
+		s == "<#>" ||
+		s == "<@>" ||
+		s == "<@&>" {
 		return "not set"
 	}
 	return s
