@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="icon" type="image/x-icon" href="gs-favicon.ico">
+    <link rel="stylesheet" type="text/css" href="gruvbox_dark.css">
+</head>
+
+<body>
+    <title>Privacy Policy - Game Streams</title>
+    <h1>Privacy Policy</h1>
+    <i>Last Modified: 31 August 2024</i>
+
+    <h2>Contents</h2>
+    <ul>
+        <li><a href="#collected-data">Collected Data</a></li>
+        <li><a href="#backups-and-data-restoration">Backups and Data Restoration</a></li>
+        <li><a href="#logs">Logs</a></li>
+        <li><a href="#data-retention">Data Retention</a></li>
+        <li><a href="#data-usage">How the Data is Used</a></li>
+        <li><a href="#data-sharing">Sharing of Data</a></li>
+        <li><a href="#data-removal">Data Removal</a></li>
+        <li><a href="#contact">Contact</a></li>
+    </ul>
+
+    <h2 id="collected-data">Collected Data</h2>
+    <p>This bot collects and stores some data to function.</p>
+    </p>
+    The following information is stored about the servers the bot is in:
+    <ul>
+        <li>The <code>server_id</code></li>
+        <li>The <code>server_name</code></li>
+        <li>The <code>server_owner_id</code></li>
+        <li>The <code>date</code> the bot joined the server</li>
+        <li>The <code>member_count</code> of the server</li>
+        <li>The <code>locale</code> of the server</li>
+    </ul>
+
+    <p>Settings from the server owner running <code>/settings</code> are stored. These settings are:
+    <ul>
+        <li>The <code>role</code> to ping when announcing starting streams</li>
+        <li>The <code>channel</code> to announce starting streams</li>
+        <li>Whether announcements for each platform are enabled</li>
+    </ul>
+    </p>
+
+    <p>Command usage information is stored:
+    <ul>
+        <li>The <code>server_id</code> in which the command was run</li>
+        <li>The <code>user_id</code> of the member who ran the command</li>
+        <li>The <code>date</code> and <code>time</code> the command was run</li>
+        <li>The <code>command</code> which was run</li>
+        <li>The <code>options</code> that were used with the command</li>
+    </ul>
+    </p>
+
+    <p>Abuse of the bot may result in a user or server being added to a blacklist. The blacklist contains:
+    <ul>
+        <li>The <code>discord_id</code> of the blacklisted user/server</li>
+        <li>The <code>date_added</code> to the blacklist</li>
+        <li>The <code>expiry_date</code> of the blacklist entry</li>
+        <li>The <code>reason</code> for being blacklisted</li>
+        </p>
+
+        <h2>Backups and Data Restoration</h2>
+        <p>Backups are stored with Cloudflare and are encrypted before being uploaded.</p>
+        <p>In the event of data loss and database restoration, the bot will check the database against
+            connected servers and remove each <code>server_id</code> that removed the bot in the interim period between
+            data loss and restoration.</p>
+
+        <h2 id="logs">Logs</h2>
+        <p>Timestamped logs are stored locally. Logged events do not include any extra information than is outlined in
+            <a href="#collected-data">Collected Data</a>.
+        </p>
+
+        <h2 id="data-retention">Data Retention</h2>
+        <p>Logs are kept for <b>28 days</b>.</p>
+        <p>Server information and settings are kept <b>for as long as the bot remains in the server</b>.</p>
+
+        <p>Blacklist data is kept <b>indefinitely</b>.</p>
+
+        <p>Command usage data is kept for <b>3 months</b>.</p>
+
+        <p>Backups are kept for <b>28 days</b>. Backups include the information outlined in <a
+                href="#collected-data">Collected Data</a>.
+        </p>
+
+
+        <h2 id="data-usage">Data Usage</h2>
+        <p>
+        <ul>
+            <li>Server and settings data are used to perform the announcement role of the bot.</li>
+            <li>Command data is used for aggregate statistics to improve services.</li>
+            <li>Blacklist data is used to prevent abuse of the bot.</li>
+        </ul>
+        </p>
+
+        <h2 id="data-sharing">Data Sharing</h2>
+        <p>Backed up data is stored with Cloudflare. The data is encrypted before uploading and is stored in the
+            European Union.
+            No data is shared with any other third party.</p>
+        </p>
+
+        <h2 id="data-removal">Data Removal</h2>
+        <p>To have your data be removed, remove the bot from your server.
+        <ul>
+            <li>Settings, server data and command data will be deleted within <b>24 hours</b>.</li>
+            <li>Log data will be deleted after <b>28 days</b>.</li>
+            <li>Backup data will be deleted after <b>28 days</b>.</li>
+            <li>Blacklist data will be retained <b>indefinitely</b>.</li>
+        </ul>
+        </p>
+
+        <h2 id="contact">Contact</h2>
+        If you have any concerns, you can join the <a href="https://discord.gg/kFZFUWeN">Official Support Discord
+            Server</a>.
+</body>
+
+</html>
