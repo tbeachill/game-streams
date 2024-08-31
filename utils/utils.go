@@ -13,38 +13,12 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/bwmarrin/discordgo"
 
 	"gamestreams/logs"
 )
 
 // StartTime is the time the bot started.
 var StartTime time.Time
-
-// CreateTimestamp creates absolute Discord timestamps from date and time strings.
-func CreateTimestamp(d string, t string) (string, string, error) {
-	layout := "2006-01-02 15:04"
-	if t == "" {
-		dt, err := time.Parse(layout, fmt.Sprintf("%s %s", d, "09:00"))
-		if err != nil {
-			return "", "", err
-		}
-		return fmt.Sprintf("<t:%d:d>", dt.Unix()), "TBC", nil
-	}
-	dt, err := time.Parse(layout, fmt.Sprintf("%s %s", d, t))
-	if err != nil {
-		return "", "", err
-	}
-	return fmt.Sprintf("<t:%d:d>", dt.Unix()), fmt.Sprintf("<t:%d:t>", dt.Unix()), err
-}
-
-// CreateTimestampRelative returns a relative Discord timestamp from date and time
-// strings. e.g. "in 2 hours"
-func CreateTimestampRelative(d string, t string) (string, error) {
-	layout := "2006-01-02 15:04"
-	dt, err := time.Parse(layout, fmt.Sprintf("%s %s", d, t))
-	return fmt.Sprintf("<t:%d:R>", dt.Unix()), err
-}
 
 // ParseTomlDate converts a date string from DD/MM/YYYY to YYYY-MM-DD.
 func ParseTomlDate(d string) (string, error) {
@@ -171,15 +145,6 @@ func GetHTMLBody(URL string) (*goquery.Document, error) {
 		return nil, err
 	}
 	return doc, err
-}
-
-// GetUserID returns the user ID of the user who sent the interaction.
-func GetUserID(i *discordgo.InteractionCreate) string {
-	if i.GuildID == "" {
-		return i.User.ID
-	} else {
-		return i.Member.User.ID
-	}
 }
 
 // PatternValidator checks if a string matches a given regex pattern.
