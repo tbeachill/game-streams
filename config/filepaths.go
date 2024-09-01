@@ -19,8 +19,6 @@ type FilePaths struct {
 	EncryptedDatabase string `toml:"encrypted_database"`
 	// The path to the encryption key used to encrypt the database.
 	EncryptionKey string `toml:"encryption_key"`
-	// The path to the log file.
-	Log string `toml:"log"`
 }
 
 // SetPaths sets the file paths for the bot depending on the operating system.
@@ -44,7 +42,6 @@ func (f *FilePaths) UnmarshalTOML(data interface{}) error {
 			f.Database = v["database"].(string)
 			f.EncryptedDatabase = v["encrypted_database"].(string)
 			f.EncryptionKey = v["encryption_key"].(string)
-			f.Log = v["log"].(string)
 		} else {
 			home, err := os.UserHomeDir()
 			if err != nil {
@@ -54,7 +51,6 @@ func (f *FilePaths) UnmarshalTOML(data interface{}) error {
 			f.Database = fmt.Sprintf(v["database"].(string), home)
 			f.EncryptedDatabase = fmt.Sprintf(v["encrypted_database"].(string), home)
 			f.EncryptionKey = fmt.Sprintf(v["encryption_key"].(string), home)
-			f.Log = fmt.Sprintf(v["log"].(string), home)
 		}
 	}
 	return nil

@@ -8,7 +8,6 @@ package logs
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/charmbracelet/log"
@@ -38,14 +37,8 @@ func (l *Logger) Init() {
 		CallerOffset:    config.Values.Logs.Error.CallerOffset,
 		ReportTimestamp: config.Values.Logs.Error.ReportTimestamp,
 	})
-	logFile, err := os.OpenFile(config.Values.Files.Log, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		l.ErrorWarn.WithPrefix(" LOGS").Fatal("Error opening log file",
-			"err", err)
-	}
-	mw := io.MultiWriter(os.Stdout, logFile)
-	l.Info.SetOutput(mw)
-	l.ErrorWarn.SetOutput(mw)
+	l.Info.SetOutput(os.Stdout)
+	l.ErrorWarn.SetOutput(os.Stdout)
 }
 
 // LogInfo logs messages with the Info logger and a prefix. Optionally sends a DM to the
