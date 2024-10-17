@@ -2,8 +2,9 @@ name: deploy
 
 on:
   workflow_dispatch: # allows manual triggering
-  schedule:
-    - cron: '18 5 * * 1' # 05:18 every monday
+  push:
+    branches:
+      - main
 
 jobs:
   checkout:
@@ -12,20 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-  check-commits:
+  stop-bot:
     needs: checkout
     runs-on: self-hosted
-    outputs:
-          new_commits: ${{ steps.get-commits.outputs.week_commit_count }}
-    steps:
-      - name: Get new commits
-        id: get-commits
-        run: echo "week_commit_count=$(git log --oneline --since '1 week ago' | wc -l)" >> $GITHUB_OUTPUT
-
-  stop-bot:
-    needs: check-commits
-    runs-on: self-hosted
-    if: ${{ needs.check-commits.outputs.new_commits > 0 }}
     steps:
       - name: Stop bot service
         run: sudo systemctl stop game-streams
