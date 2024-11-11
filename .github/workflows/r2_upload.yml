@@ -21,7 +21,7 @@ jobs:
     if: ${{ needs.check-commits.outputs.new_commits > 0 }}
     steps:
       - name: R2 upload
-        uses: ryand56/r2-upload-action@v1.3
+        uses: ryand56/r2-upload-action@v1.4
         with:
           r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
           r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
